@@ -6,9 +6,13 @@ over ssl:// ,tcp://  wss:// or ws://
 
 # Directories
 
+## include
+
+Files included by server and clients
+
 ## Server
 
-Implemention of the server and php script to start server
+Implemention of two servers and php script to start server
 
 ## phpClient
 
