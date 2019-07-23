@@ -8,5 +8,5 @@
   rm tmp.p12
 
  */
-$keyAndCertFile = '/etc/letsencrypt/live/vz139.worldserver.net/certKey.pem';
-$pathToCert = '/etc/letsencrypt/live/vz139.worldserver.net/';
+$keyAndCertFile = '/etc/letsencrypt/live/your.server.net/certKey.pem';
+$pathToCert = '/etc/letsencrypt/live/your.server.net/';
