@@ -30,6 +30,8 @@ class WebSocketServer {
 
     function __construct($Address, $Port, $keyAndCertFile = '', $pathToCert = '') {
 
+        $this->core = new coreFunc();
+
         $this->socketMaster = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if (!is_resource($this->socketMaster)) {
             $this->Log("The master socket could not be created: " . socket_strerror(socket_last_error()), true);
@@ -150,6 +152,9 @@ class WebSocketServer {
 
     public function Close($SocketID) {
         //socket_close($Socket);
+        if (is_resource($SocketID)) {
+            $SocketID = intval($SocketID);
+        }
         socket_shutdown($this->Sockets[$SocketID]);
         unset($this->Clients[$SocketID]);
         unset($this->Sockets[$SocketID]);
@@ -158,7 +163,7 @@ class WebSocketServer {
     }
 
     protected function Handshake($Socket, $Buffer) {
-        $this->Log('Handshake:' . $Buffer);
+
         $addHeader = [];
         if ($Buffer == "php process\n\n") {
             $SocketID = intval($Socket);
@@ -195,7 +200,7 @@ class WebSocketServer {
         }
         if (count($addHeader) > 0) {
             $addh = implode("\r\n", $addHeader);
-            @socket_write($Socket, $addh, strlen($addh));
+            socket_write($Socket, $addh, strlen($addh));
             $this->onError($SocketID, "Handshake aborted - [" . trim($addh) . "]");
             return $this->Close($Socket);
         }
@@ -213,54 +218,9 @@ class WebSocketServer {
         $this->onOpen($SocketID);
     }
 
-    protected function Encode($M) {
-        // inspiration for Encode() method : 
-        // http://stackoverflow.com/questions/8125507/how-can-i-send-and-receive-websocket-messages-on-the-server-side
-        $L = strlen($M);
-        $bHead = [];
-        $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
-        if ($L <= 125) {
-            $bHead[1] = $L;
-        } else if ($L >= 126 && $L <= 65535) {
-            $bHead[1] = 126;
-            $bHead[2] = ( $L >> 8 ) & 255;
-            $bHead[3] = ( $L ) & 255;
-        } else {
-            $bHead[1] = 127;
-            $bHead[2] = ( $L >> 56 ) & 255;
-            $bHead[3] = ( $L >> 48 ) & 255;
-            $bHead[4] = ( $L >> 40 ) & 255;
-            $bHead[5] = ( $L >> 32 ) & 255;
-            $bHead[6] = ( $L >> 24 ) & 255;
-            $bHead[7] = ( $L >> 16 ) & 255;
-            $bHead[8] = ( $L >> 8 ) & 255;
-            $bHead[9] = ( $L ) & 255;
-        }
-        return (implode(array_map("chr", $bHead)) . $M);
-    }
-
-    private function Decode($payload) {
-        $length = ord($payload[1]) & 127;
-        if ($length == 126) {
-            $masks = substr($payload, 4, 4);
-            $data = substr($payload, 8);
-        } else if ($length == 127) {
-            $masks = substr($payload, 10, 4);
-            $data = substr($payload, 14);
-        } else {
-            $masks = substr($payload, 2, 4);
-            $data = substr($payload, 6, $length); // hgs 30.09.2016
-        }
-        $text = '';
-        for ($i = 0; $i < strlen($data); ++$i) {
-            $text .= $data[$i] ^ $masks[$i % 4];
-        }
-        return $text;
-    }
-
     public function Read($SocketID, $M) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
-            $M = $this->Decode($M);
+            $M = $this->core->Decode($M);
         }
         $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $this->Clients[$SocketID]->uuid]));
         $this->onData($SocketID, ($M));
@@ -268,7 +228,7 @@ class WebSocketServer {
 
     public function Write($SocketID, $M) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
-            $M = $this->Encode($M);
+            $M = $this->core->Encode($M);
         }
         if (socket_write($this->Sockets[$SocketID], $M, strlen($M)) === false) {
             return false;
