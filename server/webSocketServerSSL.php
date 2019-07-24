@@ -10,6 +10,8 @@
 
 class WebSocketServer {
 
+    use coreFunc; // TRAIT to implement various methods
+
     public
             $logToFile = false,
             $logFile = "log.txt",
@@ -32,7 +34,7 @@ class WebSocketServer {
 
         $errno = 0;
         $errstr = '';
-        $this->core = new coreFunc();
+
         /*
          * ***********************************************
          * below has to be done once ,if server runs on system using
@@ -117,32 +119,9 @@ class WebSocketServer {
         }
     }
 
-    public function Log($M) {
-
-        if ($this->logToFile) {
-            $M = "[" . date(DATE_RFC1036, time()) . "] - $M \r\n";
-            file_put_contents($this->logFile, $M, FILE_APPEND);
-        }
-        if ($this->logToDisplay) {
-            $M = "[" . date(DATE_RFC1036, time()) . "] - $M \r\n";
-            echo $M;
-        }
-    }
-
-    protected function addClient($Socket) {
-        $index = intval($Socket);
-        $this->Clients[$index] = (object) ['ID' => $index, 'uuid' => '', 'Headers' => null, 'Handshake' => null, 'timeCreated' => null];
-        $this->Sockets[$index] = $Socket;
-        return $index;
-    }
-
-    protected function getClient($Socket) {
-        return $this->Clients[intval($Socket)];
-    }
-
+   
     public function Close($Socket) {
-//socket_close($Socket);
-        @stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
+        stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
         $SocketID = intval($Socket);
         unset($this->Clients[$SocketID]);
         unset($this->Sockets[$SocketID]);
@@ -208,7 +187,7 @@ class WebSocketServer {
 
     public function Read($SocketID, $M) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
-            $M = $this->coreFunc->Decode($M);
+            $M = $this->Decode($M);
             $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $this->Clients[$SocketID]->uuid]));
         }
         $this->onData($SocketID, ($M));
@@ -216,7 +195,7 @@ class WebSocketServer {
 
     public function Write($SocketID, $M) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
-            $M = $this->coreFunc->Encode($M);
+            $M = $this->Encode($M);
         }
         return fwrite($this->Sockets[$SocketID], $M, strlen($M));
     }

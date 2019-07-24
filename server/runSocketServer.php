@@ -16,12 +16,8 @@ include 'coreFunc.php';
  * ***********************************************
  */
 
-if (stripos('LINUX', PHP_OS) !== false) {
-    if (isSecure($Address)) {
-        include "webSocketServerSSL.php";
-    } else {
-        include "webSocketServer.php";
-    }
+if (isSecure($Address)) {
+    include "webSocketServerSSL.php";
 } else {
     include "webSocketServer.php";
 }
@@ -144,12 +140,13 @@ class customServer extends WebSocketServer {
 
 }
 
-function isSecure($Address) {
+function isSecure(&$Address) {
     $arr = explode('://', $Address);
     if (count($arr) > 1) {
         if (strncasecmp($arr[0], 'ssl', 3) == 0) {
             return true;
         }
+        $Address = $arr[1]; // just the host
     }
     return false;
 }

@@ -1,17 +1,6 @@
 <?php
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- * Description of coreFunc
- *
- * @author Heinz
- */
-class coreFunc {
+trait coreFunc {
 
     public function Encode($M) {
         // inspiration for Encode() method : 
@@ -58,5 +47,30 @@ class coreFunc {
         return $text;
     }
 
-//put your code here
+    public function Log($M, $exit = false) {
+
+        if ($this->logToFile) {
+            $M = "[" . date(DATE_RFC1036, time()) . "] - $M \r\n";
+            file_put_contents($this->logFile, $M, FILE_APPEND);
+        }
+        if ($this->logToDisplay) {
+            $M = "[" . date(DATE_RFC1036, time()) . "] - $M \r\n";
+            echo $M;
+        }
+        if ($exit) {
+            exit;
+        }
+    }
+
+    protected function addClient($Socket) {
+        $index = intval($Socket);
+        $this->Clients[$index] = (object) ['ID' => $index, 'uuid' => '', 'Headers' => null, 'Handshake' => null, 'timeCreated' => null];
+        $this->Sockets[$index] = $Socket;
+        return $index;
+    }
+
+    protected function getClient($Socket) {
+        return $this->Clients[intval($Socket)];
+    }
+
 }
