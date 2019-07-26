@@ -18,6 +18,9 @@ https://github.com/napengam/phpWebSocketServer
 
 Use at own risc. 
 
+## coreFunc.php
+
+A php trait used in both servers. Implements methods for encode, decode etc... 
 
 
 ## webSocketServerSSL.php

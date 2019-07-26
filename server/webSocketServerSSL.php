@@ -96,8 +96,8 @@ class WebSocketServer {
                     $Client = $this->getClient($Socket);
                     if ($Client->Handshake == false) {
                         $dataBuffer = fread($Socket, $this->bufferLength);
-
-                        if (strpos(str_replace("\r", '', $dataBuffer), "\n\n") === false) { // headers have not been completely received --> wait --> handshake
+                        if (strpos(str_replace("\r", '', $dataBuffer), "\n\n") === false) {
+                            // headers have not been completely received --> wait --> handshake
                             $this->onOther($SocketID, "Continue receving headers");
                             continue;
                         }
@@ -119,8 +119,10 @@ class WebSocketServer {
         }
     }
 
-   
     public function Close($Socket) {
+        if (is_int($Socket)) {
+            $Socket = $this->Sockets[$Socket];
+        }
         stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
         $SocketID = intval($Socket);
         unset($this->Clients[$SocketID]);

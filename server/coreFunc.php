@@ -73,4 +73,34 @@ trait coreFunc {
         return $this->Clients[intval($Socket)];
     }
 
+    /*
+     * ***********************************************
+     * for future use
+     * ***********************************************
+     */
+
+    private function optAssign($opt) {
+
+        foreach ((object) $this->stdOpt as $key => $defaultValue) {
+            if ($opt->{$key}) {
+                continue;
+            }
+            $opt->{$key} = $defaultValue;
+        }
+        return $opt;
+    }
+
+    private function getStdOpt() {
+        return (object)
+                [
+                    'address' => '',
+                    'port' => '',
+                    'certKey' => '',
+                    'certPath' => '',
+                    'logFile' => '',
+                    'logtoFile' => false,
+                    'logToConsol' => true
+        ];
+    }
+
 }

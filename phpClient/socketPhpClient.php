@@ -7,7 +7,7 @@ class socketTalk {
 
     function __construct($Address, $Port) {
         $context = '';
-        if (stripos(" $Address", 'ssl://')) {
+        if ($this->isSecure($Address)) {
             $context = stream_context_create();
             stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
             stream_context_set_option($context, 'ssl', 'verify_peer', false);
@@ -25,9 +25,8 @@ class socketTalk {
         }
 
         $this->connected = true;
-        $buff = $this->fwriteSS($this->socketMaster, "php process\n\n");
+        $buff = $this->writeSocket($this->socketMaster, "php process\n\n");
         $param = json_decode($buff);
-        $this->serveros = $param->os;
     }
 
     final function talk($msg) {
@@ -38,7 +37,7 @@ class socketTalk {
              * send data now
              * *****************************************
              */
-            $what = $this->fwriteSS($this->socketMaster, $json);
+            $what = $this->writeSocket($this->socketMaster, $json);
         }
     }
 
@@ -52,19 +51,8 @@ class socketTalk {
         }
     }
 
-    private final function freadSS($SOS, $len) {
-        if ($this->connected == false) {
-            return;
-        }
-        if ($this->useStream) {
-            $buff = fread($SOS, $len);
-        } else {
-            $buff = socket_read($SOS, $len);
-        }
-        return $buff;
-    }
 
-    private final function fwriteSS($SOS, $buff) {
+    private final function writeSocket($SOS, $buff) {
         if ($this->connected == false) {
             return;
         }
@@ -75,6 +63,17 @@ class socketTalk {
             $buff = socket_read($SOS, 1024);
             return $buff;
         }
+    }
+
+    private final function isSecure(&$Address) {
+        $arr = explode('://', $Address);
+        if (count($arr) > 1) {
+            if (strncasecmp($arr[0], 'ssl', 3) == 0) {
+                return true;
+            }
+            $Address = $arr[1]; // just the host
+        }
+        return false;
     }
 
 }

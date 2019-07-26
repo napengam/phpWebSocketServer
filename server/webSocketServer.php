@@ -10,7 +10,7 @@
 
 
 class WebSocketServer {
-    
+
     use coreFunc; // TRAIT to implement various methods
 
     public
@@ -26,13 +26,12 @@ class WebSocketServer {
             $serveros = 'WINDOW';
     protected
             $Address,
+            $stdOpt,
             $Port,
             $socketMaster,
             $Clients = [];
 
     function __construct($Address, $Port, $keyAndCertFile = '', $pathToCert = '') {
-
-        //$this->core = new coreFunc();
 
         $this->socketMaster = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         if (!is_resource($this->socketMaster)) {
@@ -63,7 +62,7 @@ class WebSocketServer {
             //   $a = false;
             $socketArrayRead = $this->Sockets;
             $socketArrayWrite = $socketArrayExceptions = NULL;
-            @socket_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, NULL);
+            socket_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, NULL);
             foreach ($socketArrayRead as $Socket) {
                 $SocketID = intval($Socket);
 
@@ -78,7 +77,7 @@ class WebSocketServer {
                         $this->onOpening($SocketID);
                     }
                 } else {
-                    $receivedBytes = @socket_recv($Socket, $dataBuffer, $this->bufferLength, 0);
+                    $receivedBytes = socket_recv($Socket, $dataBuffer, $this->bufferLength, 0);
                     if ($receivedBytes === false) {
                         // on error
 
@@ -105,10 +104,6 @@ class WebSocketServer {
                             }
                             $this->Handshake($Socket, $dataBuffer);
                         } else {
-                            if ($this->Clients[$SocketID]->Headers !== 'websocket') {
-                                //  $l = substr($dataBuffer, 0, 32) * 1; // <== length of data to come from client
-                                //$dataBuffer = socket_read($Socket, $l * 1); //<== data from client
-                            }
                             if ($dataBuffer === false) {
                                 $this->Close($Socket);
                             } else if (strlen($dataBuffer) == 0) {
@@ -126,7 +121,6 @@ class WebSocketServer {
         }
     }
 
-   
     public function Close($SocketID) {
         if (is_resource($SocketID)) {
             $SocketID = intval($SocketID);
@@ -187,7 +181,7 @@ class WebSocketServer {
         }
         $Token = base64_encode($Token) . "\r\n";
         $addHeaderOk = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n";
-        @socket_write($Socket, $addHeaderOk, strlen($addHeaderOk));
+        socket_write($Socket, $addHeaderOk, strlen($addHeaderOk));
 
         $this->Clients[$SocketID]->Headers = 'websocket';
         $this->Clients[$SocketID]->Handshake = true;
@@ -213,7 +207,7 @@ class WebSocketServer {
         }
     }
 
-    // Methods to be configured by the user; executed directly after...
+// Methods to be configured by the user; executed directly after...
     function onOpen($SocketID) { //...successful handshake
         $this->Log("Handshake with socket #$SocketID successful");
     }
