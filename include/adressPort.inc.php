@@ -9,5 +9,5 @@
  */
 //$Address = 'ssl://vz139.worldserver.net';
 //$Address = 'tcp://your.server.net';
-$Address = '127.0.0.1';
+$Address = 'tcp://127.0.0.1';
 $Port = 8083;

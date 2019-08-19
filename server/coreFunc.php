@@ -73,6 +73,70 @@ trait coreFunc {
         return $this->Clients[intval($Socket)];
     }
 
+    protected function Handshake($Socket, $Buffer, $ssl = true) {
+        $this->Log('Handshake:' . $Buffer);
+        $addHeader = [];
+        if ($Buffer == "php process\n\n") {
+            $SocketID = intval($Socket);
+            $this->Clients[$SocketID]->Headers = 'tcp';
+            $this->Clients[$SocketID]->Handshake = true;
+            $this->onOpen($SocketID);
+            return;
+        }
+        $SocketID = intval($Socket);
+        $magicGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        $Headers = [];
+        $Lines = explode("\n", $Buffer);
+        foreach ($Lines as $Line) {
+            if (strpos($Line, ":") !== false) {
+                $Header = explode(":", $Line, 2);
+                $Headers[strtolower(trim($Header[0]))] = trim($Header[1]);
+            } else if (stripos($Line, "get ") !== false) {
+                preg_match("/GET (.*) HTTP/i", $Buffer, $reqResource);
+                $Headers['get'] = trim($reqResource[1]);
+            }
+        }
+
+        if (!isset($Headers['host']) ||
+                !isset($Headers['sec-websocket-key']) ||
+                (!isset($Headers['upgrade']) || strtolower($Headers['upgrade']) != 'websocket') ||
+                (!isset($Headers['connection']) || strpos(strtolower($Headers['connection']), 'upgrade') === FALSE)) {
+            $addHeader[] = "HTTP/1.1 400 Bad Request";
+        }
+        if (!isset($Headers['sec-websocket-version']) || strtolower($Headers['sec-websocket-version']) != 13) {
+            $addHeader[] = "HTTP/1.1 426 Upgrade Required\r\nSec-WebSocketVersion: 13";
+        }
+        if (!isset($Headers['get'])) {
+            $addHeader[] = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+        }
+        if (count($addHeader) > 0) {
+            $addh = implode("\r\n", $addHeader);
+            if ($ssl) {
+                fwrite($Socket, $addh, strlen($addh));
+            } else {
+                socket_write($Socket, $addh, strlen($addh));
+            }
+            $this->onError($SocketID, "Handshake aborted - [" . trim($addh) . "]");
+            return $this->Close($Socket);
+        }
+        $Token = "";
+        $sah1 = sha1($Headers['sec-websocket-key'] . $magicGUID);
+        for ($i = 0; $i < 20; $i++) {
+            $Token .= chr(hexdec(substr($sah1, $i * 2, 2)));
+        }
+        $Token = base64_encode($Token) . "\r\n";
+        $addHeaderOk = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n";
+        if ($ssl) {
+            fwrite($Socket, $addHeaderOk, strlen($addHeaderOk));
+        } else {
+            socket_write($Socket, $addHeaderOk, strlen($addHeaderOk));
+        }
+
+        $this->Clients[$SocketID]->Headers = 'websocket';
+        $this->Clients[$SocketID]->Handshake = true;
+        $this->onOpen($SocketID);
+    }
+
     /*
      * ***********************************************
      * for future use
