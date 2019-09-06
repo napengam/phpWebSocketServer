@@ -8,7 +8,6 @@
 // to work for communicating over secure websocket wss://
 // and accept any other socket connection by PHP processes or other 
 
-
 class WebSocketServer {
 
     use coreFunc; // TRAIT to implement various methods

@@ -76,15 +76,15 @@ trait coreFunc {
     protected function Handshake($Socket, $Buffer, $ssl = true) {
         $this->Log('Handshake:' . $Buffer);
         $addHeader = [];
-        if ($Buffer == "php process\n\n") {
-            $SocketID = intval($Socket);
+         $SocketID = intval($Socket);
+        if ($Buffer == "php process\n\n") {    
             $this->Clients[$SocketID]->Headers = 'tcp';
             $this->Clients[$SocketID]->Handshake = true;
             $this->onOpen($SocketID);
             return;
         }
-        $SocketID = intval($Socket);
-        $magicGUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+       
+     
         $Headers = [];
         $Lines = explode("\n", $Buffer);
         foreach ($Lines as $Line) {
@@ -120,7 +120,7 @@ trait coreFunc {
             return $this->Close($Socket);
         }
         $Token = "";
-        $sah1 = sha1($Headers['sec-websocket-key'] . $magicGUID);
+        $sah1 = sha1($Headers['sec-websocket-key'] . "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
         for ($i = 0; $i < 20; $i++) {
             $Token .= chr(hexdec(substr($sah1, $i * 2, 2)));
         }
