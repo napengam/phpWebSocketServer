@@ -56,7 +56,7 @@ class WebSocketServer {
     public function Start() {
         $this->Log("Starting server...");
         $a = true;
-        $nulll = NULL;
+        $dataBuffer = [];
         while ($a) {
             //   $a = false;
             $socketArrayRead = $this->Sockets;
@@ -176,5 +176,3 @@ class WebSocketServer {
     }
 
 }
-
-?>
