@@ -7,7 +7,7 @@
  * $Port=number
  * **************************
  */
-
+//$Address = 'ssl://your.server.net';
 //$Address = 'tcp://your.server.net';
 //$Address = 'tcp://127.0.0.1';
 $Port = 8083;
