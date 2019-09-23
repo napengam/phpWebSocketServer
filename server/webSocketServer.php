@@ -17,34 +17,52 @@ class WebSocketServer {
             $logFile = "log.txt",
             $logToDisplay = true,
             $Sockets = [],
-            $bufferLength = 2048 * 100,
+            $bufferLength = 4096,
             $maxClients = 20,
             $errorReport = E_ALL,
             $timeLimit = 0,
             $implicitFlush = true,
-            $serveros = 'WINDOW';
+            $serveros;
     protected
             $Address,
-            $stdOpt,
             $Port,
             $socketMaster,
-            $Clients = [];
+            $Clients = [],
+            $isLinux = true;
 
     function __construct($Address, $Port, $keyAndCertFile = '', $pathToCert = '') {
 
-        $this->socketMaster = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-        if (!is_resource($this->socketMaster)) {
-            $this->Log("The master socket could not be created: " . socket_strerror(socket_last_error()), true);
+        $errno = 0;
+        $errstr = '';
+
+        /*
+         * ***********************************************
+         * below has to be done once ,if server runs on system using
+         * letsencrypt
+         * 
+         * openssl pkcs12 -export -in hostname.crt -inkey hostname.key -out hostname.p12
+         * openssl pkcs12 -in hostname.p12 -nodes -out hostname.pem
+         * ***********************************************
+         */
+        $ssl = '';
+        $context = stream_context_create();
+        if ($this->isSecure($Address)) {
+            stream_context_set_option($context, 'ssl', 'local_cert', $keyAndCertFile);
+            stream_context_set_option($context, 'ssl', 'capth', $pathToCert);
+            stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
+            stream_context_set_option($context, 'ssl', 'verify_peer', false);
+            $ssl = "using SSL";
         }
-        socket_set_option($this->socketMaster, SOL_SOCKET, SO_REUSEADDR, 1);
-        if (!socket_bind($this->socketMaster, $Address, $Port)) {
-            $this->Log("Can't bind on master socket: " . socket_strerror(socket_last_error()), true);
+        $socket = stream_socket_server("$Address:$Port", $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+
+        $this->Log("Server initialized on " . PHP_OS . "  $Address:$Port $ssl");
+        if (!$socket) {
+            $this->Log("Error $errno creating stream: $errstr", true);
+            exit;
         }
-        if (!socket_listen($this->socketMaster, $this->maxClients)) {
-            $this->Log("Can't listen on master socket: " . socket_strerror(socket_last_error()), true);
-        }
-        $this->Sockets["m"] = $this->socketMaster;
-        $this->Log("Server initilaized on $Address:$Port  ; no SSL");
+        $this->serveros = PHP_OS;
+        $this->Sockets["m"] = $socket;
+        $this->socketMaster = $socket;
 
         error_reporting($this->errorReport);
         set_time_limit($this->timeLimit);
@@ -53,20 +71,34 @@ class WebSocketServer {
         }
     }
 
+    function isSecure(&$Address) {
+        $arr = explode('://', $Address);
+        if (count($arr) > 1) {
+            if (strncasecmp($arr[0], 'ssl', 3) == 0) {
+                return true;
+            }
+            $Address = $arr[1]; // just the host
+        }
+        return false;
+    }
+
     public function Start() {
+        if ($this->isLinux === false) {
+            return false;
+        }
         $this->Log("Starting server...");
         $a = true;
-        $dataBuffer = [];
+        $nulll = NULL;
         while ($a) {
-            //   $a = false;
+
             $socketArrayRead = $this->Sockets;
             $socketArrayWrite = $socketArrayExceptions = NULL;
-            socket_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, NULL);
+            stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, $nulll);
             foreach ($socketArrayRead as $Socket) {
                 $SocketID = intval($Socket);
 
                 if ($Socket === $this->socketMaster) {
-                    $Client = socket_accept($Socket);
+                    $Client = stream_socket_accept($Socket);
 
                     if (!is_resource($Client)) {
                         $this->onError($SocketID, "Connection could not be established");
@@ -76,55 +108,37 @@ class WebSocketServer {
                         $this->onOpening($SocketID);
                     }
                 } else {
-                    $receivedBytes = socket_recv($Socket, $dataBuffer, $this->bufferLength, 0);
-                    if ($receivedBytes === false) {
-                        // on error
-
-                        $sockerError = socket_last_error($Socket);
-                        $socketErrorM = socket_strerror($sockerError);
-                        if ($sockerError >= 100) {
-                            $this->onError($SocketID, "Unexpected disconnect with error $sockerError [$socketErrorM]");
-                            $this->Close($Socket);
-                        } else {
-                            $this->onOther($SocketID, "Other socket error $sockerError [$socketErrorM]");
-                            $this->Close($Socket);
+                    $Client = $this->getClient($Socket);
+                    if ($Client->Handshake == false) {
+                        $dataBuffer = fread($Socket, $this->bufferLength);
+                        if (strpos(str_replace("\r", '', $dataBuffer), "\n\n") === false) {
+                            $this->onOther($SocketID, "Continue receving headers");
+                            continue;
                         }
-                    } else if ($receivedBytes == 0) {
-                        // no headers received (at all) --> disconnect
+                        $this->Handshake($Socket, $dataBuffer);
+                        continue;
+                    }
+                    $dataBuffer = fread($Socket, $this->bufferLength);
+                    if ($dataBuffer === false) {
+                        $this->Close($Socket);
+                    } else if (strlen($dataBuffer) == 0) {
                         $SocketID = $this->Close($Socket);
                         $this->onError($SocketID, "Client disconnected - TCP connection lost");
                     } else {
-                        // no error, --> check handshake
-                        $Client = $this->getClient($Socket);
-                        if ($Client->Handshake == false) {
-                            if (strpos(str_replace("\r", '', $dataBuffer), "\n\n") === false) { // headers have not been completely received --> wait --> handshake
-                                $this->onOther($SocketID, "Continue receving headers");
-                                continue;
-                            }
-                            $this->Handshake($Socket, $dataBuffer, false);
-                        } else {
-                            if ($dataBuffer === false) {
-                                $this->Close($Socket);
-                            } else if (strlen($dataBuffer) == 0) {
-                                // no headers received (at all) --> disconnect
-                                $SocketID = $this->Close($Socket);
-                                $this->onError($SocketID, "Client disconnected - TCP connection lost");
-                            } else {
-                                $this->log("Received bytes = " . strlen($dataBuffer));
-                                $this->Read($SocketID, $dataBuffer);
-                            }
-                        }
+                        $this->log("Received bytes = " . strlen($dataBuffer));
+                        $this->Read($SocketID, $dataBuffer);
                     }
                 }
             }
         }
     }
 
-    public function Close($SocketID) {
-        if (is_resource($SocketID)) {
-            $SocketID = intval($SocketID);
+    public function Close($Socket) {
+        if (is_int($Socket)) {
+            $Socket = $this->Sockets[$Socket];
         }
-        socket_shutdown($this->Sockets[$SocketID]);
+        stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
+        $SocketID = intval($Socket);
         unset($this->Clients[$SocketID]);
         unset($this->Sockets[$SocketID]);
         $this->onClose($SocketID);
@@ -133,21 +147,18 @@ class WebSocketServer {
 
     public function Read($SocketID, $M) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
-//            $M = $this->core->Decode($M);
             $M = $this->Decode($M);
         }
         $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $this->Clients[$SocketID]->uuid]));
+
         $this->onData($SocketID, ($M));
     }
 
     public function Write($SocketID, $M) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
-//            $M = $this->core->Encode($M);
             $M = $this->Encode($M);
         }
-        if (socket_write($this->Sockets[$SocketID], $M, strlen($M)) === false) {
-            return false;
-        }
+        return fwrite($this->Sockets[$SocketID], $M, strlen($M));
     }
 
 // Methods to be configured by the user; executed directly after...
@@ -176,3 +187,5 @@ class WebSocketServer {
     }
 
 }
+
+?>

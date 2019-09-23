@@ -76,15 +76,15 @@ trait coreFunc {
     protected function Handshake($Socket, $Buffer, $ssl = true) {
         $this->Log('Handshake:' . $Buffer);
         $addHeader = [];
-         $SocketID = intval($Socket);
-        if ($Buffer == "php process\n\n") {    
+        $SocketID = intval($Socket);
+        if ($Buffer == "php process\n\n") {
             $this->Clients[$SocketID]->Headers = 'tcp';
             $this->Clients[$SocketID]->Handshake = true;
             $this->onOpen($SocketID);
             return;
         }
-       
-     
+
+
         $Headers = [];
         $Lines = explode("\n", $Buffer);
         foreach ($Lines as $Line) {
@@ -111,11 +111,8 @@ trait coreFunc {
         }
         if (count($addHeader) > 0) {
             $addh = implode("\r\n", $addHeader);
-            if ($ssl) {
-                fwrite($Socket, $addh, strlen($addh));
-            } else {
-                socket_write($Socket, $addh, strlen($addh));
-            }
+            fwrite($Socket, $addh, strlen($addh));
+
             $this->onError($SocketID, "Handshake aborted - [" . trim($addh) . "]");
             return $this->Close($Socket);
         }
@@ -126,11 +123,7 @@ trait coreFunc {
         }
         $Token = base64_encode($Token) . "\r\n";
         $addHeaderOk = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n";
-        if ($ssl) {
-            fwrite($Socket, $addHeaderOk, strlen($addHeaderOk));
-        } else {
-            socket_write($Socket, $addHeaderOk, strlen($addHeaderOk));
-        }
+        fwrite($Socket, $addHeaderOk, strlen($addHeaderOk));
 
         $this->Clients[$SocketID]->Headers = 'websocket';
         $this->Clients[$SocketID]->Handshake = true;

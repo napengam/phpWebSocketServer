@@ -4,17 +4,6 @@
 
 Use at own risc. 
 
-## adressPort.inc.php
-
-adress of host and port to connect to the server
-
-<b>NOTE:</b>
-
-Specify the host adress like.
-<ul>
-<li> ssl://xyzabc.worldserver.net   
-<li> tcp://xyzabc.worldserver.net
-</ul>  
 
 ## socketWebClient.js
 

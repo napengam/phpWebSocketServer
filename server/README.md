@@ -4,8 +4,6 @@ Server witten in PHP that can handle connections via websocksets and normal sock
 The original version was implemented by Bryan Bliewert, nVentis@GitHub
 https://github.com/nVentis/PHP-WebSocketServer
 
-Full Credits go to him.
-
 I have just made some minor modifications and implemented the <b>secure version</b>.
 https://github.com/napengam/phpWebSocketServer
 
@@ -20,16 +18,13 @@ Use at own risc.
 
 ## coreFunc.php
 
-A php trait used in both servers. Implements methods for encode, decode etc... 
+A php trait used in class webSocketServer.php 
+Implements methods for encode, decode etc... 
 
-
-## webSocketServerSSL.php
-
-Class  implements the server using <code>stream_socket_server</code>.
 
 ## webSocketServer.php
 
-Class implements the server using standard <code>socket</code> calls.
+Class  implements the server using <code>stream_socket_server</code>.
 
 ## runSocketServer.php
 

@@ -49,8 +49,7 @@ function socketWebClient(sv, po) {
             }
             if (packet.opcode === 'next' && packet.uuid === uuid) {
                 //******************
-                //* HACK for server on windows
-                //* server asks for next message
+                //* server is ready for next message
                 //******************/
                 queue.shift();
                 if (queue.length > 0) {
@@ -68,37 +67,33 @@ function socketWebClient(sv, po) {
         };
     }
     function callbackReady(p) {
-        /*
-         ******************************************
-         * dummy call back
-         ******************************************
-         */
+        //*
+        // ******************************************
+        // * dummy call back
+        // ******************************************
+        // */
         return p;
     }
     function callbackReadMessage(p) {
-        /*
-         ******************************************
-         * dummy call back
-         ******************************************
-         */
+        ///*
+        // ******************************************
+        //* dummy call back
+        // ******************************************
+        // */
         return p;
     }
     function setCallbackReady(func) {
-        /*
-         ******************************************
-         * overwrite dummy call back with your own
-         * function func
-         ******************************************
-         */
+        //*
+        // * overwrite dummy call back with your own
+        // * function func
+        //
         callbackReady = func;
     }
     function setCallbackReadMessage(func) {
-        /*
-         ******************************************
-         * overwrite dummy call back with your own
-         * function func
-         ******************************************
-         */
+        // 
+        // * overwrite dummy call back with your own
+        // * function func
+        // */
         callbackReadMessage = func;
     }
 
@@ -119,23 +114,14 @@ function socketWebClient(sv, po) {
         if (!socketSend) {
             return;
         }
-        if (serveros === 'linux') {
-            socket.send(JSON.stringify(msg));
-            return;
-        }
         try {
-            //******************
-            //* HACK for server on windows
-            //* queue messages until server asks for
-            //* next message
-            //******************/
+            // queue messages until server asks for next message
             if (socketOpen) {
                 queue.push(msg);
             }
             if (queue.length === 1 && socketOpen) {
                 msg = queue[0];
-                msg = JSON.stringify(msg);
-                socket.send(msg);
+                socket.send(JSON.stringify(msg));
             }
         } catch (ex) {
             socketSend = false;

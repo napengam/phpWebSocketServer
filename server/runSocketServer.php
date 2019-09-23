@@ -15,12 +15,8 @@ include 'coreFunc.php';
  * inlcude the core server
  * ***********************************************
  */
+include "webSocketServer.php";
 
-if (isSecure($Address)) {
-    include "webSocketServerSSL.php";
-} else {
-    include "webSocketServer.php";
-}
 
 /*
  * ***********************************************
