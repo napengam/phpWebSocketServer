@@ -12,6 +12,6 @@ Specify the host adress like.
 <li> tcp://xyzabc.worldserver.net
 </ul>  
 
-## certPath.inc.php
+## certPath.inc.php 
 
 Holds path to certificates and keyfile
