@@ -12,7 +12,7 @@ Files included by server and clients
 
 ## Server
 
-Implemention of a servers and php and php script to start server
+Implemention of a servers in php and php script to start server
 
 ## phpClient
 
