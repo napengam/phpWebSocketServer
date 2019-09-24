@@ -1,14 +1,14 @@
-function socketWebClient(sv, po) {
+function socketWebClient(server, port) {
     'uses strict';
     var
-            tmp = [], queue = [], uuid, socket = {}, serveros, proto, server, port,
+            tmp = [], queue = [], uuid, socket = {}, serveros, proto,
             socketOpen = false, socketSend = false;
 
     //******************
     //* figure out what 
     // * protokoll to use
     //******************/
-    tmp = sv.split('://');
+    tmp = server.split('://');
     if (tmp[0] === 'ssl') {
         proto = 'wss://';
     } else {
@@ -16,16 +16,14 @@ function socketWebClient(sv, po) {
     }
     if (tmp.length > 1) {
         server = tmp[1];
-    } else {
-        server = sv;
     }
-    port = po;
+
     uuid = generateUUID();
     function init() {
         socket = new WebSocket('' + proto + server + ':' + port);
+
         socket.onopen = function () {
             queue = [];
-
         };
         socket.onerror = function () {
             socketSend = false;
@@ -37,16 +35,7 @@ function socketWebClient(sv, po) {
                 return;
             }
             packet = JSON.parse(msg.data);
-            if (packet.opcode === 'ready') {
-                socketOpen = true;
-                socketSend = true;
-                serveros = packet.os;
-                msg = {'opcode': 'uuid', 'message': uuid};
-                msg = JSON.stringify(msg);
-                socket.send(msg);
-                callbackReady(packet);
-                return;
-            }
+
             if (packet.opcode === 'next' && packet.uuid === uuid) {
                 //******************
                 //* server is ready for next message
@@ -58,6 +47,15 @@ function socketWebClient(sv, po) {
                     socket.send(msg);
                 }
                 return;
+            } else if (packet.opcode === 'ready') {
+                socketOpen = true;
+                socketSend = true;
+                serveros = packet.os;
+                msg = {'opcode': 'uuid', 'message': uuid};
+                msg = JSON.stringify(msg);
+                socket.send(msg);
+                callbackReady(packet);
+                return;
             }
             callbackReadMessage(packet);
         };
@@ -65,7 +63,10 @@ function socketWebClient(sv, po) {
             socketOpen = false;
             socketSend = false;
         };
+
     }
+   
+
     function callbackReady(p) {
         //*
         // ******************************************

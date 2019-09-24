@@ -27,8 +27,7 @@ class WebSocketServer {
             $Address,
             $Port,
             $socketMaster,
-            $Clients = [],
-            $isLinux = true;
+            $Clients = [];
 
     function __construct($Address, $Port, $keyAndCertFile = '', $pathToCert = '') {
 
@@ -83,9 +82,7 @@ class WebSocketServer {
     }
 
     public function Start() {
-        if ($this->isLinux === false) {
-            return false;
-        }
+
         $this->Log("Starting server...");
         $a = true;
         $nulll = NULL;
@@ -147,10 +144,11 @@ class WebSocketServer {
 
     public function Read($SocketID, $M) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
+            $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $this->Clients[$SocketID]->uuid]));
             $M = $this->Decode($M);
+        } else {
+            $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         }
-        $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $this->Clients[$SocketID]->uuid]));
-
         $this->onData($SocketID, ($M));
     }
 
