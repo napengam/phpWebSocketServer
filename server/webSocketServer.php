@@ -112,7 +112,9 @@ class WebSocketServer {
                             $this->onOther($SocketID, "Continue receving headers");
                             continue;
                         }
-                        $this->Handshake($Socket, $dataBuffer);
+                        if ($this->Handshake($Socket, $dataBuffer)) {
+                            $this->onOpen($SocketID);
+                        }
                         continue;
                     }
                     $dataBuffer = fread($Socket, $this->bufferLength);

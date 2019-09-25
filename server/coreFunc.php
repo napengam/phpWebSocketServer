@@ -79,9 +79,8 @@ trait coreFunc {
         $SocketID = intval($Socket);
         if ($Buffer == "php process\n\n") {
             $this->Clients[$SocketID]->Headers = 'tcp';
-            $this->Clients[$SocketID]->Handshake = true;
-            $this->onOpen($SocketID);
-            return;
+            $this->Clients[$SocketID]->Handshake = true;     
+            return true;
         }
 
 
@@ -114,7 +113,8 @@ trait coreFunc {
             fwrite($Socket, $addh, strlen($addh));
 
             $this->onError($SocketID, "Handshake aborted - [" . trim($addh) . "]");
-            return $this->Close($Socket);
+            $this->Close($Socket);
+            return false;
         }
         $Token = "";
         $sah1 = sha1($Headers['sec-websocket-key'] . "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
@@ -126,8 +126,8 @@ trait coreFunc {
         fwrite($Socket, $addHeaderOk, strlen($addHeaderOk));
 
         $this->Clients[$SocketID]->Headers = 'websocket';
-        $this->Clients[$SocketID]->Handshake = true;
-        $this->onOpen($SocketID);
+        $this->Clients[$SocketID]->Handshake = true;       
+        return true;
     }
 
     /*

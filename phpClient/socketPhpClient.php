@@ -29,8 +29,8 @@ class socketTalk {
             return;
         }
         $this->connected = true;
-        $buff = fwrite($this->socketMaster, "php process\n\n");
-        fread($this->socketMaster, 256); // wait for ACK
+        fwrite($this->socketMaster, "php process\n\n");
+        $buff = fread($this->socketMaster, 256); // wait for ACK
         $param = json_decode($buff);
     }
 
@@ -38,7 +38,7 @@ class socketTalk {
         if ($this->connected) {
             $json = json_encode((object) $msg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
             fwrite($this->socketMaster, $json);
-            fread($this->socketMaster, 256); // wait for ACK
+            $buff = fread($this->socketMaster, 256); // wait for ACK
         }
     }
 
