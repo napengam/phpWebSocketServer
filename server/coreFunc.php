@@ -73,18 +73,19 @@ trait coreFunc {
         return $this->Clients[intval($Socket)];
     }
 
-    protected function Handshake($Socket, $Buffer, $ssl = true) {
+    protected function Handshake($Socket, $Buffer) {
         $this->Log('Handshake:' . $Buffer);
         $addHeader = [];
         $SocketID = intval($Socket);
         if ($Buffer == "php process\n\n") {
             $this->Clients[$SocketID]->Headers = 'tcp';
-            $this->Clients[$SocketID]->Handshake = true;     
+            $this->Clients[$SocketID]->Handshake = true;
             return true;
         }
 
 
         $Headers = [];
+        $reqResource = [];
         $Lines = explode("\n", $Buffer);
         foreach ($Lines as $Line) {
             if (strpos($Line, ":") !== false) {
@@ -126,7 +127,7 @@ trait coreFunc {
         fwrite($Socket, $addHeaderOk, strlen($addHeaderOk));
 
         $this->Clients[$SocketID]->Headers = 'websocket';
-        $this->Clients[$SocketID]->Handshake = true;       
+        $this->Clients[$SocketID]->Handshake = true;
         return true;
     }
 
