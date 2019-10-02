@@ -25,7 +25,7 @@ and open the template in the editor.
         <script>
             'use strict';
             var sock, uuid;
-            sock = socketWebClient(server, port);
+            sock = socketWebClient(server, port,'/web');
             sock.setCallbackReady(xyz);
             sock.setCallbackReadMessage(readMessage);
             sock.init();

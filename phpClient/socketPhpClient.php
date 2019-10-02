@@ -5,7 +5,7 @@ class socketTalk {
     public $uuid, $connected = false, $serveros = 'linux';
     private $socketMaster;
 
-    function __construct($Address, $Port) {
+    function __construct($Address, $Port,$application='/') {
         $secure = false;
         $arr = explode('://', $Address);
         if (count($arr) > 1) {
@@ -29,7 +29,7 @@ class socketTalk {
             return;
         }
         $this->connected = true;
-        fwrite($this->socketMaster, "php process\n\n");
+        fwrite($this->socketMaster, "php process\nGET $application HTTP/1.1\n\n");
         $buff = fread($this->socketMaster, 256); // wait for ACK
         $param = json_decode($buff);
     }

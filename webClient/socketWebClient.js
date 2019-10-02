@@ -1,4 +1,4 @@
-function socketWebClient(server, port) {
+function socketWebClient(server, port,app) {
     'uses strict';
     var
             tmp = [], queue = [], uuid, socket = {}, serveros, proto,
@@ -20,7 +20,7 @@ function socketWebClient(server, port) {
 
     uuid = generateUUID();
     function init() {
-        socket = new WebSocket('' + proto + server + ':' + port);
+        socket = new WebSocket('' + proto + server + ':' + port+app);
 
         socket.onopen = function () {
             queue = [];

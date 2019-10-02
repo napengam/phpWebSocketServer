@@ -77,15 +77,19 @@ trait coreFunc {
         $this->Log('Handshake:' . $Buffer);
         $addHeader = [];
         $SocketID = intval($Socket);
-        if ($Buffer == "php process\n\n") {
-            $this->Clients[$SocketID]->Headers = 'tcp';
-            $this->Clients[$SocketID]->Handshake = true;
-            return true;
-        }
-
         $Headers = [];
         $reqResource = [];
         $Lines = explode("\n", $Buffer);
+        
+        if ($Lines[0] == "php process") {
+            $this->Clients[$SocketID]->Headers = 'tcp';
+            $this->Clients[$SocketID]->Handshake = true;
+            preg_match("/GET (.*) HTTP/i", $Buffer, $reqResource);
+            $Headers['get'] = trim($reqResource[1]);
+            $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
+            return true;
+        }
+
         foreach ($Lines as $Line) {
             if (strpos($Line, ":") !== false) {
                 $Header = explode(":", $Line, 2);
@@ -127,6 +131,7 @@ trait coreFunc {
 
         $this->Clients[$SocketID]->Headers = 'websocket';
         $this->Clients[$SocketID]->Handshake = true;
+        $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
         return true;
     }
 

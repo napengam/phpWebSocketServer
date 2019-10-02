@@ -18,7 +18,7 @@ if (isset($_GET['SSL'])) {
     $secure = true;
 }
 
-$talk = new socketTalk($Address, $Port);
+$talk = new socketTalk($Address, $Port, '/php');
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 1"]);
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 2"]);
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 3"]);
@@ -28,4 +28,3 @@ $talk->talk(['opcode' => 'quit']);
 
 $talk->silent();
 
- 
