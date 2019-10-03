@@ -15,8 +15,13 @@ class coreApp {
 
     public $server;
 
-    //put your code here
-
+    /*
+     * ***********************************************
+     * Overwrite these function, when needed, in an 
+     * application class
+     * registered with the socket server
+     * ***********************************************
+     */
 
     function onOpen($SocketID) {
         $this->server->Log("Telling Client to start on  #$SocketID");
@@ -24,8 +29,7 @@ class coreApp {
         $this->server->Write($SocketID, json_encode($msg));
     }
 
-    function onData($SocketID, $M) {
-        
+    function onData($SocketID, $M) { // date has benn received from client        
     }
 
     function onClose($SocketID) { // ...socket has been closed AND deleted        
