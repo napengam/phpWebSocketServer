@@ -77,7 +77,8 @@ trait coreFunc {
         $this->Log('Handshake:' . $Buffer);
         $addHeader = [];
         $SocketID = intval($Socket);
-        if ($Buffer == "php process\n\n") {
+        $Lines = explode("\n", $Buffer);
+        if ($Lines[0] == "php process") {
             $this->Clients[$SocketID]->Headers = 'tcp';
             $this->Clients[$SocketID]->Handshake = true;
             return true;

@@ -47,7 +47,8 @@ Class  implements the server using <code>stream_socket_server</code>.
 
 ## runSocketServer.php
 
-registers the application appWeb.php and appPHP.php with the server
+Example:
+Registers the application appWeb.php and appPHP.php with the server
 the starts the server.
 
 On a shell on Linux  just start it like:
@@ -56,14 +57,16 @@ On a shell on Linux  just start it like:
 
 you shoud then see an out put like the one below on system using SSL
 
-[Tue, 20 Nov 18 11:35:21 +0100] - Server initialized on Linux  ssl://xyzabc.worldserver.net:8083
-
-[Tue, 20 Nov 18 11:35:21 +0100] - Starting server...
+[Thu, 03 Oct 19 16:03:36 +0200] - Server initialized on Linux  ssl://xyz.server.net:8083 using SSL
+[Thu, 03 Oct 19 16:03:36 +0200] - Starting server...
+[Thu, 03 Oct 19 16:03:36 +0200] - Application : /web
+[Thu, 03 Oct 19 16:03:36 +0200] - Application : /php
 
 
 on a system not using SSL you should see a similar output like the one below
 > php runSocketserver.php
 
-[Tue, 20 Nov 18 11:40:29 +0100] - Server initialized on WINNT  tcp://127.0.0.1:8083
-
-[Tue, 20 Nov 18 11:40:29 +0100] - Starting server...
+[Thu, 03 Oct 19 16:00:28 +0200] - Server initialized on WINNT  127.0.0.1:8083
+[Thu, 03 Oct 19 16:00:28 +0200] - Starting server...
+[Thu, 03 Oct 19 16:00:28 +0200] - Application : /web
+[Thu, 03 Oct 19 16:00:28 +0200] - Application : /php
