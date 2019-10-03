@@ -8,7 +8,7 @@
 
 class appWeb extends coreApp {
 
-    private $packet; //, $server;
+    private $packet; 
 
     function onData($SocketID, $M) {
         /*

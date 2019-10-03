@@ -26,17 +26,29 @@ include 'appWeb.php';
 include 'appPHP.php';
 
 /*
+ * ***********************************************
+ * instantiate backend 'applications'
+ * ***********************************************
+ */
+$appWeb = new appWeb();
+$appPHP = new appPHP();
+/*
  * *****************************************
  * start server 
  * *****************************************
  */
-
-
 $server = new WebsocketServer($Address, $Port, $keyAndCertFile, $pathToCert);
-$appWeb = new appWeb();
-$appPHP = new appPHP();
+/*
+ * ***********************************************
+ * register backend 'applications' with server
+ * ***********************************************
+ */
 $server->registerApp('/web', $appWeb);
 $server->registerApp('/php', $appPHP);
-$server->logToFile = false;
+/*
+ * ***********************************************
+ * now start it
+ * ***********************************************
+ */
 $server->Start();
 ?>
