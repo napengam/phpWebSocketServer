@@ -101,7 +101,6 @@ class WebSocketServer {
 
                 if ($Socket === $this->socketMaster) {
                     $Client = stream_socket_accept($Socket);
-
                     if (!is_resource($Client)) {
                         $this->onError($SocketID, "Connection could not be established");
                         continue;
@@ -131,8 +130,8 @@ class WebSocketServer {
                     if ($dataBuffer === false) {
                         $this->Close($Socket);
                     } else if (strlen($dataBuffer) == 0) {
-                        $SocketID = $this->Close($Socket);
                         $this->onError($SocketID, "Client disconnected - TCP connection lost");
+                        $SocketID = $this->Close($Socket);
                     } else {
                         $this->log("Received bytes = " . strlen($dataBuffer));
                         $this->Read($SocketID, $dataBuffer);

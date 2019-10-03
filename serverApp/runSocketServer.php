@@ -9,7 +9,6 @@
  */
 include '../include/certPath.inc.php';
 include '../include/adressPort.inc.php';
-//include 'coreFunc.php';
 include 'coreApp.php';
 /*
  * ***********************************************
