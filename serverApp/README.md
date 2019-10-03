@@ -10,11 +10,30 @@ https://github.com/napengam/phpWebSocketServer
 # NOTE
 
 
-
 # Still under development !!
 
 
 Use at own risc. 
+
+## coreAPP.php
+
+Base clase that implements all the methodes required in order
+to register an application with the server.
+
+## appPHP.php
+
+Application class that will server requests for resource 
+
+[ws,wss,tcp,ssl]://<socketserver>:<port>/php
+        
+
+## appWeb.php
+
+Application class that will server requests for resource 
+
+[ws,wss,tcp,ssl]://<socketserver>:<port>/web
+
+
 
 ## coreFunc.php
 
@@ -28,8 +47,8 @@ Class  implements the server using <code>stream_socket_server</code>.
 
 ## runSocketServer.php
 
-Class extends and customizes webSocketServer.php and starts the server 
-with the given parameters in adressPort.inc.php and certPath.inc.php
+registers the application appWeb.php and appPHP.php with the server
+the starts the server.
 
 On a shell on Linux  just start it like:
 

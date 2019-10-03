@@ -89,6 +89,9 @@ class WebSocketServer {
     public function Start() {
 
         $this->Log("Starting server...");
+        foreach($this->allApps as $appName => $class) {
+             $this->Log("Application : $appName");
+        }
         $a = true;
         $nulll = NULL;
         while ($a) {
