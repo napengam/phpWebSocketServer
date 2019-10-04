@@ -17,14 +17,19 @@ $secure = false;
 if (isset($_GET['SSL'])) {
     $secure = true;
 }
-
+$longString = '';
+for ($i = 0; $i < 100; $i++) {
+    $longString .= '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
+}
 $talk = new socketTalk($Address, $Port, '/php');
+
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 1"]);
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 2"]);
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 3"]);
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 4"]);
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 5"]);
-$talk->talk(['opcode' => 'quit']);
+$talk->talk(['opcode' => 'broadcast', 'message' => "$longString 6~6~6~6"]);
+
 
 $talk->silent();
 

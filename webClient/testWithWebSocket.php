@@ -24,26 +24,32 @@ and open the template in the editor.
         </div>;
         <script>
             'use strict';
-            var sock, uuid;
-            sock = socketWebClient(server, port,'/web');
+            var sock, uuid, i, longString = '';
+            ;
+            sock = socketWebClient(server, port, '/web');
             sock.setCallbackReady(xyz);
             sock.setCallbackReadMessage(readMessage);
             sock.init();
             uuid = sock.uuid;
-
+            for (i = 0; i < 100; i++) {
+                longString += '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
+            }
             function readMessage(packet) {
                 var obj;
                 if (packet.opcode === 'broadcast') {
                     obj = document.getElementById('broadcast');
                     obj.innerHTML += packet.message + '<br>';
                 }
-
             }
             function xyz() {
+
                 sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo11 from :' + uuid});
                 sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo22 from :' + uuid});
                 sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo33 from :' + uuid});
                 sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo44 from :' + uuid});
+//               
+                sock.sendMsg({'opcode': 'broadcast', 'message': longString + uuid});
+
             }
         </script>
     </body>

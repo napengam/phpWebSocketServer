@@ -2,10 +2,10 @@
 
 class socketTalk {
 
-    public $uuid, $connected = false, $serveros = 'linux';
+    public $uuid, $connected = false, $serveros = 'linux', $chunkSize = 8 * 1024;
     private $socketMaster;
 
-    function __construct($Address, $Port,$application='/') {
+    function __construct($Address, $Port, $application = '/') {
         $secure = false;
         $arr = explode('://', $Address);
         if (count($arr) > 1) {
@@ -37,8 +37,24 @@ class socketTalk {
     final function talk($msg) {
         if ($this->connected) {
             $json = json_encode((object) $msg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
-            fwrite($this->socketMaster, $json);
-            $buff = fread($this->socketMaster, 256); // wait for ACK
+            $len = mb_strlen($json);
+            if ($len > $this->chunkSize) {
+                $nChunks = floor($len / $this->chunkSize);
+                fwrite($this->socketMaster, 'bufferON');
+                $buff = fread($this->socketMaster, 256); // wait for ACK
+
+                for ($i = 0, $j = 0; $i < $nChunks; $i++, $j += $this->chunkSize) {
+                    fwrite($this->socketMaster, mb_substr($json, $j, $j + $this->chunkSize));
+                    $buff = fread($this->socketMaster, 256); // wait for ACK
+                }
+                fwrite($this->socketMaster, mb_substr($json, $j, $j + $len % $this->chunkSize));
+                $buff = fread($this->socketMaster, 256); // wait for ACK
+                fwrite($this->socketMaster, 'bufferOFF');
+                $buff = fread($this->socketMaster, 256); // wait for ACK
+            } else {
+                fwrite($this->socketMaster, $json);
+                $buff = fread($this->socketMaster, 256); // wait for ACK 
+            }
         }
     }
 

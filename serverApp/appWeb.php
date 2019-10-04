@@ -8,7 +8,7 @@
 
 class appWeb extends coreApp {
 
-    private $packet; 
+    private $packet;
 
     function onData($SocketID, $M) {
         /*
@@ -18,7 +18,10 @@ class appWeb extends coreApp {
          * Thsi is just an example used here , you can send what ever you want.
          * *****************************************
          */
+
+
         $packet = json_decode($M);
+
 
         if ($packet == NULL) {
             /*
@@ -33,6 +36,7 @@ class appWeb extends coreApp {
         }
 
         $this->packet = $packet;
+
         if ($packet->opcode === 'quit') {
             /*
              * *****************************************
@@ -54,6 +58,7 @@ class appWeb extends coreApp {
             $this->server->log("Broadcast $M");
             return;
         }
+        
         /*
          * *****************************************
          * no opcode-> broadcast to all
@@ -86,4 +91,5 @@ class appWeb extends coreApp {
     }
 
 }
+
 ?>

@@ -21,7 +21,7 @@ class WebSocketServer {
             $logFile = "log.txt",
             $logToDisplay = true,
             $Sockets = [],
-            $bufferLength = 4096,
+            $bufferLength = 10 * 4096,
             $maxClients = 20,
             $errorReport = E_ALL,
             $timeLimit = 0,
@@ -50,6 +50,7 @@ class WebSocketServer {
          */
         $ssl = '';
         $context = stream_context_create();
+        stream_context_set_option($context, 'http', 'method', 'POST');
         if ($this->isSecure($Address)) {
             stream_context_set_option($context, 'ssl', 'local_cert', $keyAndCertFile);
             stream_context_set_option($context, 'ssl', 'capth', $pathToCert);
@@ -89,8 +90,8 @@ class WebSocketServer {
     public function Start() {
 
         $this->Log("Starting server...");
-        foreach($this->allApps as $appName => $class) {
-             $this->Log("Application : $appName");
+        foreach ($this->allApps as $appName => $class) {
+            $this->Log("Application : $appName");
         }
         $a = true;
         $nulll = NULL;
@@ -129,6 +130,7 @@ class WebSocketServer {
                         }
                         continue;
                     }
+
                     $dataBuffer = fread($Socket, $this->bufferLength);
                     if ($dataBuffer === false) {
                         $this->Close($Socket);
@@ -136,7 +138,7 @@ class WebSocketServer {
                         $this->onError($SocketID, "Client disconnected - TCP connection lost");
                         $SocketID = $this->Close($Socket);
                     } else {
-                        $this->log("Received bytes = " . strlen($dataBuffer));
+
                         $this->Read($SocketID, $dataBuffer);
                     }
                 }
@@ -157,13 +159,31 @@ class WebSocketServer {
     }
 
     public function Read($SocketID, $M) {
-        if ($this->Clients[$SocketID]->Headers === 'websocket') {
-            $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $this->Clients[$SocketID]->uuid]));
+        $client = $this->Clients[$SocketID];
+        if ($client->Headers === 'websocket') {
+            $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $client->uuid]));
             $M = $this->Decode($M);
-        } else { // tcp from php client 
+        } else {
             $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         }
-        $this->onData($SocketID, ($M));
+        if ($M === 'bufferON') {
+            $client->bufferON = true;
+            $client->buffer = '';
+            $this->Log('Buffering ON');
+            return;
+        }
+        if ($M === 'bufferOFF') {
+            $client->bufferON = false;
+            $M = $client->buffer;
+            $client->buffer = '';
+            $this->Log('Buffering OFF');
+        }
+
+        if ($client->bufferON) {
+            $client->buffer .= $M;
+            return;
+        }
+        $this->onData($SocketID, $M);
     }
 
     public function Write($SocketID, $M) {

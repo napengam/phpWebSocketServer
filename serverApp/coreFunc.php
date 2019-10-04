@@ -64,7 +64,8 @@ trait coreFunc {
 
     protected function addClient($Socket) {
         $index = intval($Socket);
-        $this->Clients[$index] = (object) ['ID' => $index, 'uuid' => '', 'Headers' => null, 'Handshake' => null, 'timeCreated' => null];
+        $this->Clients[$index] = (object) ['ID' => $index, 'uuid' => '',
+                    'Headers' => null, 'Handshake' => null, 'timeCreated' => null, 'bufferON' => false, 'buffer' => ''];
         $this->Sockets[$index] = $Socket;
         return $index;
     }
@@ -80,7 +81,7 @@ trait coreFunc {
         $Headers = [];
         $reqResource = [];
         $Lines = explode("\n", $Buffer);
-        
+
         if ($Lines[0] == "php process") {
             $this->Clients[$SocketID]->Headers = 'tcp';
             $this->Clients[$SocketID]->Handshake = true;

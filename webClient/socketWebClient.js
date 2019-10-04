@@ -3,7 +3,6 @@ function socketWebClient(server, port, app) {
     var
             tmp = [], queue = [], uuid, socket = {}, serveros, proto,
             socketOpen = false, socketSend = false;
-
     //******************
     //* figure out what 
     // * protokoll to use
@@ -21,7 +20,6 @@ function socketWebClient(server, port, app) {
     uuid = generateUUID();
     function init() {
         socket = new WebSocket('' + proto + server + ':' + port + app);
-
         socket.onopen = function () {
             queue = [];
         };
@@ -35,7 +33,6 @@ function socketWebClient(server, port, app) {
                 return;
             }
             packet = JSON.parse(msg.data);
-
             if (packet.opcode === 'next' && packet.uuid === uuid) {
                 //******************
                 //* server is ready for next message
@@ -43,7 +40,6 @@ function socketWebClient(server, port, app) {
                 queue.shift();
                 if (queue.length > 0) {
                     msg = queue[0];
-                    msg = JSON.stringify(msg);
                     socket.send(msg);
                 }
                 return;
@@ -63,38 +59,37 @@ function socketWebClient(server, port, app) {
             socketOpen = false;
             socketSend = false;
         };
-
     }
 
 
     function callbackReady(p) {
-        //*
-        // ******************************************
-        // * dummy call back
-        // ******************************************
-        // */
+//*
+// ******************************************
+// * dummy call back
+// ******************************************
+// */
         return p;
     }
     function callbackReadMessage(p) {
-        ///*
-        // ******************************************
-        //* dummy call back
-        // ******************************************
-        // */
+///*
+// ******************************************
+//* dummy call back
+// ******************************************
+// */
         return p;
     }
     function setCallbackReady(func) {
-        //*
-        // * overwrite dummy call back with your own
-        // * function func
-        //
+//*
+// * overwrite dummy call back with your own
+// * function func
+//
         callbackReady = func;
     }
     function setCallbackReadMessage(func) {
-        // 
-        // * overwrite dummy call back with your own
-        // * function func
-        // */
+// 
+// * overwrite dummy call back with your own
+// * function func
+// */
         callbackReadMessage = func;
     }
 
@@ -110,20 +105,39 @@ function socketWebClient(server, port, app) {
         });
     }
 
-    function sendMsg(msg) {
-
+    function sendMsg(msgObj) {
+        var i, j, nChunks, msg, chunkSize = 20, sendNow = false;
         if (!socketSend) {
             return;
         }
         try {
-            // queue messages until server asks for next message
+            msg = JSON.stringify(msgObj);
             if (socketOpen) {
-                queue.push(msg);
+                if (msg.length < chunkSize) {
+                    queue.push(msg);
+                } else {
+                    //********************************************
+                    //  sending long messages in chunks
+                    //*******************************************
+                    if (queue.length === 0) {
+                        sendNow = true;
+                    }
+                    queue.push('bufferON');//command for the server
+                    nChunks = Math.floor(msg.length / chunkSize);
+                    for (i = 0, j = 0; i < nChunks; i++, j += chunkSize) {
+                        queue.push(msg.slice(j, j + chunkSize));
+                    }
+                    queue.push(msg.slice(j, j + msg.length % chunkSize));
+                    queue.push('bufferOFF');//command for the server
+                }
+
+                if ((queue.length === 1 || sendNow) && socketOpen) {
+                    msg = queue[0];
+                    socket.send(msg);
+                    sendNow = false;
+                }
             }
-            if (queue.length === 1 && socketOpen) {
-                msg = queue[0];
-                socket.send(JSON.stringify(msg));
-            }
+
         } catch (ex) {
             socketSend = false;
             alert('socket error: ' + ex);
