@@ -64,8 +64,11 @@ trait coreFunc {
 
     protected function addClient($Socket) {
         $index = intval($Socket);
-        $this->Clients[$index] = (object) ['ID' => $index, 'uuid' => '',
-                    'Headers' => null, 'Handshake' => null, 'timeCreated' => null, 'bufferON' => false, 'buffer' => ''];
+        $this->Clients[$index] = (object) [
+                    'ID' => $index, 'uuid' => '',
+                    'Headers' => null, 'Handshake' => null, 'timeCreated' => null,
+                    'bufferON' => false, 'buffer' => ''
+        ];
         $this->Sockets[$index] = $Socket;
         return $index;
     }

@@ -105,7 +105,8 @@ class WebSocketServer {
                         $this->onOpening($SocketID);
                     }
                 } else {
-                    $Client = $this->getClient($Socket);
+                    //$Client = $this->getClient($Socket);
+                    $Client = $this->Clients[$SocketID];
                     if ($Client->Handshake == false) {
                         $dataBuffer = fread($Socket, $this->bufferLength);
                         if (strpos(str_replace("\r", '', $dataBuffer), "\n\n") === false) {

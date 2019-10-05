@@ -106,7 +106,7 @@ function socketWebClient(server, port, app) {
     }
 
     function sendMsg(msgObj) {
-        var i, j, nChunks, msg, chunkSize = 20, sendNow = false;
+        var i, j, nChunks, msg, chunkSize = 6 * 1024, sendNow = false;
         if (!socketSend) {
             return;
         }
