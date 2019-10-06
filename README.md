@@ -1,8 +1,27 @@
 # phpWebSocketServer
 
-Server witten in PHP that can handle connections via websocksets and normal sockets,
-over ssl:// ,tcp://  wss:// or ws://
+Server witten in PHP that can handle connections via websocksets **wss:// or ws://** and normal sockets
+over **ssl:// ,tcp://**
 
+implemented by 
+- **Heinz Schweitzer** @https://github.com/napengam/phpWebSocketServer 
+to work for communicating over secure websocket wss://
+and accept any other socket connection by PHP processes or other 
+
+
+WebSocketServer is based on the implementation in PHP by 
+- **Bryan Bliewert**, nVentis@GitHub https://github.com/nVentis/PHP-WebSocketServer
+
+The idea of *application classes' is taken from 
+- **Simon Samtleben** @https://github.com/bloatless/php-websocket
+ 
+
+# Logic
+
+This server, listening on a socket, offers you a way to have web clients and php backend scripts 
+communicate with each other. Messages are exchanged using the JSON format. In this implementation
+a key value pair as  {'opcode':value ,.....} is always inlcuded to trigger desired operations 
+in the server or on the web client side.
 
 # Directories
 
@@ -24,12 +43,7 @@ php script to test connection.
 javascript to establish connection and communication to a Server through <code>websocket</code> and a
 php script to test connection via java script.
 
-# Logic
 
-This server, listening on a socket, offers you a way to have web clients and php backend scripts 
-communicate with each other. Messages are exchanged using the JSON format. In this implementation
-a key value pair as  {'opcode':value ,.....} is always inlcuded to trigger desired operations 
-in the server or on the web client side.
 
 ## Web client
 

@@ -19,6 +19,10 @@ Use at own risc.
 
 Base clase that implements all the methodes required in order
 to register an application with the server.
+## coreFunc.php
+
+A php trait used in class webSocketServer.php 
+Implements methods for encode, decode etc... 
 
 ## appPHP.php
 
@@ -26,19 +30,11 @@ Application class that will server requests for resource
 
 [ws,wss,tcp,ssl]://<socketserver>:<port>/php
         
-
 ## appWeb.php
 
 Application class that will server requests for resource 
 
 [ws,wss,tcp,ssl]://<socketserver>:<port>/web
-
-
-
-## coreFunc.php
-
-A php trait used in class webSocketServer.php 
-Implements methods for encode, decode etc... 
 
 
 ## webSocketServer.php
@@ -48,8 +44,9 @@ Class  implements the server using <code>stream_socket_server</code>.
 ## runSocketServer.php
 
 Example:
-Registers the application appWeb.php and appPHP.php with the server
-the starts the server.
+
+Registers the application <code>appWeb.php</code> and <code>appPHP.php</code> with the server
+then starts the server.
 
 On a shell on Linux  just start it like:
 
@@ -64,6 +61,7 @@ you shoud then see an out put like the one below on system using SSL
 
 
 on a system not using SSL you should see a similar output like the one below
+
 > php runSocketserver.php
 
 [Thu, 03 Oct 19 16:00:28 +0200] - Server initialized on WINNT  127.0.0.1:8083
