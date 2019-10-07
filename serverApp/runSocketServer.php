@@ -22,8 +22,8 @@ include "webSocketServer.php";
  * **********************************************
  */
 
-include 'appWeb.php';
-include 'appPHP.php';
+include 'testAppWeb.php';
+include 'testAppPHP.php';
 
 /*
  * ***********************************************

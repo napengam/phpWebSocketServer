@@ -1,13 +1,5 @@
 <?php
 
-// WebSocketServer implementation in PHP
-// by Bryan Bliewert, nVentis@GitHub
-// https://github.com/nVentis/PHP-WebSocketServer
-// modified by Heinz Schweitzer
-// https://github.com/napengam/phpWebSocketServer 
-// to work for communicating over secure websocket wss://
-// and accept any other socket connection by PHP processes or other 
-
 include_once '../include/certPath.inc.php';
 include_once '../include/adressPort.inc.php';
 include_once 'coreFunc.php';
@@ -50,7 +42,6 @@ class WebSocketServer {
          */
         $ssl = '';
         $context = stream_context_create();
-        stream_context_set_option($context, 'http', 'method', 'POST');
         if ($this->isSecure($Address)) {
             stream_context_set_option($context, 'ssl', 'local_cert', $keyAndCertFile);
             stream_context_set_option($context, 'ssl', 'capth', $pathToCert);

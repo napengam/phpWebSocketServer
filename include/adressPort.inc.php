@@ -4,6 +4,9 @@
  * **************************
  * include address and port like:
  * $Address=[ssl:// | tcp://]server.at.com
+ * Use ssl:// if your server supports secure protocol
+ * otherwise use tcp://
+ * 
  * $Port=number
  * **************************
  */

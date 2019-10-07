@@ -14,7 +14,18 @@ WebSocketServer is based on the implementation in PHP by
 
 The idea of *application classes' is taken from 
 - **Simon Samtleben** @https://github.com/bloatless/php-websocket
- 
+
+# Installation
+
+- Transfer the director  `phpWebSocketServer` to the documents root of your webserver
+- Step into the `include` directory and adapt the `adressPort.inc.php` to your needs.
+    You will find some documentation in this file.
+- If your server uses  `https://` follow the instructions in `certPath.inc.php` and set the global variables in there accordingly.
+
+# Start the server
+
+
+
 
 # Logic
 
@@ -57,9 +68,9 @@ registered in the server.
 The server, when receiving a message form any client, reacts to the embedded 'opcode' if this is one of
 
 <ul>
-<li> uuid 
-<li> feedback
-<li> quit
+    <li> uuid 
+    <li> feedback
+    <li> quit
 </ul>
 
 If none of the above opcode is seen, the message is broadcasted to all other registered web clients.
@@ -73,4 +84,3 @@ The web client triggers php scripts via AJAX and passes the same UUID to the php
 now able to report back to the web client by sending the UUID along with an opcode 'feedback'  and other parameters to the server.
 With the given UUID the server noew knows to what client-web-socket to send the message. Loop closed !     
 
-  

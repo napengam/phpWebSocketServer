@@ -1,19 +1,3 @@
-# phpWebSocketServer 
-
-Server witten in PHP that can handle connections via websocksets and normal sockets.
-The original version was implemented by Bryan Bliewert, nVentis@GitHub
-https://github.com/nVentis/PHP-WebSocketServer
-
-I have just made some minor modifications and implemented the <b>secure version</b>.
-https://github.com/napengam/phpWebSocketServer
-
-# NOTE
-
-
-# Still under development !!
-
-
-Use at own risc. 
 
 ## coreAPP.php
 
