@@ -131,7 +131,6 @@ class WebSocketServer {
                         $this->onError($SocketID, "Client disconnected - TCP connection lost");
                         $SocketID = $this->Close($Socket);
                     } else {
-
                         $this->Read($SocketID, $dataBuffer);
                     }
                 }
@@ -176,6 +175,7 @@ class WebSocketServer {
             $client->buffer .= $M;
             return;
         }
+        
         $this->onData($SocketID, $M);
     }
 

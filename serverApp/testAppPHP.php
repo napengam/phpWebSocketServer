@@ -2,7 +2,7 @@
 
 /*
  * **********************************************
- * write your backend application
+ * write your backend application for resourec /php
  * **********************************************
  */
 
