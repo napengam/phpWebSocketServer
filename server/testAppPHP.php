@@ -20,17 +20,6 @@ class appPhp extends coreApp {
          */
         $packet = json_decode($M);
 
-        if ($packet == NULL) {
-            /*
-             * *****************************************
-             * probably a pong request from a client
-             * We see this only when client connects via
-             * websocket from IE11 or EDGE.
-             * *******************************************
-             */
-            $this->server->Log("No data $packet // $M from  #$SocketID");
-            return;
-        }
 
         $this->packet = $packet;
         if ($packet->opcode === 'quit') {

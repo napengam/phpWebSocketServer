@@ -1,7 +1,7 @@
 function socketWebClient(server, port, app) {
     'uses strict';
     var
-            tmp = [], queue = [], uuid, socket = {}, serveros, proto,
+            tmp = [], queue = [], uuid, socket = {}, serveros, proto, chunkSize = 6 * 1024,
             socketOpen = false, socketSend = false;
     //******************
     //* figure out what 
@@ -106,7 +106,7 @@ function socketWebClient(server, port, app) {
     }
 
     function sendMsg(msgObj) {
-        var i, j, nChunks, msg, chunkSize = 6 * 1024, sendNow = false;
+        var i, j, nChunks, msg, sendNow = false;
         if (!socketSend) {
             return;
         }
@@ -127,7 +127,9 @@ function socketWebClient(server, port, app) {
                     for (i = 0, j = 0; i < nChunks; i++, j += chunkSize) {
                         queue.push(msg.slice(j, j + chunkSize));
                     }
-                    queue.push(msg.slice(j, j + msg.length % chunkSize));
+                    if (msg.length % chunkSize > 0) {
+                        queue.push(msg.slice(j, j + msg.length % chunkSize));
+                    }
                     queue.push('bufferOFF');//command for the server
                 }
 

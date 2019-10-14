@@ -18,39 +18,39 @@ and open the template in the editor.
         . "port='$Port';"
         . "</script>";
         ?>
-        <button onclick="xyz();">Talk to others</button>
+        <button id="ready" >Talk to others</button>
         <div id="broadcast">
             <b>From others</b><br>&nbsp;
         </div>;
         <script>
-            'use strict';
-            var sock, uuid, i, longString = '';
-            ;
-            sock = socketWebClient(server, port, '/web');
-            sock.setCallbackReady(xyz);
-            sock.setCallbackReadMessage(readMessage);
-            sock.init();
-            uuid = sock.uuid;
-            for (i = 0; i < 100; i++) {
-                longString += '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
-            }
-            function readMessage(packet) {
-                var obj;
-                if (packet.opcode === 'broadcast') {
-                    obj = document.getElementById('broadcast');
-                    obj.innerHTML += packet.message + '<br>';
+            !function () {
+                'use strict';
+                var sock, uuid, i, longString = '';
+
+                sock = socketWebClient(server, port, '/web');
+                sock.setCallbackReady(ready);
+                sock.setCallbackReadMessage(readMessage);
+                sock.init();
+                uuid = sock.uuid;
+                for (i = 0; i < 100; i++) {
+                    longString += '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
                 }
-            }
-            function xyz() {
-
-                sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo11 from :' + uuid});
-                sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo22 from :' + uuid});
-                sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo33 from :' + uuid});
-                sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo44 from :' + uuid});
-//               
-                sock.sendMsg({'opcode': 'broadcast', 'message': longString + uuid});
-
-            }
+                function readMessage(packet) {
+                    var obj;
+                    if (packet.opcode === 'broadcast') {
+                        obj = document.getElementById('broadcast');
+                        obj.innerHTML += packet.message + '<br>';
+                    }
+                }
+                function ready() {
+                    sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo11 from :' + uuid});
+                    sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo22 from :' + uuid});
+                    sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo33 from :' + uuid});
+                    sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo44 from :' + uuid});
+                    sock.sendMsg({'opcode': 'broadcast', 'message': longString + uuid});
+                }
+                document.getElementById('ready').onclick = ready;
+            }();
         </script>
     </body>
 </html>

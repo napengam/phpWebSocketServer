@@ -47,8 +47,10 @@ class socketTalk {
                     fwrite($this->socketMaster, mb_substr($json, $j, $j + $this->chunkSize));
                     $buff = fread($this->socketMaster, 256); // wait for ACK
                 }
-                fwrite($this->socketMaster, mb_substr($json, $j, $j + $len % $this->chunkSize));
-                $buff = fread($this->socketMaster, 256); // wait for ACK
+                if ($len % $this->chunkSize > 0) {
+                    fwrite($this->socketMaster, mb_substr($json, $j, $j + $len % $this->chunkSize));
+                    $buff = fread($this->socketMaster, 256); // wait for ACK
+                }
                 fwrite($this->socketMaster, 'bufferOFF');
                 $buff = fread($this->socketMaster, 256); // wait for ACK
             } else {

@@ -19,6 +19,7 @@ class WebSocketServer {
             $timeLimit = 0,
             $implicitFlush = true,
             $Clients = [],
+            $opcode = 1, // text frame
             $serveros;
     protected
             $Address,
@@ -40,18 +41,18 @@ class WebSocketServer {
          * openssl pkcs12 -in hostname.p12 -nodes -out hostname.pem
          * ***********************************************
          */
-        $ssl = '';
+        $usingSSL = '';
         $context = stream_context_create();
         if ($this->isSecure($Address)) {
             stream_context_set_option($context, 'ssl', 'local_cert', $keyAndCertFile);
             stream_context_set_option($context, 'ssl', 'capth', $pathToCert);
             stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
             stream_context_set_option($context, 'ssl', 'verify_peer', false);
-            $ssl = "using SSL";
+            $usingSSL = "using SSL";
         }
         $socket = stream_socket_server("$Address:$Port", $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
-        $this->Log("Server initialized on " . PHP_OS . "  $Address:$Port $ssl");
+        $this->Log("Server initialized on " . PHP_OS . "  $Address:$Port $usingSSL");
         if (!$socket) {
             $this->Log("Error $errno creating stream: $errstr", true);
             exit;
@@ -153,29 +154,42 @@ class WebSocketServer {
     public function Read($SocketID, $M) {
         $client = $this->Clients[$SocketID];
         if ($client->Headers === 'websocket') {
-            $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $client->uuid]));
             $M = $this->Decode($M);
+            if ($this->opcode == 10) { //pong
+                //$this->Write($SocketID, '');
+                $this->opcode = 1; // text frame 
+                $this->log('Unsolicited Pong frame received');
+                return;
+            }
+            if ($this->opcode == 8) { //Connection Close Frame 
+                //$this->Write($SocketID, '');
+                $this->opcode = 1; // text frame 
+                $this->log('Connection Close frame received');
+                $this->Close($SocketID);
+                return;
+            }
+            $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $client->uuid]));
         } else {
             $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         }
         if ($M === 'bufferON') {
             $client->bufferON = true;
-            $client->buffer = '';
+            $client->buffer = [];
             $this->Log('Buffering ON');
             return;
         }
         if ($M === 'bufferOFF') {
             $client->bufferON = false;
-            $M = $client->buffer;
-            $client->buffer = '';
+            $M = implode('', $client->buffer);
+            $client->buffer = [];
             $this->Log('Buffering OFF');
         }
 
         if ($client->bufferON) {
-            $client->buffer .= $M;
+            $client->buffer[] = $M;
             return;
         }
-        
+
         $this->onData($SocketID, $M);
     }
 

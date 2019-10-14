@@ -7,7 +7,11 @@ trait coreFunc {
         // http://stackoverflow.com/questions/8125507/how-can-i-send-and-receive-websocket-messages-on-the-server-side
         $L = strlen($M);
         $bHead = [];
-        $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
+        if ($this->opcode==10) { // POng
+            $bHead[0] = 137; 
+        } else {
+            $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
+        }
         if ($L <= 125) {
             $bHead[1] = $L;
         } else if ($L >= 126 && $L <= 65535) {
@@ -29,6 +33,8 @@ trait coreFunc {
     }
 
     public function Decode($payload) {
+        $this->opcode = ord($payload[0]) & 15;
+        
         $length = ord($payload[1]) & 127;
         if ($length == 126) {
             $masks = substr($payload, 4, 4);
@@ -67,7 +73,7 @@ trait coreFunc {
         $this->Clients[$index] = (object) [
                     'ID' => $index, 'uuid' => '',
                     'Headers' => null, 'Handshake' => null, 'timeCreated' => null,
-                    'bufferON' => false, 'buffer' => ''
+                    'bufferON' => false, 'buffer' => []
         ];
         $this->Sockets[$index] = $Socket;
         return $index;
