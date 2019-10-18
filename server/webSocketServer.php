@@ -19,7 +19,7 @@ class WebSocketServer {
             $timeLimit = 0,
             $implicitFlush = true,
             $Clients = [],
-            $opcode = 1, // text frame
+            $opcode = 1, // text frame  
             $serveros;
     protected
             $Address,
@@ -156,18 +156,17 @@ class WebSocketServer {
         if ($client->Headers === 'websocket') {
             $M = $this->Decode($M);
             if ($this->opcode == 10) { //pong
-                //$this->Write($SocketID, '');
                 $this->opcode = 1; // text frame 
-                $this->log('Unsolicited Pong frame received');
+                $this->log('Unsolicited Pong frame received'); // just ignore
                 return;
             }
-            if ($this->opcode == 8) { //Connection Close Frame 
-                //$this->Write($SocketID, '');
+            if ($this->opcode == 8) { //Connection Close Frame             
                 $this->opcode = 1; // text frame 
                 $this->log('Connection Close frame received');
                 $this->Close($SocketID);
                 return;
             }
+         
             $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $client->uuid]));
         } else {
             $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));

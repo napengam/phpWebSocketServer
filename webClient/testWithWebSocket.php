@@ -32,8 +32,8 @@ and open the template in the editor.
                 sock.setCallbackReadMessage(readMessage);
                 sock.init();
                 uuid = sock.uuid;
-                for (i = 0; i < 100; i++) {
-                    longString += '0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
+                for (i = 0; i < 16*1024; i++) {
+                    longString += 'X';
                 }
                 function readMessage(packet) {
                     var obj;

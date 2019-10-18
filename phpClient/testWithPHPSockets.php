@@ -18,8 +18,8 @@ if (isset($_GET['SSL'])) {
     $secure = true;
 }
 $longString = '';
-for ($i = 0; $i < 100; $i++) {
-    $longString .= '012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789';
+for ($i = 0; $i < 9*1024; $i++) {
+    $longString .= 'P';
 }
 $talk = new socketTalk($Address, $Port, '/php');
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Description of coreApp
  *
@@ -38,6 +39,14 @@ class coreApp {
 
     final function registerServer($server) {
         $this->server = $server;
+    }
+
+    final function getPacket($M) {
+        $packet = json_decode($M);
+        $err = json_last_error();
+        if ($err) {
+            $packet = (object) ['opcode' => 'jsonerror', 'message' => $err];
+        }
     }
 
 }

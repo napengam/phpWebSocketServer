@@ -40,30 +40,42 @@ class socketTalk {
             $len = mb_strlen($json);
             if ($len > $this->chunkSize) {
                 $nChunks = floor($len / $this->chunkSize);
-                fwrite($this->socketMaster, 'bufferON');
-                $buff = fread($this->socketMaster, 256); // wait for ACK
-
-                for ($i = 0, $j = 0; $i < $nChunks; $i++, $j += $this->chunkSize) {
-                    fwrite($this->socketMaster, mb_substr($json, $j, $j + $this->chunkSize));
-                    $buff = fread($this->socketMaster, 256); // wait for ACK
+                if ($this->writeWait('bufferON')) {
+                    for ($i = 0, $j = 0; $i < $nChunks; $i++, $j += $this->chunkSize) {
+                        if ($this->writeWait(mb_substr($json, $j, $j + $this->chunkSize)) === false) {
+                            break;
+                        }
+                    }
                 }
                 if ($len % $this->chunkSize > 0) {
-                    fwrite($this->socketMaster, mb_substr($json, $j, $j + $len % $this->chunkSize));
-                    $buff = fread($this->socketMaster, 256); // wait for ACK
+                    $this->writeWait(mb_substr($json, $j, $j + $len % $this->chunkSize));
                 }
-                fwrite($this->socketMaster, 'bufferOFF');
-                $buff = fread($this->socketMaster, 256); // wait for ACK
+                $this->writeWait('bufferOFF');
             } else {
-                fwrite($this->socketMaster, $json);
-                $buff = fread($this->socketMaster, 256); // wait for ACK 
+                $this->writeWait($json);
             }
         }
     }
 
     final function silent() {
         if ($this->connected) {
+            $this->connected = false;
             fclose($this->socketMaster);
         }
+    }
+
+    private final function writeWait($m) {
+        if ($this->connected == false) {
+            return false;
+        }
+        fwrite($this->socketMaster, $m);
+        $buff = fread($this->socketMaster, 256); // wait for ACK
+        $ack=json_decode($buff);
+        if ($ack->opcode != 'next') {
+            $this->silent();
+            return false;
+        }
+        return true;
     }
 
 }

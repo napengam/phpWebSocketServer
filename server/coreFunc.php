@@ -7,8 +7,8 @@ trait coreFunc {
         // http://stackoverflow.com/questions/8125507/how-can-i-send-and-receive-websocket-messages-on-the-server-side
         $L = strlen($M);
         $bHead = [];
-        if ($this->opcode==10) { // POng
-            $bHead[0] = 137; 
+        if ($this->opcode == 10) { // POng
+            $bHead[0] = 137;
         } else {
             $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
         }
@@ -33,8 +33,10 @@ trait coreFunc {
     }
 
     public function Decode($payload) {
+        // detect ping or pong frame
         $this->opcode = ord($payload[0]) & 15;
-        
+//        $binary0 = sprintf('%08b', ord($payload[0]));
+//        $this->Log($binary0);
         $length = ord($payload[1]) & 127;
         if ($length == 126) {
             $masks = substr($payload, 4, 4);
@@ -47,7 +49,8 @@ trait coreFunc {
             $data = substr($payload, 6, $length); // hgs 30.09.2016
         }
         $text = '';
-        for ($i = 0; $i < strlen($data); ++$i) {
+        $l = strlen($data);
+        for ($i = 0; $i < $l; ++$i) {
             $text .= $data[$i] ^ $masks[$i % 4];
         }
         return $text;
@@ -137,6 +140,7 @@ trait coreFunc {
         }
         $Token = base64_encode($Token) . "\r\n";
         $addHeaderOk = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n";
+       
         fwrite($Socket, $addHeaderOk, strlen($addHeaderOk));
 
         $this->Clients[$SocketID]->Headers = 'websocket';

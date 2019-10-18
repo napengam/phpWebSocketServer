@@ -20,8 +20,7 @@ class appWeb extends coreApp {
          */
 
 
-        $packet = json_decode($M);
-
+        $packet = $this->getPacket($M);
         $this->packet = $packet;
 
         if ($packet->opcode === 'quit') {
