@@ -37,7 +37,7 @@ class coreApp {
     function onOpening($SocketID) { // ...being accepted and added to the client list
     }
 
-    final function registerServer($server) {
+    final public function registerServer($server) {
         $this->server = $server;
     }
 

@@ -18,13 +18,17 @@ include 'coreApp.php';
 include "webSocketServer.php";
 /*
  * **********************************************
- *  your backend application
+ *  your backend applications
  * **********************************************
  */
-
 include 'testAppWeb.php';
 include 'testAppPHP.php';
-
+/*
+ * *****************************************
+ * start server 
+ * *****************************************
+ */
+$server = new WebsocketServer($Address, $Port, $keyAndCertFile, $pathToCert);
 /*
  * ***********************************************
  * instantiate backend 'applications'
@@ -32,12 +36,6 @@ include 'testAppPHP.php';
  */
 $appWeb = new appWeb();
 $appPHP = new appPHP();
-/*
- * *****************************************
- * start server 
- * *****************************************
- */
-$server = new WebsocketServer($Address, $Port, $keyAndCertFile, $pathToCert);
 /*
  * ***********************************************
  * register backend 'applications' with server
@@ -47,7 +45,8 @@ $server->registerApp('/web', $appWeb);
 $server->registerApp('/php', $appPHP);
 /*
  * ***********************************************
- * now start it
+ * now start it to have the server handle
+ * requests from clients
  * ***********************************************
  */
 $server->Start();

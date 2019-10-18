@@ -82,9 +82,6 @@ trait coreFunc {
         return $index;
     }
 
-    protected function getClient($Socket) {
-        return $this->Clients[intval($Socket)];
-    }
 
     protected function Handshake($Socket, $Buffer) {
         $this->Log('Handshake:' . $Buffer);
