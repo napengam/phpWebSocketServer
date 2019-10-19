@@ -7,21 +7,28 @@ if ($argc > 1) {
 require 'socketPhpClient.php';
 include '../include/adressPort.inc.php';
 
+$talk = new socketTalk($Address, $Port, '/php');
 
 $message = trim($_GET['m']);
 if ($message == '') {
     //return;
     $message = 'hallo from PHP';
-}
-$secure = false;
-if (isset($_GET['SSL'])) {
-    $secure = true;
+} else {
+    $talk->talk(['opcode' => 'broadcast', 'message' => "$message"]);
+    $talk->silent();
+    exit;
 }
 $longString = '';
-for ($i = 0; $i < 9*1024; $i++) {
+for ($i = 0; $i < 9 * 1024; $i++) {
     $longString .= 'P';
 }
-$talk = new socketTalk($Address, $Port, '/php');
+
+/*
+ * ***********************************************
+ * test if messages apear in same order as send
+ * no message is lost and very long message is buffered
+ * ***********************************************
+ */
 
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 1"]);
 $talk->talk(['opcode' => 'broadcast', 'message' => "$message 2"]);

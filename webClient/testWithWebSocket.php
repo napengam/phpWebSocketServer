@@ -49,6 +49,14 @@ and open the template in the editor.
                     }
                 }
                 function ready() {
+
+                    /*
+                                                     * ***********************************************
+                                                      *   test if messages apear in same order as send
+                                                       * no message is lost and very long message is buffered
+                                                       * ***********************************************
+                                                       */
+
                     sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo11 from :' + uuid});
                     sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo22 from :' + uuid});
                     sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo33 from :' + uuid});
