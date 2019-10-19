@@ -1,4 +1,11 @@
 # Example
+
+## simulateBackend.php
+
+A PHP script that simulates a backend script call with AJAX from web client.  
+To demsontare `feedback` from backend
+
+
 ## socketPhpClient.php
 
 Class to connect to the server. 

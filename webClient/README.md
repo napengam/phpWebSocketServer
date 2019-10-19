@@ -8,8 +8,10 @@ JavaScript to connect to the server.
 This script also sends very long messages in chunks of `chunksize=6+1204`.  
 
 
-
 ## testWithWebSocket.php
+
+Example to SHOW `broadcast` from other web clients and `feedback` from  
+a backend script.
 
 Have the server started and waiting ....
 
