@@ -15,6 +15,19 @@ WebSocketServer is based on the implementation in PHP by
 The idea of *application classes' is taken from  
 - **Simon Samtleben** @https://github.com/bloatless/php-websocket
 
+# What is it good for ?
+
+This server allows you to establish communication between web applications living in a browser  
+and enables backend scripts, in my case PHP, to communicate information back to web applications that 
+have called the backend script to perform some action.
+
+Web applications identify themself with a UUID to the server. If the web application triggers  
+backend scripts via AJAX it passes the UUID to the backend scripts. The script is now able to report  
+back to the web client by sending the UUID along with an opcode 'feedback' and other parameters to the server.  
+With the given UUID the server now knows to what web client to send the message. Loop closed !
+
+
+
 # Installation
 
 - Transfer the director  `phpWebSocketServer` to the documents root of your webserver

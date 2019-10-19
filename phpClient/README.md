@@ -1,11 +1,9 @@
-# NOTE
-
-Use at own risc. 
-
+# Example
 ## socketPhpClient.php
 
 Class to connect to the server. 
-This class also sends long messages in chunks of ``$chunkSize=8*1024`` 
+This class also sends long messages in chunks of ``$chunkSize=8*1024``
+
 
 ## testWithPHPSockets.php
 
@@ -15,7 +13,6 @@ Have the server started and waiting ....
 
 in the command window  where you startet the server you should see some output
 like this 
-
 
 >[Sat, 19 Oct 19 07:17:33 +0200] - New client connecting on socket #12  
 >[Sat, 19 Oct 19 07:17:33 +0200] - Handshake:php process  
@@ -41,3 +38,6 @@ like this
 >....PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP 6~6~6~6"}  
 >[Sat, 19 Oct 19 07:17:33 +0200] - Socket 17 - Client disconnected - TCP connection lost  
 >[Sat, 19 Oct 19 07:17:33 +0200] - Connection closed to socket #17  
+
+If you have a web client open and running in a browser you should  
+see the messages also in the web client window. 

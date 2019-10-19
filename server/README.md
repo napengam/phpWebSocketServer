@@ -60,10 +60,9 @@ This class extends `coreApp.php`
 Class to implement the server.  
 Consumes trait `coreFunc.php`
 
-The server handles connection request from clients, performes a handshake   
-with clients.   
+The server handles connection request from clients, performes a handshake with clients.   
 
-Upon a successful handshake, the client is registerd with the server and incoming messages   
+Upon a successful handshake, the client is registered with the server and incoming messages   
 will be routed to the resource, application, the client specified in the **GET** request.  
 In the given examples resources are **/web** and **/php** 
 
@@ -73,6 +72,15 @@ along other informations for this client.
 
 Any incoming message is allways acknowledged with a **next** message to the client.  
 Clients should wait for this message to arrive, before sending another message. 
+
+Based on the pattern `bufferON` and `bufferOFF`, found as a string at the start of  
+a message from a client, the server will turn *on* or *off*, buffering of very long 
+messages (above 8K) for the given client.
+
+In the given examples, messages routed to the requested resource are expected to be in JSON format  
+`{'opcode': opcode, 'message':messsage .....}`
+
+Feel free to use whatever supports your needs.
 
 
 ## runSocketServer.php

@@ -18,6 +18,9 @@ and open the template in the editor.
         . "port='$Port';"
         . "</script>";
         ?>
+        <button id="ajax" >CALL Backend via AJAX</button><br>
+        Here you will see feedback from backend : <b><span id='feedback'></span> </b>
+        <hr>
         <button id="ready" >Talk to others; my UUID=<b><span id='uuid'></span></b> </button>
         <div id="broadcast">
             <b>From others</b><br>
@@ -32,7 +35,7 @@ and open the template in the editor.
                 sock.setCallbackReadMessage(readMessage);
                 sock.init();
                 uuid = sock.uuid;
-                for (i = 0; i < 16*1024; i++) {
+                for (i = 0; i < 16 * 1024; i++) {
                     longString += 'X';
                 }
                 function readMessage(packet) {
@@ -40,6 +43,9 @@ and open the template in the editor.
                     if (packet.opcode === 'broadcast') {
                         obj = document.getElementById('broadcast');
                         obj.innerHTML += packet.message + '<br>';
+                    } else if (packet.opcode === 'feedback') {
+                        obj = document.getElementById('feedback');
+                        obj.innerHTML = packet.message;
                     }
                 }
                 function ready() {
@@ -50,7 +56,16 @@ and open the template in the editor.
                     sock.sendMsg({'opcode': 'broadcast', 'message': longString + uuid});
                 }
                 document.getElementById('ready').onclick = ready;
+                document.getElementById('ajax').onclick = triggerAJAX;
                 document.getElementById('uuid').innerHTML = uuid;
+
+                function triggerAJAX() {
+                    var req;
+                    req = new XMLHttpRequest();
+                    req.open("POST", '../phpClient/simulateBackend.php');
+                    req.setRequestHeader("Content-Type", "application/json");
+                    req.send(JSON.stringify({'uuid': uuid}));
+                }
             }();
         </script>
     </body>
