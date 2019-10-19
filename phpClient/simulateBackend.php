@@ -21,10 +21,10 @@ $talk = new socketTalk($Address, $Port, '/php');
  * ***********************************************
  */
 
-$talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "doing some work sleep(3)"]);
-sleep(3);
-$talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "doing other work  sleep(2)"]);
-sleep(2);
+$talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "doing some work sleep(1)"]);
+sleep(1);// work
+$talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "very importand work  sleep(2)"]);
+sleep(2);// work
 for ($i = 0; $i < 1000000; $i++) {
     if ($i % 1000 == 0) {
         $talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "loop $i"]);
