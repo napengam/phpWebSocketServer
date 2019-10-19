@@ -1,86 +1,46 @@
 # phpWebSocketServer
 
-Server witten in PHP that can handle connections via websocksets **wss:// or ws://** and normal sockets
+Server witten in PHP to handle connections via websocksets **wss:// or ws://** and normal sockets
 over **ssl:// ,tcp://**
 
-implemented by 
+implemented by  
 - **Heinz Schweitzer** @https://github.com/napengam/phpWebSocketServer 
 to work for communicating over secure websocket wss://
 and accept any other socket connection by PHP processes or other 
 
 
-WebSocketServer is based on the implementation in PHP by 
+WebSocketServer is based on the implementation in PHP by  
 - **Bryan Bliewert**, nVentis@GitHub https://github.com/nVentis/PHP-WebSocketServer
 
-The idea of *application classes' is taken from 
+The idea of *application classes' is taken from  
 - **Simon Samtleben** @https://github.com/bloatless/php-websocket
 
 # Installation
 
 - Transfer the director  `phpWebSocketServer` to the documents root of your webserver
-- Step into the `include` directory and adapt the `adressPort.inc.php` to your needs.
+- Step into the `include` directory and adapt the `adressPort.inc.php` to your needs.  
     You will find some documentation in this file.
 - If your server uses  `https://` follow the instructions in `certPath.inc.php` and set the global variables in there accordingly.
 
-# Start the server
+To start the server see the README in directory server 
 
-
-
-
-# Logic
-
-This server, listening on a socket, offers you a way to have web clients and php backend scripts 
-communicate with each other. Messages are exchanged using the JSON format. In this implementation
-a key value pair as  {'opcode':value ,.....} is always inlcuded to trigger desired operations 
-in the server or on the web client side.
 
 # Directories
 
-## include
+**include**
 
 Files included by server and clients
 
-## Server
+**Server**
 
-Implemention of a server in php and php script to start server
+Implemention of a server in php and php script to start server.  
+Examples of classes to implement resources **/php** and **/web**
 
-## phpClient
+**phpClient**
 
-PHP class to establish connection and communication to a Server through <code>socket</code> and a
-php script to test connection.
+Example of client written in PHP to connect and write to the server using resource **/php** 
 
-## webClient
+**webClient**
 
-javascript to establish connection and communication to a Server through <code>websocket</code> and a
-php script to test connection via java script.
-
-
-
-## Web client
-
-For javascript web clients sending and receiving messages is implemented by using
-the websocket interface. The web client, when connecting to the server, receives a 'ready' message, when
-connection and handshake are completed. The web client then is sending a UUID to the server in order to be 
-registered in the server. 
-
-## Server action
-
-The server, when receiving a message form any client, reacts to the embedded 'opcode' if this is one of
-
-<ul>
-    <li> uuid 
-    <li> feedback
-    <li> quit
-</ul>
-
-If none of the above opcode is seen, the message is broadcasted to all other registered web clients.
-The receiving clients in turn will look at the embeded opcode and react as implemented.
-
-## PHP scripts
-
-Enabling a php script to connect to the same server offers some more posibilities for communication.
-
-The web client triggers php scripts via AJAX and passes the same UUID to the php script, the script is
-now able to report back to the web client by sending the UUID along with an opcode 'feedback'  and other parameters to the server.
-With the given UUID the server noew knows to what client-web-socket to send the message. Loop closed !     
+Example of web client to connect and communicate with the server  using resource **/web**
 

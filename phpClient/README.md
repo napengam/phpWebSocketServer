@@ -1,11 +1,11 @@
 # NOTE
 
-
 Use at own risc. 
 
 ## socketPhpClient.php
 
-class to connect to the server 
+Class to connect to the server. 
+This class also sends long messages in chunks of ``$chunkSize=8*1024`` 
 
 ## testWithPHPSockets.php
 
@@ -15,22 +15,29 @@ Have the server started and waiting ....
 
 in the command window  where you startet the server you should see some output
 like this 
-<pre>
-[Tue, 20 Nov 18 12:36:12 +0100] - New client connecting on socket #7
-[Tue, 20 Nov 18 12:36:12 +0100] - Handshake:php process
 
-[Tue, 20 Nov 18 12:36:12 +0100] - Telling Client to start on  #8
-[Tue, 20 Nov 18 12:36:12 +0100] - Received bytes = 50
-[Tue, 20 Nov 18 12:36:12 +0100] - Broadcast {"opcode":"broadcast","message1":"hallo from PHP"}
-[Tue, 20 Nov 18 12:36:12 +0100] - Received bytes = 50
-[Tue, 20 Nov 18 12:36:12 +0100] - Broadcast {"opcode":"broadcast","message2":"hallo from PHP"}
-[Tue, 20 Nov 18 12:36:12 +0100] - Received bytes = 50
-[Tue, 20 Nov 18 12:36:12 +0100] - Broadcast {"opcode":"broadcast","message3":"hallo from PHP"}
-[Tue, 20 Nov 18 12:36:12 +0100] - Received bytes = 50
-[Tue, 20 Nov 18 12:36:12 +0100] - Broadcast {"opcode":"broadcast","message4":"hallo from PHP"}
-[Tue, 20 Nov 18 12:36:12 +0100] - Received bytes = 50
-[Tue, 20 Nov 18 12:36:12 +0100] - Broadcast {"opcode":"broadcast","message5":"hallo from PHP"}
-[Tue, 20 Nov 18 12:36:12 +0100] - Received bytes = 17
-[Tue, 20 Nov 18 12:36:12 +0100] - QUIT; Connection closed to socket #8
-[Tue, 20 Nov 18 12:36:12 +0100] - Connection closed to socket #8
-</pre>
+
+>[Sat, 19 Oct 19 07:17:33 +0200] - New client connecting on socket #12  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Handshake:php process  
+>GET /php HTTP/1.1  
+>  
+>  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Handshake with socket #17 successful  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Telling Client to start on  #17  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Received 51 Bytes from socket #17  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Broadcast {"opcode":"broadcast","message":"hallo from PHP 1"}  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Received 51 Bytes from socket #17  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Broadcast {"opcode":"broadcast","message":"hallo from PHP 2"}  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Received 51 Bytes from socket #17  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Broadcast {"opcode":"broadcast","message":"hallo from PHP 3"}  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Received 51 Bytes from socket #17  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Broadcast {"opcode":"broadcast","message":"hallo from PHP 4"}  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Received 51 Bytes from socket #17  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Broadcast {"opcode":"broadcast","message":"hallo from PHP 5"}  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Buffering ON  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Buffering OFF  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Received 9259 Bytes from socket #17  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Broadcast {"opcode":"broadcast","message":"PPPPPPPPPPPPPPPPPPPPPPPPP  ....  
+>....PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP 6~6~6~6"}  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Socket 17 - Client disconnected - TCP connection lost  
+>[Sat, 19 Oct 19 07:17:33 +0200] - Connection closed to socket #17  

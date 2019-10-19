@@ -12,7 +12,7 @@ class coreApp {
     /*
      * ***********************************************
      * Overwrite these functions, when needed, in an 
-     * application class then register with the socket server
+     * application class then register with the  server
      * ***********************************************
      */
 
@@ -47,6 +47,7 @@ class coreApp {
         if ($err) {
             $packet = (object) ['opcode' => 'jsonerror', 'message' => $err];
         }
+        return $packet;
     }
 
 }

@@ -14,7 +14,7 @@ onError   | // ...any connection-releated error
 onOther   | // ...any connection-releated notification
 onOpening | // ...being accepted and added to the client list
 
-If any of these methods are missing the application will be rejected by the serve.   
+If any of these methods are missing the application will be rejected by the server.   
 
 This class also provides a method enabling the server to register itself with  
 the application, thus giving access to information within the server like sockets  
@@ -59,6 +59,21 @@ This class extends `coreApp.php`
 
 Class to implement the server.  
 Consumes trait `coreFunc.php`
+
+The server handles connection request from clients, performes a handshake   
+with clients.   
+
+Upon a successful handshake, the client is registerd with the server and incoming messages   
+will be routed to the resource, application, the client specified in the **GET** request.  
+In the given examples resources are **/web** and **/php** 
+
+Next the server sends a message **ready** to the client, that is waiting for this  
+message. A client connecting through websocket now sends its UUID which is tracked  
+along other informations for this client.
+
+Any incoming message is allways acknowledged with a **next** message to the client.  
+Clients should wait for this message to arrive, before sending another message. 
+
 
 ## runSocketServer.php
 

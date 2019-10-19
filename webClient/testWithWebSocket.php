@@ -18,9 +18,9 @@ and open the template in the editor.
         . "port='$Port';"
         . "</script>";
         ?>
-        <button id="ready" >Talk to others</button>
+        <button id="ready" >Talk to others; my UUID=<b><span id='uuid'></span></b> </button>
         <div id="broadcast">
-            <b>From others</b><br>&nbsp;
+            <b>From others</b><br>
         </div>;
         <script>
             !function () {
@@ -50,6 +50,7 @@ and open the template in the editor.
                     sock.sendMsg({'opcode': 'broadcast', 'message': longString + uuid});
                 }
                 document.getElementById('ready').onclick = ready;
+                document.getElementById('uuid').innerHTML = uuid;
             }();
         </script>
     </body>
