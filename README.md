@@ -26,7 +26,7 @@ backend scripts via AJAX it passes the UUID to the backend scripts. The script i
 back to the web client by sending the UUID along with an opcode 'feedback' and other parameters to the server.  
 With the given UUID the server now knows to what web client to send the message. Loop closed !
 
-
+See example in directory webClient
 
 # Installation
 
