@@ -203,7 +203,7 @@ class WebSocketServer {
         return true;
     }
 
-    private function serverCommand($client, $message) {
+    private function serverCommand($client, &$message) {
         if ($message === 'bufferON') {
             $client->bufferON = true;
             $client->buffer = [];
