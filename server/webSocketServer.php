@@ -151,10 +151,10 @@ class WebSocketServer {
         return $SocketID;
     }
 
-    public function Read($SocketID, $M) {
+    public function Read($SocketID, $message) {
         $client = $this->Clients[$SocketID];
         if ($client->Headers === 'websocket') {
-            $M = $this->Decode($M);
+            $message = $this->Decode($message);
             if ($this->opcode == 10) { //pong
                 $this->opcode = 1; // text frame 
                 $this->log('Unsolicited Pong frame received'); // just ignore
@@ -172,23 +172,23 @@ class WebSocketServer {
             $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         }
 
-        if ($this->serverCommand($client, $M)) {
+        if ($this->serverCommand($client, $message)) {
             return;
         }
 
         if ($client->bufferON) {
-            $client->buffer[] = $M;
+            $client->buffer[] = $message;
             return;
         }
 
-        $this->onData($SocketID, $M);
+        $this->onData($SocketID, $message);
     }
 
-    public function Write($SocketID, $M) {
+    public function Write($SocketID, $message) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
-            $M = $this->Encode($M);
+            $message = $this->Encode($message);
         }
-        return fwrite($this->Sockets[$SocketID], $M, strlen($M));
+        return fwrite($this->Sockets[$SocketID], $message, strlen($message));
     }
 
     public function registerApp($name, $app) {
@@ -203,24 +203,24 @@ class WebSocketServer {
         return true;
     }
 
-    private function serverCommand($client, $M) {
-        if ($M === 'bufferON') {
+    private function serverCommand($client, $message) {
+        if ($message === 'bufferON') {
             $client->bufferON = true;
             $client->buffer = [];
             $this->Log('Buffering ON');
             return true;
         }
-        if ($M === 'bufferOFF') {
+        if ($message === 'bufferOFF') {
             $client->bufferON = false;
-            $M = implode('', $client->buffer);
+            $message = implode('', $client->buffer);
             $client->buffer = [];
             $this->Log('Buffering OFF');
         }
-        if ($M === 'logON') {
+        if ($message === 'logON') {
             $this->logToDisplay = true;
             return true;
         }
-        if ($M === 'logOFF') {
+        if ($message === 'logOFF') {
             $this->logToDisplay = false;
             return true;
         }
@@ -233,9 +233,9 @@ class WebSocketServer {
         $this->Clients[$SocketID]->app->onOpen($SocketID);
     }
 
-    function onData($SocketID, $M) { // ...message receipt; $M contains the decoded message
-        $this->Log("Received " . strlen($M) . " Bytes from socket #$SocketID");
-        $this->Clients[$SocketID]->app->onData($SocketID, ($M));
+    function onData($SocketID, $message) { // ...message receipt; $message contains the decoded message
+        $this->Log("Received " . strlen($message) . " Bytes from socket #$SocketID");
+        $this->Clients[$SocketID]->app->onData($SocketID, ($message));
     }
 
     function onClose($SocketID) { // ...socket has been closed AND deleted
@@ -243,14 +243,14 @@ class WebSocketServer {
         $this->Clients[$SocketID]->app->onClose($SocketID);
     }
 
-    function onError($SocketID, $M) { // ...any connection-releated error
-        $this->Log("Socket $SocketID - " . $M);
-        $this->Clients[$SocketID]->app->onError($SocketID, $M);
+    function onError($SocketID, $message) { // ...any connection-releated error
+        $this->Log("Socket $SocketID - " . $message);
+        $this->Clients[$SocketID]->app->onError($SocketID, $message);
     }
 
-    function onOther($SocketID, $M) { // ...any connection-releated notification
-        $this->Log("Socket $SocketID - " . $M);
-        $this->Clients[$SocketID]->app->onOther($SocketID, $M);
+    function onOther($SocketID, $message) { // ...any connection-releated notification
+        $this->Log("Socket $SocketID - " . $message);
+        $this->Clients[$SocketID]->app->onOther($SocketID, $message);
     }
 
     function onOpening($SocketID) { // ...being accepted and added to the client list

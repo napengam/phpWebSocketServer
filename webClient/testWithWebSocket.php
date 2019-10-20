@@ -26,7 +26,7 @@ and open the template in the editor.
             <b>From others</b><br>
         </div>;
         <script>
-            !function () {
+            window.addEventListener('load', function () {
                 'use strict';
                 var sock, uuid, i, longString = '';
 
@@ -51,11 +51,11 @@ and open the template in the editor.
                 function ready() {
 
                     /*
-                                                     * ***********************************************
-                                                      *   test if messages apear in same order as send
-                                                       * no message is lost and very long message is buffered
-                                                       * ***********************************************
-                                                       */
+                     * ***********************************************
+                     *   test if messages apear in same order as send
+                     * no message is lost and very long message is buffered
+                     * ***********************************************
+                     */
 
                     sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo11 from :' + uuid});
                     sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo22 from :' + uuid});
@@ -63,9 +63,6 @@ and open the template in the editor.
                     sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo44 from :' + uuid});
                     sock.sendMsg({'opcode': 'broadcast', 'message': longString + uuid});
                 }
-                document.getElementById('ready').onclick = ready;
-                document.getElementById('ajax').onclick = triggerAJAX;
-                document.getElementById('uuid').innerHTML = uuid;
 
                 function triggerAJAX() {
                     var req;
@@ -74,7 +71,11 @@ and open the template in the editor.
                     req.setRequestHeader("Content-Type", "application/json");
                     req.send(JSON.stringify({'uuid': uuid}));
                 }
-            }();
+                document.getElementById('ready').onclick = ready;
+                document.getElementById('ajax').onclick = triggerAJAX;
+                document.getElementById('uuid').innerHTML = uuid;
+
+            }, false);
         </script>
     </body>
 </html>
