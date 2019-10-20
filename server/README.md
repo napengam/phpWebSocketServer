@@ -8,11 +8,11 @@ to register an application with the server.
 
 Method|What
 ------|----
-onData    | // ...data received from client
-onClose   | // ...socket has been closed AND deleted
-onError   | // ...any connection-releated error
-onOther   | // ...any connection-releated notification
-onOpening | // ...being accepted and added to the client list
+onData    | data received from client
+onClose   | socket has been closed AND deleted
+onError   | any connection-releated error
+onOther   | any connection-releated notification
+onOpening | being accepted and added to the client list
 
 If any of these methods are missing the application will be rejected by the server.   
 

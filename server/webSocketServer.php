@@ -83,7 +83,7 @@ class WebSocketServer {
 
         $this->Log("Starting server...");
         foreach ($this->allApps as $appName => $class) {
-            $this->Log("Application : $appName");
+            $this->Log("Registered resource : $appName");
         }
         $a = true;
         $nulll = NULL;
@@ -105,7 +105,7 @@ class WebSocketServer {
                         $this->onOpening($SocketID);
                     }
                 } else {
-                 
+
                     $Client = $this->Clients[$SocketID];
 
                     if ($Client->Handshake == false) {
@@ -166,22 +166,14 @@ class WebSocketServer {
                 $this->Close($SocketID);
                 return;
             }
-         
+
             $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $client->uuid]));
         } else {
             $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         }
-        if ($M === 'bufferON') {
-            $client->bufferON = true;
-            $client->buffer = [];
-            $this->Log('Buffering ON');
+
+        if ($this->serverCommand($client, $M)) {
             return;
-        }
-        if ($M === 'bufferOFF') {
-            $client->bufferON = false;
-            $M = implode('', $client->buffer);
-            $client->buffer = [];
-            $this->Log('Buffering OFF');
         }
 
         if ($client->bufferON) {
@@ -209,6 +201,30 @@ class WebSocketServer {
         }
         $app->registerServer($this);
         return true;
+    }
+
+    private function serverCommand($client, $M) {
+        if ($M === 'bufferON') {
+            $client->bufferON = true;
+            $client->buffer = [];
+            $this->Log('Buffering ON');
+            return true;
+        }
+        if ($M === 'bufferOFF') {
+            $client->bufferON = false;
+            $M = implode('', $client->buffer);
+            $client->buffer = [];
+            $this->Log('Buffering OFF');
+        }
+        if ($M === 'logON') {
+            $this->logToDisplay = true;
+            return true;
+        }
+        if ($M === 'logOFF') {
+            $this->logToDisplay = false;
+            return true;
+        }
+        return false;
     }
 
 // Methods to be configured by the user; executed directly after...

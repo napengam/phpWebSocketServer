@@ -49,5 +49,6 @@ $server->registerApp('/php', $appPHP);
  * requests from clients
  * ***********************************************
  */
+$server->logToDisplay = false;
 $server->Start();
 ?>

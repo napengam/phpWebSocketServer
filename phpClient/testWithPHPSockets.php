@@ -8,6 +8,10 @@ require 'socketPhpClient.php';
 include '../include/adressPort.inc.php';
 
 $talk = new socketTalk($Address, $Port, '/php');
+if (!isset($_GET['m'])) {
+    $_GET['m'] = '';
+}
+
 
 $message = trim($_GET['m']);
 if ($message == '') {
