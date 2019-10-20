@@ -6,7 +6,7 @@
  * **********************************************
  */
 
-class appWeb extends coreApp {
+class resourceWeb extends coreApp {
 
     private $packet;
 
@@ -44,14 +44,15 @@ class appWeb extends coreApp {
             $this->server->log("Broadcast $M");
             return;
         }
-        
+        if ($packet->opcode === 'broadcast') {
+            $this->broadCast($SocketID, $M);
+            return;
+        }
         /*
          * *****************************************
-         * no opcode-> broadcast to all
+         * unknown opcode-> do nothing
          * *****************************************
          */
-        $this->server->log("Broadcast $M");
-        $this->broadCast($SocketID, $M);
     }
 
     function broadCast($SocketID, $M) {

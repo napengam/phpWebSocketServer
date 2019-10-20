@@ -6,9 +6,9 @@
  * **********************************************
  */
 
-class appPhp extends coreApp {
+class resourcePhp extends coreApp {
 
-    private $packet;//, $server;
+    private $packet; //, $server;
 
     function onData($SocketID, $M) {
         /*
@@ -33,7 +33,7 @@ class appPhp extends coreApp {
             return;
         }
 
-  
+
         if ($packet->opcode === 'feedback') {
             /*
              * *****************************************
@@ -44,15 +44,17 @@ class appPhp extends coreApp {
             $this->feedback($packet);
             return;
         }
+
+        if ($packet->opcode === 'broadcast') {
+            $this->broadCast($SocketID, $M);
+            return;
+        }
         /*
          * *****************************************
-         * no opcode-> broadcast to all
+         * unknown opcode-> do nothing
          * *****************************************
          */
-        $this->server->log("Broadcast $M");
-        $this->broadCast($SocketID, $M);
     }
-
 
     function feedback($packet) {
         foreach ($this->server->Clients as $client) {
@@ -70,17 +72,6 @@ class appPhp extends coreApp {
                     continue;
                 }
                 $this->server->Write($client->ID, $M);
-            }
-        }
-    }
-
-    function broadCastPong($SocketID) {
-        foreach ($this->server->Clients as $client) {
-            if ($SocketID == $client->ID) {
-                continue;
-            }
-            if ($this->server->Write($client->ID, 'pong') === false) {
-                $this->Close($client->ID);
             }
         }
     }

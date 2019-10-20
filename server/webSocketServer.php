@@ -234,7 +234,7 @@ class WebSocketServer {
     }
 
     function onData($SocketID, $message) { // ...message receipt; $message contains the decoded message
-        $this->Log("Received " . strlen($message) . " Bytes from socket #$SocketID");
+       // $this->Log("Received " . strlen($message) . " Bytes from socket #$SocketID");
         $this->Clients[$SocketID]->app->onData($SocketID, ($message));
     }
 
