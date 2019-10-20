@@ -1,7 +1,7 @@
 # phpWebSocketServer
 
-Server witten in PHP to handle connections via websocksets **wss:// or ws://** and normal sockets
-over **ssl:// ,tcp://**
+Server written in PHP to handle connections via websocksets **wss:// or ws://**  
+and normal sockets over **ssl:// ,tcp://**
 
 implemented by  
 - **Heinz Schweitzer** @https://github.com/napengam/phpWebSocketServer 
