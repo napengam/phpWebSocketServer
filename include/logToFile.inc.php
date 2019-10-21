@@ -1,0 +1,3 @@
+<?php
+
+$logDir = "d:/temp";

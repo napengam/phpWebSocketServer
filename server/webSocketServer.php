@@ -9,9 +9,10 @@ class WebSocketServer {
     use coreFunc; // TRAIT to implement various methods
 
     public
-            $logToFile = false,
-            $logFile = "log.txt",
-            $logToDisplay = true,
+//            $logToFile = false,
+//            $logFile = "log.txt",
+//            $logToDisplay = true,
+            $logging = '',
             $Sockets = [],
             $bufferLength = 10 * 4096,
             $maxClients = 20,
@@ -27,10 +28,11 @@ class WebSocketServer {
             $socketMaster,
             $allApps = [];
 
-    function __construct($Address, $Port, $keyAndCertFile = '', $pathToCert = '') {
+    function __construct($Address, $Port, $logger, $keyAndCertFile = '', $pathToCert = '') {
 
         $errno = 0;
         $errstr = '';
+        $this->logging=$logger;
 
         /*
          * ***********************************************
@@ -157,12 +159,12 @@ class WebSocketServer {
             $message = $this->Decode($message);
             if ($this->opcode == 10) { //pong
                 $this->opcode = 1; // text frame 
-                $this->log('Unsolicited Pong frame received'); // just ignore
+                $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
                 return;
             }
             if ($this->opcode == 8) { //Connection Close Frame             
                 $this->opcode = 1; // text frame 
-                $this->log('Connection Close frame received');
+                $this->log("Connection Close frame received from socket #$SocketID");
                 $this->Close($SocketID);
                 return;
             }
@@ -191,7 +193,7 @@ class WebSocketServer {
         return fwrite($this->Sockets[$SocketID], $message, strlen($message));
     }
 
-    public function registerApp($name, $app) {
+    public function registerResource($name, $app) {
         $this->allApps[$name] = $app;
         foreach (['registerServer', 'onOpen', 'onData', 'onClose', 'onError', 'onOther'] as $method) {
             if (!method_exists($app, $method)) {
@@ -227,6 +229,12 @@ class WebSocketServer {
         return false;
     }
 
+     function Log($m) {
+        if ($this->logging) {
+            $this->logging->log($m);
+        }
+    }
+
 // Methods to be configured by the user; executed directly after...
     function onOpen($SocketID) { //...successful handshake
         $this->Log("Handshake with socket #$SocketID successful");
@@ -234,7 +242,7 @@ class WebSocketServer {
     }
 
     function onData($SocketID, $message) { // ...message receipt; $message contains the decoded message
-       // $this->Log("Received " . strlen($message) . " Bytes from socket #$SocketID");
+        // $this->Log("Received " . strlen($message) . " Bytes from socket #$SocketID");
         $this->Clients[$SocketID]->app->onData($SocketID, ($message));
     }
 

@@ -56,20 +56,20 @@ trait coreFunc {
         return $text;
     }
 
-    public function Log($M, $exit = false) {
-
-        if ($this->logToFile) {
-            $M = "[" . date(DATE_RFC1036, time()) . "] - $M \r\n";
-            file_put_contents($this->logFile, $M, FILE_APPEND);
-        }
-        if ($this->logToDisplay) {
-            $M = "[" . date(DATE_RFC1036, time()) . "] - $M \r\n";
-            echo $M;
-        }
-        if ($exit) {
-            exit;
-        }
-    }
+//    public function Log($M, $exit = false) {
+//
+//        if ($this->logToFile) {
+//            $M = "[" . date('r') . "] - $M \r\n";
+//            file_put_contents($this->logFile, $M, FILE_APPEND);
+//        }
+//        if ($this->logToDisplay) {
+//            $M = "[" . date('r') . "] - $M \r\n";
+//            echo $M;
+//        }
+//        if ($exit) {
+//            exit;
+//        }
+//    }
 
     protected function addClient($Socket) {
         $index = intval($Socket);
@@ -81,7 +81,6 @@ trait coreFunc {
         $this->Sockets[$index] = $Socket;
         return $index;
     }
-
 
     protected function Handshake($Socket, $Buffer) {
         $this->Log('Handshake:' . $Buffer);
@@ -137,43 +136,13 @@ trait coreFunc {
         }
         $Token = base64_encode($Token) . "\r\n";
         $addHeaderOk = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n";
-       
+
         fwrite($Socket, $addHeaderOk, strlen($addHeaderOk));
 
         $this->Clients[$SocketID]->Headers = 'websocket';
         $this->Clients[$SocketID]->Handshake = true;
         $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
         return true;
-    }
-
-    /*
-     * ***********************************************
-     * for future use
-     * ***********************************************
-     */
-
-    private function optAssign($opt) {
-
-        foreach ((object) $this->stdOpt as $key => $defaultValue) {
-            if ($opt->{$key}) {
-                continue;
-            }
-            $opt->{$key} = $defaultValue;
-        }
-        return $opt;
-    }
-
-    private function getStdOpt() {
-        return (object)
-                [
-                    'address' => '',
-                    'port' => '',
-                    'certKey' => '',
-                    'certPath' => '',
-                    'logFile' => '',
-                    'logtoFile' => false,
-                    'logToConsol' => true
-        ];
     }
 
 }
