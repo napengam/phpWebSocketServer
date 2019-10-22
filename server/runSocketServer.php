@@ -10,7 +10,7 @@
 include '../include/certPath.inc.php';
 include '../include/adressPort.inc.php';
 include '../include/logToFile.inc.php';
-include 'coreApp.php';
+include 'resource.php';
 include 'logToFile.php';
 /*
  * ***********************************************

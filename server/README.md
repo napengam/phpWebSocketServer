@@ -1,10 +1,27 @@
 # Directories
 
 
-## coreAPP.php
+
+## coreFunc.php
+
+A php trait used in class `webSocketServer.php`  
+Implements methods 
+
+Method|What
+------|----
+decode| decode messages coming from a websocket
+encode| encode message to be send to a websocket
+handshake|handle handshake with connecting clients
+addClient| add a client object to array of clients
+
+## logToFile
+
+Class to handle all loging and log rotation.
+
+## resource.php
 
 Base class that implements empty methodes required in order   
-to register an application with the server.
+to register a resource with the server.
 
 Method|What
 ------|----
@@ -25,35 +42,20 @@ Method|What
 registerServer    | // as said
 
 
-## coreFunc.php
 
-A php trait used in class `webSocketServer.php`  
-Implements methods 
-
-Method|What
-------|----
-decode| decode messages coming from a websocket
-encode| encode message to be send to a websocket
-handshake|handle handshake with connecting clients
-addClient| add a client object to array of clients
-Log| log messages to console or file
-
-## appPHP.php
-
-Application class that will server requests for resource  
+## resourcePHP.php
+This class extends `resource.php`  
+Class that will server requests for resource **PHP** 
 
 `[ws,wss,tcp,ssl]://socket.server.php:port/php`
 
-This class extends `coreApp.php`
 
-## appWeb.php
 
-Application class that will server requests for resource 
-
+## resourceWeb.php
+This class extends `resource.php`  
+Class that will server requests for resource  **web**
 
 `[ws,wss,tcp,ssl]://socket.server.php:port/web`
-
-This class extends `coreApp.php`
 
 ## webSocketServer.php
 

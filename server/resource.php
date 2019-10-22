@@ -5,7 +5,7 @@
  *
  * @author Heinz
  */
-class coreApp {
+class reseource {
 
     public $server;
 

@@ -15,3 +15,7 @@ Specify the host adress like.
 ## certPath.inc.php 
 
 Holds path to certificates and keyfile
+
+## logToFile.inc.php
+
+Path to directory where to create log files.
