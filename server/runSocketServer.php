@@ -1,12 +1,5 @@
 <?php
 
-/*
- * **************************
- * include address and port like:
- * $Address=[ssl:// | tcp://]server.at.com
- * $Port=number
- * **************************
- */
 include '../include/certPath.inc.php';
 include '../include/adressPort.inc.php';
 include '../include/logToFile.inc.php';
@@ -28,9 +21,11 @@ include 'resourcePHP.php';
 /*
  * ***********************************************
  * create a logger
+ * set directory for logfiles and 
+ * log to console false
  * ***********************************************
  */
-$logger = new logToFile($logDir);
+$logger = new logToFile($logDir,true);
 if ($logger->error === '') {
     $logger->logOpen('webSockLog');
 } else {

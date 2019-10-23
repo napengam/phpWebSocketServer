@@ -6,7 +6,7 @@
  * **********************************************
  */
 
-class resourceWeb extends coreApp {
+class resourceWeb extends resource{
 
     private $packet;
 

@@ -8,7 +8,6 @@ implemented by
 to work for communicating over secure websocket wss://
 and accept any other socket connection by PHP processes or other 
 
-
 WebSocketServer is based on the implementation in PHP by  
 - **Bryan Bliewert**, nVentis@GitHub https://github.com/nVentis/PHP-WebSocketServer
 
@@ -21,7 +20,7 @@ This server allows you to establish communication between web applications livin
 and enables backend scripts, in my case PHP, to communicate information back to web applications that 
 have called the backend script to perform some action.
 
-Web applications identify themself with a UUID to the server. If the web application triggers  
+In the example here, web applications identify themself with a UUID to the server. If the web application triggers  
 backend scripts via AJAX it passes the UUID to the backend scripts. The script is now able to report  
 back to the web client by sending the UUID along with an opcode 'feedback' and other parameters to the server.  
 With the given UUID the server now knows to what web client to send the message. Loop closed !
@@ -31,8 +30,10 @@ See example in directory webClient
 # Installation
 
 - Transfer the director  `phpWebSocketServer` to the documents root of your webserver
-- Step into the `include` directory and adapt the `adressPort.inc.php` to your needs.  
+- Step into the `include` directory and adapt the 
+  - `adressPort.inc.php` to your needs.  
     You will find some documentation in this file.
+  -  `logToFile.inc.pcp` set the directory where logfiles will live
 - If your server uses  `https://` follow the instructions in `certPath.inc.php` and set the global variables in there accordingly.
 
 To start the server see the README in directory server 

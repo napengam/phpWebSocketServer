@@ -18,6 +18,7 @@ and open the template in the editor.
         . "port='$Port';"
         . "</script>";
         ?>
+        <span id='connect' style='color:red'>not connected</span><br>
         <button id="ajax" >CALL Backend via AJAX</button><br>
         Here you will see feedback from backend : <b><span id='feedback'></span> </b>
         <hr>
@@ -33,7 +34,8 @@ and open the template in the editor.
                 sock = socketWebClient(server, port, '/web');
                 sock.setCallbackReady(ready);
                 sock.setCallbackReadMessage(readMessage);
-                sock.init();
+                sock.init('connect');
+                
                 uuid = sock.uuid;
                 for (i = 0; i < 16 * 1024; i++) {
                     longString += 'X';

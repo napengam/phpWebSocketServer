@@ -5,7 +5,7 @@
  *
  * @author Heinz
  */
-class reseource {
+class resource {
 
     public $server;
 

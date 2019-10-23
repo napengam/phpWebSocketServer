@@ -2,8 +2,8 @@
 
 ## simulateBackend.php
 
-A PHP script that simulates a backend script call with AJAX from web client.  
-To demsontare `feedback` from backend
+A PHP script that simulates a backend script called via AJAX from a web client   
+to demonstrate `feedback` from backend.
 
 
 ## socketPhpClient.php

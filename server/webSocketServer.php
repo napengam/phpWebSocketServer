@@ -32,7 +32,7 @@ class WebSocketServer {
 
         $errno = 0;
         $errstr = '';
-        $this->logging=$logger;
+        $this->logging = $logger;
 
         /*
          * ***********************************************
@@ -168,12 +168,8 @@ class WebSocketServer {
                 $this->Close($SocketID);
                 return;
             }
-
-            $this->Write($SocketID, json_encode((object) ['opcode' => 'next', 'uuid' => $client->uuid]));
-        } else {
-            $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         }
-
+        $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         if ($this->serverCommand($client, $message)) {
             return;
         }
@@ -229,7 +225,7 @@ class WebSocketServer {
         return false;
     }
 
-     function Log($m) {
+    function Log($m) {
         if ($this->logging) {
             $this->logging->log($m);
         }

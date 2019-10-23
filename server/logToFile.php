@@ -7,11 +7,11 @@
  */
 class logToFile {
 
-    public $logFile, $error = '', $fh = '', $console = false;
+    public $logFile, $error = '', $fh = '', $console;
     private $logDir, $maxEntry = 100000, $numLinesNow;
 
-    function __construct($logDir) {
-
+    function __construct($logDir, $console = false) {
+        $this->console = $console;
         if ($logDir == '') {
             $logDir = getcwd();
         }

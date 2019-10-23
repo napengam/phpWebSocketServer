@@ -6,7 +6,7 @@
  * **********************************************
  */
 
-class resourcePhp extends coreApp {
+class resourcePhp extends resource {
 
     private $packet; //, $server;
 

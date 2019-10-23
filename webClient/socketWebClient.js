@@ -2,7 +2,7 @@ function socketWebClient(server, port, app) {
     'uses strict';
     var
             tmp = [], queue = [], uuid, socket = {}, serveros, proto, chunkSize = 6 * 1024,
-            socketOpen = false, socketSend = false;
+            errormsg = '', socketOpen = false, socketSend = false;
     //******************
     //* figure out what 
     // * protokoll to use
@@ -18,22 +18,37 @@ function socketWebClient(server, port, app) {
     }
 
     uuid = generateUUID();
-    function init() {
+    function init(id) {
+
+
         socket = new WebSocket('' + proto + server + ':' + port + app);
         socket.onopen = function () {
             queue = [];
+            if (typeof id !== 'undefined') {
+                document.getElementById(id).innerHTML = 'connected';
+                document.getElementById(id).style.color = 'green';
+            }
+
         };
         socket.onerror = function () {
+            if (socketSend === false) {
+                errormsg = 'Can not connect to specified server';
+                if (typeof id !== 'undefined') {
+                    document.getElementById(id).innerHTML = errormsg;
+                }
+            }
             socketSend = false;
-            socketOpen = true;
-        };
+            socketOpen = false;
+            queue = [];
+        }
+        ;
         socket.onmessage = function (msg) {
             var packet;
             if (msg.data.length === 0 || msg.data.indexOf('pong') >= 0) {
                 return;
             }
             packet = JSON.parse(msg.data);
-            if (packet.opcode === 'next' && packet.uuid === uuid) {
+            if (packet.opcode === 'next' ) {
                 //******************
                 //* server is ready for next message
                 //******************/
@@ -56,6 +71,7 @@ function socketWebClient(server, port, app) {
             callbackReadMessage(packet);
         };
         socket.onclose = function () {
+            queue = [];
             socketOpen = false;
             socketSend = false;
         };
@@ -116,13 +132,13 @@ function socketWebClient(server, port, app) {
                 if (msg.length < chunkSize) {
                     queue.push(msg);
                 } else {
-                    //********************************************
-                    //  sending long messages in chunks
-                    //*******************************************
+//********************************************
+//  sending long messages in chunks
+//*******************************************
                     if (queue.length === 0) {
                         sendNow = true;
                     }
-                    queue.push('bufferON');//command for the server
+                    queue.push('bufferON'); //command for the server
                     nChunks = Math.floor(msg.length / chunkSize);
                     for (i = 0, j = 0; i < nChunks; i++, j += chunkSize) {
                         queue.push(msg.slice(j, j + chunkSize));
@@ -130,7 +146,7 @@ function socketWebClient(server, port, app) {
                     if (msg.length % chunkSize > 0) {
                         queue.push(msg.slice(j, j + msg.length % chunkSize));
                     }
-                    queue.push('bufferOFF');//command for the server
+                    queue.push('bufferOFF'); //command for the server
                 }
 
                 if ((queue.length === 1 || sendNow) && socketOpen) {
@@ -159,6 +175,9 @@ function socketWebClient(server, port, app) {
     return {
         'init': init,
         'sendMsg': sendMsg,
+        'errormsg': function () {
+            return errormsg;
+        }(),
         'uuid': function () {
             return uuid;
         }(),
