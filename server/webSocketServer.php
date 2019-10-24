@@ -8,10 +8,7 @@ class WebSocketServer {
 
     use coreFunc; // TRAIT to implement various methods
 
-    public
-//            $logToFile = false,
-//            $logFile = "log.txt",
-//            $logToDisplay = true,
+    public           
             $logging = '',
             $Sockets = [],
             $bufferLength = 10 * 4096,
