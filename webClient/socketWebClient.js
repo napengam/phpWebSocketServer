@@ -57,15 +57,16 @@ function socketWebClient(server, port, app) {
                 if (queue.length > 0) {
                     msg = queue[0];
                     socket.send(msg);
+                } else {
+                    queue = [];
                 }
                 return;
             } else if (packet.opcode === 'ready') {
                 socketOpen = true;
                 socketSend = true;
                 serveros = packet.os;
-                msg = {'opcode': 'uuid', 'message': uuid};
-                msg = JSON.stringify(msg);
-                socket.send(msg);
+                msg = {'opcode': 'uuid', 'message': uuid};              
+                sendMsg(msg);
                 callbackReady(packet);
                 return;
             }
