@@ -189,6 +189,18 @@ class WebSocketServer {
         return fwrite($this->Sockets[$SocketID], $message, strlen($message));
     }
 
+    public function broadCast($SocketID, $M) {
+        $ME = $this->Encode($M);
+        foreach ($this->Clients as $client) {
+            if ($client->Headers === 'websocket') {
+                if ($SocketID == $client->ID) {
+                    continue;
+                }
+                fwrite($this->Sockets[$client->ID], $ME, strlen($ME));
+            }
+        }
+    }
+
     public function registerResource($name, $app) {
         $this->allApps[$name] = $app;
         foreach (['registerServer', 'onOpen', 'onData', 'onClose', 'onError', 'onOther'] as $method) {
@@ -214,14 +226,7 @@ class WebSocketServer {
             $client->buffer = [];
             $this->Log('Buffering OFF');
         }
-        if ($message === 'logON') {
-            $this->logToDisplay = true;
-            return true;
-        }
-        if ($message === 'logOFF') {
-            $this->logToDisplay = false;
-            return true;
-        }
+
         return false;
     }
 

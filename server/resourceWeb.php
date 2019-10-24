@@ -6,7 +6,7 @@
  * **********************************************
  */
 
-class resourceWeb extends resource{
+class resourceWeb extends resource {
 
     private $packet;
 
@@ -15,7 +15,7 @@ class resourceWeb extends resource{
          * *****************************************
          * $M is JSON like
          * {'opcode':task, <followed by whatever is expected based on the value of opcode>}
-         * Thsi is just an example used here , you can send what ever you want.
+         * This is just an example used here , you can send what ever you want.
          * *****************************************
          */
 
@@ -45,7 +45,7 @@ class resourceWeb extends resource{
             return;
         }
         if ($packet->opcode === 'broadcast') {
-            $this->broadCast($SocketID, $M);
+            $this->server->broadCast($SocketID, $M);
             return;
         }
         /*
@@ -53,28 +53,6 @@ class resourceWeb extends resource{
          * unknown opcode-> do nothing
          * *****************************************
          */
-    }
-
-    function broadCast($SocketID, $M) {
-        foreach ($this->server->Clients as $client) {
-            if ($client->Headers === 'websocket') {
-                if ($SocketID == $client->ID) {
-                    continue;
-                }
-                $this->server->Write($client->ID, $M);
-            }
-        }
-    }
-
-    function broadCastPong($SocketID) {
-        foreach ($this->server->Clients as $client) {
-            if ($SocketID == $client->ID) {
-                continue;
-            }
-            if ($this->server->Write($client->ID, 'pong') === false) {
-                $this->Close($client->ID);
-            }
-        }
     }
 
 }

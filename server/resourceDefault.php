@@ -2,11 +2,11 @@
 
 /*
  * **********************************************
- * write your backend application for resourec /php
+ * defualt resource for websockets and sockets
  * **********************************************
  */
 
-class resourcePhp extends resource {
+class resourceDefault extends resource {
 
     private $packet; //, $server;
 
@@ -32,7 +32,16 @@ class resourcePhp extends resource {
             $this->server->Close($SocketID);
             return;
         }
-
+        if ($packet->opcode === 'uuid') {
+            /*
+             * *****************************************
+             * wbe client registers
+             * *****************************************
+             */
+            $this->server->Clients[$SocketID]->uuid = $packet->message;
+            $this->server->log("Broadcast $M");
+            return;
+        }
 
         if ($packet->opcode === 'feedback') {
             /*

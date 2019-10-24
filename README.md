@@ -36,7 +36,9 @@ See example in directory webClient
   -  `logToFile.inc.pcp` set the directory where logfiles will live
 - If your server uses  `https://` follow the instructions in `certPath.inc.php` and set the global variables in there accordingly.
 
-To start the server see the README in directory server 
+# Usage
+
+To start and use the server see the [README](server/README.md) in directory server 
 
 
 # Directories

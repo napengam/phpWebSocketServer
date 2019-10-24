@@ -20,13 +20,14 @@ function socketWebClient(server, port, app) {
     uuid = generateUUID();
     function init(id) {
 
-
+        if (typeof id !== 'undefined') {
+            document.getElementById(id).innerHTML = 'Try to connect ...';
+        }
         socket = new WebSocket('' + proto + server + ':' + port + app);
         socket.onopen = function () {
             queue = [];
             if (typeof id !== 'undefined') {
                 document.getElementById(id).innerHTML = 'connected';
-                document.getElementById(id).style.color = 'green';
             }
 
         };
@@ -48,7 +49,7 @@ function socketWebClient(server, port, app) {
                 return;
             }
             packet = JSON.parse(msg.data);
-            if (packet.opcode === 'next' ) {
+            if (packet.opcode === 'next') {
                 //******************
                 //* server is ready for next message
                 //******************/

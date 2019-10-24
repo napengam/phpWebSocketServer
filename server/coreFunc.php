@@ -50,26 +50,25 @@ trait coreFunc {
         }
         $text = '';
         $l = strlen($data);
-        for ($i = 0; $i < $l; ++$i) {
-            $text .= $data[$i] ^ $masks[$i % 4];
+        $m0 = $masks[0];
+        $m1 = $masks[1];
+        $m2 = $masks[2];
+        $m3 = $masks[3];
+        for ($i = 0; $i < $l;) {
+            $text .= $data[$i++] ^ $m0;
+            if ($i < $l) {
+                $text .= $data[$i++] ^ $m1;
+                if ($i < $l) {
+                    $text .= $data[$i++] ^ $m2;
+                    if ($i < $l) {
+                        $text .= $data[$i++] ^ $m3;
+                    }
+                }
+            }
         }
+
         return $text;
     }
-
-//    public function Log($M, $exit = false) {
-//
-//        if ($this->logToFile) {
-//            $M = "[" . date('r') . "] - $M \r\n";
-//            file_put_contents($this->logFile, $M, FILE_APPEND);
-//        }
-//        if ($this->logToDisplay) {
-//            $M = "[" . date('r') . "] - $M \r\n";
-//            echo $M;
-//        }
-//        if ($exit) {
-//            exit;
-//        }
-//    }
 
     protected function addClient($Socket) {
         $index = intval($Socket);

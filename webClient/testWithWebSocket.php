@@ -18,7 +18,7 @@ and open the template in the editor.
         . "port='$Port';"
         . "</script>";
         ?>
-        <span id='connect' style='color:red'>not connected</span><br>
+        <b><span id='connect'>not connected</span></b><br>
         <button id="ajax" >CALL Backend via AJAX</button><br>
         Here you will see feedback from backend : <b><span id='feedback'></span> </b>
         <hr>
