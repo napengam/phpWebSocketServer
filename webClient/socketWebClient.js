@@ -65,7 +65,7 @@ function socketWebClient(server, port, app) {
                 socketOpen = true;
                 socketSend = true;
                 serveros = packet.os;
-                msg = {'opcode': 'uuid', 'message': uuid};              
+                msg = {'opcode': 'uuid', 'message': uuid};
                 sendMsg(msg);
                 callbackReady(packet);
                 return;
@@ -134,9 +134,9 @@ function socketWebClient(server, port, app) {
                 if (msg.length < chunkSize) {
                     queue.push(msg);
                 } else {
-//********************************************
-//  sending long messages in chunks
-//*******************************************
+                    //********************************************
+                    //  sending long messages in chunks
+                    //*******************************************
                     if (queue.length === 0) {
                         sendNow = true;
                     }
