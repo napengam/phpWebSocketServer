@@ -14,6 +14,7 @@ WebSocketServer is based on the implementation in PHP by
 The idea of *application classes' is taken from  
 - **Simon Samtleben** @https://github.com/bloatless/php-websocket
 
+
 # What is it good for ?
 
 This server allows you to establish communication between web applications living in a browser  
