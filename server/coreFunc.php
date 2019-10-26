@@ -29,7 +29,7 @@ trait coreFunc {
             $bHead[8] = ( $L >> 8 ) & 255;
             $bHead[9] = ( $L ) & 255;
         }
-        return (implode(array_map(" chr", $bHead)) . $M);
+        return (implode(array_map("chr", $bHead)) . $M);
     }
 
     public function Decode($payload) {
