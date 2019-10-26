@@ -1,8 +1,12 @@
 # Usage
 
 To get an idea how things work and relate to each other  
-have a look into  `runSocketServer.php`.
+on the server side,have a look into  `runSocketServer.php`.
 
+Clients to test the server are located in 
+
+- `../webClient`
+- `../phpClient`
 
 # Directories
 
@@ -103,15 +107,16 @@ Example:
 Registers the application  `resourceDefault.php` and `resourceWeb.php` and `resourcePHP.php` with the server
 then starts the server.
 
-On a shell on Linux  just start it like:
+On a shell on Linux  just start it, with logging to console, like:
 
-> php runSocketserver.php
+> php runSocketserver.php co=1
 
 you shoud then see an out put like the one below on system using SSL
 
 
 > [Thu, 03 Oct 19 16:03:36 +0200] - Server initialized on Linux  ssl://xyz.server.net:8083 using SSL  
 > [Thu, 03 Oct 19 16:03:36 +0200] - Starting server...  
+> [Thu, 03 Oct 19 16:03:36 +0200] - Application : /  
 > [Thu, 03 Oct 19 16:03:36 +0200] - Application : /web  
 > [Thu, 03 Oct 19 16:03:36 +0200] - Application : /php  
 
@@ -121,6 +126,7 @@ on a system not using SSL you should see a similar output like the one below
 
 > [Thu, 03 Oct 19 16:00:28 +0200] - Server initialized on WINNT  127.0.0.1:8083  
 > [Thu, 03 Oct 19 16:00:28 +0200] - Starting server...  
+> [Thu, 03 Oct 19 16:00:28 +0200] - Application : /  
 > [Thu, 03 Oct 19 16:00:28 +0200] - Application : /web  
 > [Thu, 03 Oct 19 16:00:28 +0200] - Application : /php  
 
