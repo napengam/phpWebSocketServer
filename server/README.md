@@ -1,3 +1,7 @@
+# Usage
+
+To get an idea how things work and relate to each other  
+have a look into  `runSocketServer.php`.
 
 
 # Directories
@@ -44,12 +48,18 @@ registerServer    | // as said
 
 
 
+## resourceDefault.php
+
+This class extends `resource.php`  
+Class that will server requests for resource **/** 
+
+`[ws,wss,tcp,ssl]://socket.server.php:port/`
+
 ## resourcePHP.php
 This class extends `resource.php`  
 Class that will server requests for resource **PHP** 
 
 `[ws,wss,tcp,ssl]://socket.server.php:port/php`
-
 
 
 ## resourceWeb.php
@@ -90,7 +100,7 @@ Feel free to use whatever supports your needs.
 
 Example:
 
-Registers the application  `appWeb.php` and `appPHP.php` with the server
+Registers the application  `resourceDefault.php` and `resourceWeb.php` and `resourcePHP.php` with the server
 then starts the server.
 
 On a shell on Linux  just start it like:

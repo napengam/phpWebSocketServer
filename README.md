@@ -30,16 +30,19 @@ See example in directory webClient
 # Installation
 
 - Transfer the director  `phpWebSocketServer` to the documents root of your webserver
+
+# Configuration
+## Part 1
+
 - Step into the `include` directory and adapt the 
   - `adressPort.inc.php` to your needs.  
     You will find some documentation in this file.
   -  `logToFile.inc.pcp` set the directory where logfiles will live
 - If your server uses  `https://` follow the instructions in `certPath.inc.php` and set the global variables in there accordingly.
 
-# Usage
+## Part 2
 
 To start and use the server see the [README](server/README.md) in directory server 
-
 
 # Directories
 
