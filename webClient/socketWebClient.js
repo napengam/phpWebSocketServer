@@ -18,7 +18,7 @@ function socketWebClient(server, port, app) {
     }
 
     uuid = generateUUID();
-    function init(id) {
+    function init() {
 
 
         callbackStatus('Try to connect ...');
