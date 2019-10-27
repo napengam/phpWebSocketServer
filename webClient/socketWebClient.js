@@ -20,29 +20,22 @@ function socketWebClient(server, port, app) {
     uuid = generateUUID();
     function init(id) {
 
-        if (typeof id !== 'undefined') {
-            document.getElementById(id).innerHTML = 'Try to connect ...';
-        }
+
+        callbackStatus('Try to connect ...');
         socket = new WebSocket('' + proto + server + ':' + port + app);
         socket.onopen = function () {
             queue = [];
-            if (typeof id !== 'undefined') {
-                document.getElementById(id).innerHTML = 'connected';
-            }
-
+            callbackStatus('Connected');
         };
         socket.onerror = function () {
             if (socketSend === false) {
-                errormsg = 'Can not connect to specified server';
-                if (typeof id !== 'undefined') {
-                    document.getElementById(id).innerHTML = errormsg;
-                }
+                callbackStatus('Can not connect to specified server');
             }
             socketSend = false;
             socketOpen = false;
             queue = [];
-        }
-        ;
+        };
+
         socket.onmessage = function (msg) {
             var packet;
             if (msg.data.length === 0 || msg.data.indexOf('pong') >= 0) {
@@ -78,36 +71,25 @@ function socketWebClient(server, port, app) {
             socketSend = false;
         };
     }
-
-
-    function callbackReady(p) {
-//*
-// ******************************************
-// * dummy call back
-// ******************************************
-// */
+    function callbackStatus(state) { // dummy callback
+        return state;
+    }
+    function callbackReady(p) { // dummy callback
         return p;
     }
-    function callbackReadMessage(p) {
-///*
-// ******************************************
-//* dummy call back
-// ******************************************
-// */
+    function callbackReadMessage(p) { // dummy callback
         return p;
+    }
+    function setCallbackStatus(func) {
+        //  overwrite dummy call back with your own func
+        callbackStatus = func;
     }
     function setCallbackReady(func) {
-//*
-// * overwrite dummy call back with your own
-// * function func
-//
+        //  overwrite dummy call back with your own func
         callbackReady = func;
     }
     function setCallbackReadMessage(func) {
-// 
-// * overwrite dummy call back with your own
-// * function func
-// */
+        //  overwrite dummy call back with your own func
         callbackReadMessage = func;
     }
 
@@ -125,42 +107,34 @@ function socketWebClient(server, port, app) {
 
     function sendMsg(msgObj) {
         var i, j, nChunks, msg, sendNow = false;
-        if (!socketSend) {
+        if (!socketSend || !socketOpen) {
             return;
         }
-        try {
-            msg = JSON.stringify(msgObj);
-            if (socketOpen) {
-                if (msg.length < chunkSize) {
-                    queue.push(msg);
-                } else {
-                    //********************************************
-                    //  sending long messages in chunks
-                    //*******************************************
-                    if (queue.length === 0) {
-                        sendNow = true;
-                    }
-                    queue.push('bufferON'); //command for the server
-                    nChunks = Math.floor(msg.length / chunkSize);
-                    for (i = 0, j = 0; i < nChunks; i++, j += chunkSize) {
-                        queue.push(msg.slice(j, j + chunkSize));
-                    }
-                    if (msg.length % chunkSize > 0) {
-                        queue.push(msg.slice(j, j + msg.length % chunkSize));
-                    }
-                    queue.push('bufferOFF'); //command for the server
-                }
-
-                if ((queue.length === 1 || sendNow) && socketOpen) {
-                    msg = queue[0];
-                    socket.send(msg);
-                    sendNow = false;
-                }
+        msg = JSON.stringify(msgObj);
+        if (msg.length < chunkSize) {
+            queue.push(msg);
+        } else {
+            //********************************************
+            //  sending long messages in chunks
+            //*******************************************
+            if (queue.length === 0) {
+                sendNow = true;
             }
+            queue.push('bufferON'); //command for the server
+            nChunks = Math.floor(msg.length / chunkSize);
+            for (i = 0, j = 0; i < nChunks; i++, j += chunkSize) {
+                queue.push(msg.slice(j, j + chunkSize));
+            }
+            if (msg.length % chunkSize > 0) {
+                queue.push(msg.slice(j, j + msg.length % chunkSize));
+            }
+            queue.push('bufferOFF'); //command for the server
+        }
 
-        } catch (ex) {
-            socketSend = false;
-            alert('socket error: ' + ex);
+        if ((queue.length === 1 || sendNow) && socketOpen) {
+            msg = queue[0];
+            socket.send(msg);
+            sendNow = false;
         }
     }
     function quit() {
@@ -186,7 +160,8 @@ function socketWebClient(server, port, app) {
         'quit': quit,
         'isOpen': isOpen,
         'setCallbackReady': setCallbackReady,
-        'setCallbackReadMessage': setCallbackReadMessage
+        'setCallbackReadMessage': setCallbackReadMessage,
+        'setCallbackStatus': setCallbackStatus
     };
 }
 

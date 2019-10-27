@@ -34,12 +34,18 @@ and open the template in the editor.
                 sock = socketWebClient(server, port, '/web');
                 sock.setCallbackReady(ready);
                 sock.setCallbackReadMessage(readMessage);
+                sock.setCallbackStatus(sockStatus);
                 sock.init('connect');
-                
+
                 uuid = sock.uuid;
                 for (i = 0; i < 16 * 1024; i++) {
                     longString += 'X';
                 }
+
+                function sockStatus(m) {
+                    document.getElementById('connect').innerHTML = m;
+                }
+
                 function readMessage(packet) {
                     var obj;
                     if (packet.opcode === 'broadcast') {
