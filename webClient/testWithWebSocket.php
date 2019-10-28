@@ -47,7 +47,7 @@ and open the template in the editor.
                 //*******************************************
 
                 for (i = 0; i < 16 * 1024; i++) {
-                    longString += 'X';
+                    longString += 'X'; 
                 }
 
                 function sockStatus(m) {
