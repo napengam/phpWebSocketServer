@@ -2,7 +2,7 @@ function socketWebClient(server, port, app) {
     'uses strict';
     var
             tmp = [], queue = [], uuid, socket = {}, serveros, proto, chunkSize = 6 * 1024,
-            errormsg = '', socketOpen = false, socketSend = false;
+            socketOpen = false, socketSend = false;
     //******************
     //* figure out what 
     // * protokoll to use
@@ -19,7 +19,6 @@ function socketWebClient(server, port, app) {
 
     uuid = generateUUID();
     function init() {
-
 
         callbackStatus('Try to connect ...');
         socket = new WebSocket('' + proto + server + ':' + port + app);
@@ -151,9 +150,6 @@ function socketWebClient(server, port, app) {
     return {
         'init': init,
         'sendMsg': sendMsg,
-        'errormsg': function () {
-            return errormsg;
-        }(),
         'uuid': function () {
             return uuid;
         }(),
