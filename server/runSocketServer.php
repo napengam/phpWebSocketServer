@@ -43,7 +43,7 @@ if ($argc > 1) {
  * ***********************************************
  * create a logger
  * set directory for logfiles and 
- * log to console false
+ * log to console
  * ***********************************************
  */
 $logger = new logToFile($logDir, $console);
