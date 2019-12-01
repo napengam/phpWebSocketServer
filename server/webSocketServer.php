@@ -8,7 +8,7 @@ class WebSocketServer {
 
     use coreFunc; // TRAIT to implement various methods
 
-    public           
+    public
             $logging = '',
             $Sockets = [],
             $bufferLength = 10 * 4096,
@@ -87,13 +87,11 @@ class WebSocketServer {
         $a = true;
         $nulll = NULL;
         while ($a) {
-
             $socketArrayRead = $this->Sockets;
             $socketArrayWrite = $socketArrayExceptions = NULL;
             stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, $nulll);
             foreach ($socketArrayRead as $Socket) {
                 $SocketID = intval($Socket);
-
                 if ($Socket === $this->socketMaster) {
                     $Client = stream_socket_accept($Socket);
                     if (!is_resource($Client)) {
@@ -104,15 +102,9 @@ class WebSocketServer {
                         $this->onOpening($SocketID);
                     }
                 } else {
-
                     $Client = $this->Clients[$SocketID];
-
                     if ($Client->Handshake == false) {
                         $dataBuffer = fread($Socket, $this->bufferLength);
-                        if (strpos(str_replace("\r", '', $dataBuffer), "\n\n") === false) {
-                            $this->onOther($SocketID, "Continue receving headers");
-                            continue;
-                        }
                         if ($this->Handshake($Socket, $dataBuffer)) {
                             if ($this->Clients[$SocketID]->app === NULL) {
                                 $this->Close($Socket);
@@ -121,17 +113,16 @@ class WebSocketServer {
                                 $this->onOpen($SocketID);
                             }
                         }
-                        continue;
-                    }
-
-                    $dataBuffer = fread($Socket, $this->bufferLength);
-                    if ($dataBuffer === false) {
-                        $this->Close($Socket);
-                    } else if (strlen($dataBuffer) == 0) {
-                        $this->onError($SocketID, "Client disconnected - TCP connection lost");
-                        $SocketID = $this->Close($Socket);
                     } else {
-                        $this->Read($SocketID, $dataBuffer);
+                        $dataBuffer = fread($Socket, $this->bufferLength);
+                        if ($dataBuffer === false) {
+                            $this->Close($Socket);
+                        } else if (strlen($dataBuffer) == 0) {
+                            $this->onError($SocketID, "Client disconnected - TCP connection lost");
+                            $SocketID = $this->Close($Socket);
+                        } else {
+                            $this->Read($SocketID, $dataBuffer);
+                        }
                     }
                 }
             }
