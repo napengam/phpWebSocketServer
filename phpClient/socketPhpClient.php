@@ -29,7 +29,7 @@ class socketTalk {
             return;
         }
         $this->connected = true;
-        fwrite($this->socketMaster, "php process\nGET $application HTTP/1.1\n\n");
+        fwrite($this->socketMaster, "php process\nGET $application HTTP/1.1\n");
         $buff = fread($this->socketMaster, 256); // wait for ACK
         $param = json_decode($buff);
     }
