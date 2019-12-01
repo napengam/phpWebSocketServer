@@ -122,7 +122,6 @@ trait coreFunc {
         if (count($addHeader) > 0) {
             $addh = implode("\r\n", $addHeader);
             fwrite($Socket, $addh, strlen($addh));
-
             $this->onError($SocketID, "Handshake aborted - [" . trim($addh) . "]");
             $this->Close($Socket);
             return false;
