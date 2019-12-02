@@ -74,7 +74,7 @@ trait coreFunc {
         $this->Clients[$index] = (object) [
                     'ID' => $index, 'uuid' => '',
                     'Headers' => null, 'Handshake' => null, 'timeCreated' => null,
-                    'bufferON' => false, 'buffer' => []
+                    'bufferON' => false, 'buffer' => [], 'app' => '/'
         ];
         $this->Sockets[$index] = $Socket;
         return $index;
