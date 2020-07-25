@@ -1,8 +1,9 @@
 <?php
 
-include_once '../include/certPath.inc.php';
-include_once '../include/adressPort.inc.php';
-include_once 'coreFunc.php';
+include_once __DIR__ . '/../include/certPath.inc.php';
+include_once __DIR__ . '/../include/certPath.inc.php';
+include_once __DIR__ . '/../include/adressPort.inc.php';
+include_once __DIR__ . '/coreFunc.php';
 
 class WebSocketServer {
 

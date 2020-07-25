@@ -1,24 +1,24 @@
 <?php
 
-include '../include/certPath.inc.php';
-include '../include/adressPort.inc.php';
-include '../include/logToFile.inc.php';
-include 'resource.php';
-include 'logToFile.php';
+include __DIR__ . '/../include/certPath.inc.php';
+include __DIR__ . '/../include/adressPort.inc.php';
+include __DIR__ . '/../include/logToFile.inc.php';
+include __DIR__ . '/resource.php';
+include __DIR__ . '/logToFile.php';
 /*
  * ***********************************************
  * inlcude the core server
  * ***********************************************
  */
-include "webSocketServer.php";
+include __DIR__ . "/webSocketServer.php";
 /*
  * **********************************************
  *  your backend applications
  * **********************************************
  */
-include 'resourceDefault.php';
-include 'resourceWeb.php';
-include 'resourcePHP.php';
+include __DIR__ . '/resourceDefault.php';
+include __DIR__ . '/resourceWeb.php';
+include __DIR__ . '/resourcePHP.php';
 
 function check_set($n, $v = '') {
     if (isset($_GET[$n])) {
