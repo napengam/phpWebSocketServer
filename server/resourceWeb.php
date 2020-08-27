@@ -55,6 +55,8 @@ class resourceWeb extends resource {
          */
     }
 
-}
+    function onError($SocketID, $M) {
+        
+    }
 
-?>
+}

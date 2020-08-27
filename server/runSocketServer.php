@@ -83,4 +83,4 @@ $server->registerResource('/php', $resPHP);
  */
 
 $server->Start();
-?>
+

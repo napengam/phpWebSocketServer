@@ -1,0 +1,8 @@
+[unit]
+Description=wensocketservice
+After=network.target
+[Service]
+Type=simple
+ExecStart=/usr/bin/php /var/www/html/phpWebSocketServer/server/runSocketServer.php
+[Install]
+WantedBy=multi-user.target
