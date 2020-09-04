@@ -3,6 +3,7 @@
 include __DIR__ . '/../include/certPath.inc.php';
 include __DIR__ . '/../include/adressPort.inc.php';
 include __DIR__ . '/../include/logToFile.inc.php';
+include __DIR__ . '/../include/errorHandler.php';
 include __DIR__ . '/resource.php';
 include __DIR__ . '/logToFile.php';
 /*
