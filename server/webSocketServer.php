@@ -96,7 +96,7 @@ class WebSocketServer {
                 if ($Socket === $this->socketMaster) {
                     $Client = stream_socket_accept($Socket);
                     if (!is_resource($Client)) {
-                        $this->onError($SocketID, "Connection could not be established");
+                        $this->Log("$SocketID, Connection could not be established");
                         continue;
                     } else {
                         $this->addClient($Client);
@@ -109,7 +109,7 @@ class WebSocketServer {
                         if ($this->Handshake($Socket, $dataBuffer)) {
                             if ($this->Clients[$SocketID]->app === NULL) {
                                 $this->Close($Socket);
-                                $this->log('Application incomplete');
+                                $this->Log('Application incomplete');
                             } else {
                                 $this->onOpen($SocketID);
                             }
