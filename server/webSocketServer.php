@@ -228,30 +228,40 @@ class WebSocketServer {
 // Methods to be configured by the user; executed directly after...
     function onOpen($SocketID) { //...successful handshake
         $this->Log("Handshake with socket #$SocketID successful");
-        $this->Clients[$SocketID]->app->onOpen($SocketID);
+        if (method_exists($this->Clients[$SocketID]->app, 'onOpen')) {
+            $this->Clients[$SocketID]->app->onOpen($SocketID);
+        }
     }
 
     function onData($SocketID, $message) { // ...message receipt; $message contains the decoded message
         // $this->Log("Received " . strlen($message) . " Bytes from socket #$SocketID");
-        $this->Clients[$SocketID]->app->onData($SocketID, ($message));
+        if (method_exists($this->Clients[$SocketID]->app, 'onData')) {
+            $this->Clients[$SocketID]->app->onData($SocketID, ($message));
+        }
     }
 
     function onClose($SocketID) { // ...socket has been closed AND deleted
         $this->Log("Connection closed to socket #$SocketID");
-        $this->Clients[$SocketID]->app->onClose($SocketID);
+        if (method_exists($this->Clients[$SocketID]->app, 'onClose')) {
+            $this->Clients[$SocketID]->app->onClose($SocketID);
+        }
     }
 
     function onError($SocketID, $message) { // ...any connection-releated error
         $this->Log("Socket $SocketID - " . $message);
-        $this->Clients[$SocketID]->app->onError($SocketID, $message);
+        if (method_exists($this->Clients[$SocketID]->app, 'onError')) {
+            $this->Clients[$SocketID]->app->onError($SocketID, $message);
+        }
     }
 
     function onOther($SocketID, $message) { // ...any connection-releated notification
         $this->Log("Socket $SocketID - " . $message);
-        $this->Clients[$SocketID]->app->onOther($SocketID, $message);
+        if (method_exists($this->Clients[$SocketID]->app, 'onOther')) {
+            $this->Clients[$SocketID]->app->onOther($SocketID, $message);
+        }
     }
 
-    function onOpening($SocketID) { // ...being accepted and added to the client list
+    function onOpening($SocketID) { // ...being accepted and added to the client lis
         $this->Log("New client connecting on socket #$SocketID");
     }
 
