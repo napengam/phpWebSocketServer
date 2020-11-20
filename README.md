@@ -3,6 +3,8 @@
 Server written in PHP to handle connections via websocksets **wss:// or ws://**  
 and normal sockets over **ssl:// ,tcp://**
 
+**NO DEPENDENCIES**
+
 implemented by  
 - **Heinz Schweitzer** @https://github.com/napengam/phpWebSocketServer 
 to work for communicating over secure websocket wss://
