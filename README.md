@@ -2,6 +2,7 @@
 
 Server written in PHP to handle connections via websocksets **wss:// or ws://**  
 and normal sockets over **ssl:// ,tcp://**
+As of 2020-12-07 it works also with PHP 8.0   
 
 **NO DEPENDENCIES**
 
