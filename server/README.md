@@ -21,7 +21,7 @@ Method|What
 decode| decode messages coming from a websocket
 encode| encode message to be send to a websocket
 handshake|handle handshake with connecting clients
-addClient| add a client object to array of clients
+
 
 ## logToFile
 
