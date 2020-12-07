@@ -1,9 +1,6 @@
 <?php
 
-include_once __DIR__ . '/../include/certPath.inc.php';
-include_once __DIR__ . '/../include/certPath.inc.php';
-include_once __DIR__ . '/../include/adressPort.inc.php';
-include_once __DIR__ . '/coreFunc.php';
+require __DIR__ . '/coreFunc.php';
 
 class WebSocketServer {
 
@@ -13,7 +10,6 @@ class WebSocketServer {
             $logging = '',
             $Sockets = [],
             $bufferLength = 10 * 4096,
-            $maxClients = 20,
             $errorReport = E_ALL,
             $timeLimit = 0,
             $implicitFlush = true,
@@ -58,7 +54,7 @@ class WebSocketServer {
             exit;
         }
         $this->serveros = PHP_OS;
-        $this->Sockets["m"] = $socket;
+        $this->Sockets[intval($socket)] = $socket;
         $this->socketMaster = $socket;
 
         error_reporting($this->errorReport);
@@ -99,7 +95,17 @@ class WebSocketServer {
                         $this->Log("$SocketID, Connection could not be established");
                         continue;
                     } else {
-                        $this->addClient($Client);
+                        $SocketID = intval($Client);
+                        $this->Clients[$SocketID] = (object) [
+                                    'ID' => $SocketID,
+                                    'uuid' => '',
+                                    'Headers' => null,
+                                    'Handshake' => null,
+                                    'timeCreated' => null,
+                                    'bufferON' => false,
+                                    'buffer' => [], 'app' => '/'
+                        ];
+                        $this->Sockets[$SocketID] = $Client;
                         $this->onOpening($SocketID);
                     }
                 } else {
@@ -111,6 +117,9 @@ class WebSocketServer {
                                 $this->Close($Socket);
                                 $this->Log('Application incomplete');
                             } else {
+                                $this->Log("Telling Client to start on  #$SocketID");
+                                $msg = (object) Array('opcode' => 'ready', 'os' => $this->serveros);
+                                $this->Write($SocketID, json_encode($msg));
                                 $this->onOpen($SocketID);
                             }
                         }
@@ -159,6 +168,7 @@ class WebSocketServer {
             }
         }
         $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
+
         if ($this->serverCommand($client, $message)) {
             return;
         }

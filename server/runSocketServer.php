@@ -33,7 +33,7 @@ function check_set($n, $v = '') {
  * check for parameters 
  * ***********************************************
  */
-
+$logdir = '';
 $console = false;
 if ($argc > 1) {
     parse_str(implode('&', array_slice($argv, 1)), $_GET);

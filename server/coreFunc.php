@@ -69,20 +69,9 @@ trait coreFunc {
         return $text;
     }
 
-    protected function addClient($Socket) {
-        $index = intval($Socket);
-        $this->Clients[$index] = (object) [
-                    'ID' => $index, 'uuid' => '',
-                    'Headers' => null, 'Handshake' => null, 'timeCreated' => null,
-                    'bufferON' => false, 'buffer' => [], 'app' => '/'
-        ];
-        $this->Sockets[$index] = $Socket;
-        return $index;
-    }
-
     protected function Handshake($Socket, $Buffer) {
 
-        $addHeader = [];
+        $errorResponds = [];
         $SocketID = intval($Socket);
         $Headers = [];
         $reqResource = [];
@@ -112,18 +101,18 @@ trait coreFunc {
                 !isset($Headers['sec-websocket-key']) ||
                 (!isset($Headers['upgrade']) || strtolower($Headers['upgrade']) != 'websocket') ||
                 (!isset($Headers['connection']) || strpos(strtolower($Headers['connection']), 'upgrade') === FALSE)) {
-            $addHeader[] = "HTTP/1.1 400 Bad Request";
+            $errorResponds[] = "HTTP/1.1 400 Bad Request";
         }
         if (!isset($Headers['sec-websocket-version']) || strtolower($Headers['sec-websocket-version']) != 13) {
-            $addHeader[] = "HTTP/1.1 426 Upgrade Required\r\nSec-WebSocketVersion: 13";
+            $errorResponds[] = "HTTP/1.1 426 Upgrade Required\r\nSec-WebSocketVersion: 13";
         }
         if (!isset($Headers['get'])) {
-            $addHeader[] = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
+            $errorResponds[] = "HTTP/1.1 405 Method Not Allowed\r\n\r\n";
         }
-        if (count($addHeader) > 0) {
-            $addh = implode("\r\n", $addHeader);
-            fwrite($Socket, $addh, strlen($addh));
-            $this->onError($SocketID, "Handshake aborted - [" . trim($addh) . "]");
+        if (count($errorResponds) > 0) {
+            $message = implode("\r\n", $errorResponds);
+            fwrite($Socket, $message, strlen($message));
+            $this->onError($SocketID, "Handshake aborted - [" . trim($message) . "]");
             $this->Close($Socket);
             return false;
         }
@@ -132,10 +121,9 @@ trait coreFunc {
         for ($i = 0; $i < 20; $i++) {
             $Token .= chr(hexdec(substr($sah1, $i * 2, 2)));
         }
-        $Token = base64_encode($Token) . "\r\n";
-        $addHeaderOk = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n";
-
-        fwrite($Socket, $addHeaderOk, strlen($addHeaderOk));
+        $Token = base64_encode($Token);
+        $statusLine = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n\r\n";
+        fwrite($Socket, $statusLine, strlen($statusLine));
 
         $this->Clients[$SocketID]->Headers = 'websocket';
         $this->Clients[$SocketID]->Handshake = true;

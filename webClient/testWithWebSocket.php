@@ -43,7 +43,7 @@ and open the template in the editor.
                 uuid = sock.uuid;
 
                 //********************************************
-                //  cretae a long message
+                //  create a long message
                 //*******************************************
 
                 for (i = 0; i < 16 * 1024; i++) {

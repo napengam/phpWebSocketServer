@@ -17,9 +17,7 @@ class resource {
      */
 
     function onOpen($SocketID) {
-        $this->server->Log("Telling Client to start on  #$SocketID");
-        $msg = (object) Array('opcode' => 'ready', 'os' => $this->server->serveros);
-        $this->server->Write($SocketID, json_encode($msg));
+        
     }
 
     function onData($SocketID, $M) { // date has benn received from client        

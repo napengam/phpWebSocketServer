@@ -61,7 +61,7 @@ class socketTalk {
         }
     }
 
-    private final function writeWait($m) {
+    final function writeWait($m) {
         if ($this->connected == false) {
             return false;
         }
