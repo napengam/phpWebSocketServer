@@ -1,6 +1,6 @@
 # phpWebSocketServer
 
-Server written in PHP (7.4, 8.0) to handle connections via websocksets **wss:// or ws://**  
+Server written in PHP to handle connections via websocksets **wss:// or ws://**  
 and normal sockets over **ssl:// ,tcp://**
 
 **NO DEPENDENCIES**
