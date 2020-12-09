@@ -61,6 +61,11 @@ function socketWebClient(server, port, app) {
                 sendMsg(msg);
                 callbackReady(packet);
                 return;
+            } else if (packet.opcode === 'close') {
+                socketOpen = false;
+                socketSend = false;
+                callbackStatus('Server closed connection');
+                return;
             }
             callbackReadMessage(packet);
         };
