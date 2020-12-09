@@ -29,9 +29,6 @@ class resource {
     function onError($SocketID, $M) { // ...any connection-releated error   
     }
 
-    function onOther($SocketID, $M) { // ...any connection-releated notification
-    }
-
     function onOpening($SocketID) { // ...being accepted and added to the client list
     }
 
