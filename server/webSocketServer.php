@@ -103,7 +103,8 @@ class WebSocketServer {
                                     'Handshake' => null,
                                     'timeCreated' => null,
                                     'bufferON' => false,
-                                    'buffer' => [], 'app' => '/'
+                                    'buffer' => [],
+                                    'app' => NULL
                         ];
                         $this->Sockets[$SocketID] = $Client;
                         $this->onOpening($SocketID);
@@ -114,8 +115,11 @@ class WebSocketServer {
                         $dataBuffer = fread($Socket, $this->bufferLength);
                         if ($this->Handshake($Socket, $dataBuffer)) {
                             if ($this->Clients[$SocketID]->app === NULL) {
+                                $this->Log('Application incomplete or does not exist');
+                                $this->Log("Telling Client to disconnect on  #$SocketID");
+                                $msg = (object) Array('opcode' => 'close', 'os' => $this->serveros);
+                                $this->Write($SocketID, json_encode($msg));
                                 $this->Close($Socket);
-                                $this->Log('Application incomplete');
                             } else {
                                 $this->Log("Telling Client to start on  #$SocketID");
                                 $msg = (object) Array('opcode' => 'ready', 'os' => $this->serveros);
@@ -202,7 +206,7 @@ class WebSocketServer {
 
     public function registerResource($name, $app) {
         $this->allApps[$name] = $app;
-        foreach (['registerServer', 'onOpen', 'onData', 'onClose', 'onError', 'onOther'] as $method) {
+        foreach (['registerServer', 'onOpen', 'onData', 'onClose', 'onError'] as $method) {
             if (!method_exists($app, $method)) {
                 $this->allApps[$name] = NULL;
                 return false;
@@ -252,6 +256,9 @@ class WebSocketServer {
 
     function onClose($SocketID) { // ...socket has been closed AND deleted
         $this->Log("Connection closed to socket #$SocketID");
+        if ($this->Clients[$SocketID]->app == NULL) {
+            return;
+        }
         if (method_exists($this->Clients[$SocketID]->app, 'onClose')) {
             $this->Clients[$SocketID]->app->onClose($SocketID);
         }
@@ -261,13 +268,6 @@ class WebSocketServer {
         $this->Log("Socket $SocketID - " . $message);
         if (method_exists($this->Clients[$SocketID]->app, 'onError')) {
             $this->Clients[$SocketID]->app->onError($SocketID, $message);
-        }
-    }
-
-    function onOther($SocketID, $message) { // ...any connection-releated notification
-        $this->Log("Socket $SocketID - " . $message);
-        if (method_exists($this->Clients[$SocketID]->app, 'onOther')) {
-            $this->Clients[$SocketID]->app->onOther($SocketID, $message);
         }
     }
 
