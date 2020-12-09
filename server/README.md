@@ -55,22 +55,22 @@ registerServer    | // as said
 ## resourceDefault.php
 
 This class extends `resource.php`  
-Class that will server requests for resource **/** 
+Class that will serve requests for resource **/** 
 
 `[ws,wss,tcp,ssl]://socket.server.php:port/`
 
 ## resourcePHP.php
 This class extends `resource.php`  
-Class that will server requests for resource **PHP** 
+Class that will serve requests for resource **PHP** 
 
-`[ws,wss,tcp,ssl]://socket.server.php:port/php`
+`[tcp,ssl]://socket.server.php:port/php`
 
 
 ## resourceWeb.php
 This class extends `resource.php`  
-Class that will server requests for resource  **web**
+Class that will serve requests for resource  **web**
 
-`[ws,wss,tcp,ssl]://socket.server.php:port/web`
+`[ws,wss]://socket.server.php:port/web`
 
 ## webSocketServer.php
 
