@@ -28,7 +28,10 @@ class socketTalk {
         $this->connected = true;
         fwrite($this->socketMaster, "php process\nGET $application HTTP/1.1\n");
         $buff = fread($this->socketMaster, 256); // wait for ACK
-        $param = json_decode($buff);
+        $json = json_decode($buff);
+        if ($json->opcode != 'ready') {
+            $this->connected = false;
+        }
     }
 
     final function talk($msg) {
