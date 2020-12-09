@@ -83,7 +83,9 @@ trait coreFunc {
             $this->Clients[$SocketID]->Handshake = true;
             preg_match("/GET (.*) HTTP/i", $Buffer, $reqResource);
             $Headers['get'] = trim($reqResource[1]);
-            $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
+            if (isset($this->allApps[$Headers['get']])) {
+                $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
+            }
             return true;
         }
         $this->Log('Handshake: webClient');
@@ -127,7 +129,9 @@ trait coreFunc {
 
         $this->Clients[$SocketID]->Headers = 'websocket';
         $this->Clients[$SocketID]->Handshake = true;
-        $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
+        if (isset($this->allApps[$Headers['get']])) {
+            $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
+        }
         return true;
     }
 
