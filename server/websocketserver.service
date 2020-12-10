@@ -1,5 +1,5 @@
 [unit]
-Description=wensocketservice
+Description=websocketservice
 After=network.target
 [Service]
 Type=simple
