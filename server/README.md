@@ -10,7 +10,6 @@ Clients to test the server are located in
 
 # Files
 
-
 ## coreFunc.php
 
 A php trait used in class `webSocketServer.php`  
@@ -129,4 +128,13 @@ on a system not using SSL you should see a similar output like the one below
 > [Thu, 03 Oct 19 16:00:28 +0200] - Application : /  
 > [Thu, 03 Oct 19 16:00:28 +0200] - Application : /web  
 > [Thu, 03 Oct 19 16:00:28 +0200] - Application : /php  
+
+
+## makeCertKey
+
+Linux shell script to create file containing sertificate and key
+
+## websocketserver.service
+
+Unit file to create service/deamon for websocketserver on Linux 
 
