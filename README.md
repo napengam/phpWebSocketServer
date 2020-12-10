@@ -1,13 +1,14 @@
 # phpWebSocketServer
 
 Server written in PHP to handle connections via websocksets **wss:// or ws://**  
-and normal sockets over **ssl:// ,tcp://**
+and normal sockets over **ssl:// ,tcp://**  
+
 As of 2020-12-07 it works also with PHP 8.0   
 
 **NO DEPENDENCIES**
 
 implemented by  
-- **Heinz Schweitzer** @https://github.com/napengam/phpWebSocketServer 
+- **Heinz Schweitzer** https://github.com/napengam/phpWebSocketServer 
 to work for communicating over secure websocket wss://
 and accept any other socket connection by PHP processes or other 
 
@@ -15,7 +16,9 @@ WebSocketServer is based on the implementation in PHP by
 - **Bryan Bliewert**, nVentis@GitHub https://github.com/nVentis/PHP-WebSocketServer
 
 The idea of *application classes' is taken from  
-- **Simon Samtleben** @https://github.com/bloatless/php-websocket
+- **Simon Samtleben** https://github.com/bloatless/php-websocket
+
+See also https://tools.ietf.org/html/rfc6455
 
 
 # What is it good for ?
@@ -39,9 +42,9 @@ See example in directory webClient
 ## Part 1
 
 - Step into the `include` directory and adapt the 
-  - `adressPort.inc.php` to your needs.  
-    You will find some documentation in this file.
-  -  `logToFile.inc.pcp` set the directory where logfiles will live
+- `adressPort.inc.php` to your needs.  
+You will find some documentation in this file.
+-  `logToFile.inc.pcp` set the directory where logfiles will live
 - If your server uses  `https://` follow the instructions in `certPath.inc.php` and set the global variables in there accordingly.
 
 ## Part 2
@@ -66,4 +69,19 @@ Example of client written in PHP to connect and write to the server using resour
 **webClient**
 
 Example of web client to connect and communicate with the server  using resource **/web**
+
+# Some Numbers
+
+  
+- Number of Files
+  - 'php' => int 14
+  - 'js' => int 1  
+  
+- Number of Lines of Code
+  - 'php' => int 1194
+  - 'js' => int 169  
+  
+- Size in KBytes
+  - 'php' => float 35
+  - 'js' => float 5
 
