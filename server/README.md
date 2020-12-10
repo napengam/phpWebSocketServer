@@ -8,7 +8,7 @@ Clients to test the server are located in
 - `../webClient`
 - `../phpClient`
 
-# Directories
+# Files
 
 
 ## coreFunc.php
