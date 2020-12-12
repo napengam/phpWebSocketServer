@@ -35,8 +35,6 @@ trait coreFunc {
     public function Decode($payload) {
         // detect ping or pong frame
         $this->opcode = ord($payload[0]) & 15;
-//        $binary0 = sprintf('%08b', ord($payload[0]));
-//        $this->Log($binary0);
         $length = ord($payload[1]) & 127;
         if ($length == 126) {
             $masks = substr($payload, 4, 4);

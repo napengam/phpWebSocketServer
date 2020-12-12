@@ -41,8 +41,7 @@ class logToFile {
             }
             $this->fh = fopen("$this->logDir/$logFile", 'w+');
         } else if ($option == 'a') {// append to logfile
-            $this->fh = fopen("$this->logDir/$logFile", 'a+');
-            
+            $this->fh = fopen("$this->logDir/$logFile", 'a+');          
             $this->numLinesNow++;
         }
     }

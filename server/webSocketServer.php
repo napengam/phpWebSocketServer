@@ -11,7 +11,7 @@ class WebSocketServer {
             $Sockets = [],
             $bufferLength = 10 * 4096,
             $errorReport = E_ALL,
-            $timeLimit = 0,
+            // $timeLimit = 0,
             $implicitFlush = true,
             $Clients = [],
             $opcode = 1, // text frame  
@@ -90,12 +90,12 @@ class WebSocketServer {
             foreach ($socketArrayRead as $Socket) {
                 $SocketID = intval($Socket);
                 if ($Socket === $this->socketMaster) {
-                    $Client = stream_socket_accept($Socket);
-                    if (!is_resource($Client)) {
+                    $clientSocket = stream_socket_accept($Socket);
+                    if (!is_resource($clientSocket)) {
                         $this->Log("$SocketID, Connection could not be established");
                         continue;
                     } else {
-                        $SocketID = intval($Client);
+                        $SocketID = intval($clientSocket);
                         $this->Clients[$SocketID] = (object) [
                                     'ID' => $SocketID,
                                     'uuid' => '',
@@ -106,8 +106,8 @@ class WebSocketServer {
                                     'buffer' => [],
                                     'app' => NULL
                         ];
-                        $this->Sockets[$SocketID] = $Client;
-                        $this->onOpening($SocketID);
+                        $this->Sockets[$SocketID] = $clientSocket;
+                        $this->Log("New client connecting on socket #$SocketID");
                     }
                 } else {
                     $Client = $this->Clients[$SocketID];
@@ -160,12 +160,12 @@ class WebSocketServer {
         if ($client->Headers === 'websocket') {
             $message = $this->Decode($message);
             if ($this->opcode == 10) { //pong
-                $this->opcode = 1; // text frame 
+                //     $this->opcode = 1; // text frame 
                 $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
                 return;
             }
             if ($this->opcode == 8) { //Connection Close Frame             
-                $this->opcode = 1; // text frame 
+                //   $this->opcode = 1; // text frame 
                 $this->log("Connection Close frame received from socket #$SocketID");
                 $this->Close($SocketID);
                 return;
@@ -269,10 +269,6 @@ class WebSocketServer {
         if (method_exists($this->Clients[$SocketID]->app, 'onError')) {
             $this->Clients[$SocketID]->app->onError($SocketID, $message);
         }
-    }
-
-    function onOpening($SocketID) { // ...being accepted and added to the client lis
-        $this->Log("New client connecting on socket #$SocketID");
     }
 
 }

@@ -3,24 +3,24 @@
     <head>
         <meta charset="UTF-8">
         <title></title>
-        <?php             
-        $path = getcwd();        
+        <?php
+        $path = getcwd();
         walkDir($path);
         echo "<h2>Path ;  $path</h2><p>";
         echo 'Number of <b>Files</b><br>';
         echo var_dump($numfiles);
         echo 'Number of <b>Lines of Code</b><br>';
         echo var_dump($numlines);
-        echo 'Number of <b>Size in KBytes</b><br>';
+        echo 'Size in KBytes</b><br>';
         echo var_dump($numsize);
         exit;
         ?>
     </head>
     <body>
         <?php
-        $numfiles = Array();
-        $numlines = Array();
-        $numsize = Array();
+        $numfiles = [];
+        $numlines = [];
+        $numsize = [];
 
         function readSourceFile($file, $ext) {
             global $numfiles, $numlines, $numsize;
@@ -37,16 +37,12 @@
                         continue;
                     }
                     if (is_dir($path . '/' . $file)) {
-                        if ($file == 'rewritePHP') {
-                            //closedir($dh);
-                            continue;
-                        }
                         walkDir($path . '/' . $file);
                     }
                     $arr = explode('.', $file);
-                    if ($arr[1] == 'php' || $arr[1] == 'js' || $arr[1] == 'css' || $arr[1] == 'html') {
-                        //echo $path . '/' . $file . '<br>';
-                        readSourceFile($path . '/' . $file, $arr[1]);
+                    $ext = $arr[count($arr) - 1];
+                    if (stripos(' php js css html ', $ext) > 0) {
+                        readSourceFile($path . '/' . $file, $ext);
                     }
                 }
                 closedir($dh);
