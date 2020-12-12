@@ -78,6 +78,18 @@ Consumes trait `coreFunc.php`
 
 The server handles connection request from clients, performes a handshake with clients.   
 
+To keep track of all the clients an associated sockets there are two array where we store  
+this information.  
+`$this->Sockets=[]; $this->Clients=[]`
+
+Lets say a clientz is accepted on `$clientSocket`  then   
+
+With `SocketID=intval($clientSocket)` we generate an index into  
+`$this->Sockets[$SocketID]=$clientSocket;`   
+`$this->Clients[$SocketID]=(objcet)[/*attributes*/]`      
+under witch we store and retreive the needed information.
+
+
 Upon a successful handshake, the client is registered with the server and incoming messages   
 will be routed to the resource, application, the client specified in the **GET** request.  
 In the given examples resources are **/web** and **/php** 
