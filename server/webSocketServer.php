@@ -11,7 +11,7 @@ class WebSocketServer {
             $Sockets = [],
             $bufferLength = 10 * 4096,
             $errorReport = E_ALL,
-            // $timeLimit = 0,
+            $timeLimit = 0,
             $implicitFlush = true,
             $Clients = [],
             $opcode = 1, // text frame  
