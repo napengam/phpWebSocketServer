@@ -2,7 +2,7 @@
 
 /*
  * **********************************************
- * defualt resource for websockets and sockets
+ * default resource for websockets and sockets
  * **********************************************
  */
 
@@ -18,8 +18,13 @@ class resourceDefault extends resource {
          * Thsi is just an example used here , you can send what ever you want.
          * *****************************************
          */
-        $packet = json_decode($M);
 
+        $packet = $this->getPacket($M);
+        if ($packet->opcode === 'jsonerror') {
+            $this->server->Log("jsonerror closing #$SocketID");
+            $this->server->Close($SocketID);
+            return;
+        }
 
         $this->packet = $packet;
         if ($packet->opcode === 'quit') {
