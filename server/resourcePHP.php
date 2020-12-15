@@ -2,7 +2,7 @@
 
 /*
  * **********************************************
- * write your backend application for resourec /php
+ * write your backend application for resource /php
  * **********************************************
  */
 
@@ -18,10 +18,14 @@ class resourcePhp extends resource {
          * Thsi is just an example used here , you can send what ever you want.
          * *****************************************
          */
-        $packet = json_decode($M);
+        $packet = $this->getPacket($M);
 
+        if ($packet->opcode === 'jsonerror') {
+            $this->server->Log("jsonerror closing #$SocketID");
+            $this->server->Close($SocketID);
+            return;
+        }
 
-        $this->packet = $packet;
         if ($packet->opcode === 'quit') {
             /*
              * *****************************************
@@ -32,7 +36,6 @@ class resourcePhp extends resource {
             $this->server->Close($SocketID);
             return;
         }
-
 
         if ($packet->opcode === 'feedback') {
             /*

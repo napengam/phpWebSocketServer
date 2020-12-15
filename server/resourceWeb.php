@@ -22,7 +22,12 @@ class resourceWeb extends resource {
 
         $packet = $this->getPacket($M);
         $this->packet = $packet;
-
+        
+        if ($packet->opcode === 'jsonerror') {
+            $this->server->Log("jsonerror closing #$SocketID");
+            $this->server->Close($SocketID);
+            return;
+        }
         if ($packet->opcode === 'quit') {
             /*
              * *****************************************
