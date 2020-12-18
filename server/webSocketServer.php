@@ -15,6 +15,7 @@ class WebSocketServer {
             $implicitFlush = true,
             $Clients = [],
             $opcode = 1, // text frame  
+            $maxChunks = 100,
             $serveros;
     protected
             $Address,
@@ -171,14 +172,19 @@ class WebSocketServer {
                 return;
             }
         }
-        $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
 
+        $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         if ($this->serverCommand($client, $message)) {
             return;
         }
 
         if ($client->bufferON) {
-            $client->buffer[] = $message;
+            if (count($client->buffer) <= $this->maxChunks) {
+                $client->buffer[] = $message;
+            } else {
+                $this->log("Too many chunks from socket #$SocketID");
+                $this->onCLose($SocketID);
+            }
             return;
         }
 
@@ -266,6 +272,9 @@ class WebSocketServer {
 
     function onError($SocketID, $message) { // ...any connection-releated error
         $this->Log("Socket $SocketID - " . $message);
+        if ($this->Clients[$SocketID]->app == NULL) {
+            return;
+        }
         if (method_exists($this->Clients[$SocketID]->app, 'onError')) {
             $this->Clients[$SocketID]->app->onError($SocketID, $message);
         }
