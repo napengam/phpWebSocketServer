@@ -96,7 +96,7 @@ trait coreFunc {
                 $Headers['get'] = trim($reqResource[1]);
             }
         }
-
+  
         if (!isset($Headers['host']) || !isset($Headers['origin']) ||
                 !isset($Headers['sec-websocket-key']) ||
                 (!isset($Headers['upgrade']) || strtolower($Headers['upgrade']) != 'websocket') ||
