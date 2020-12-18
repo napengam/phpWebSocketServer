@@ -1,11 +1,34 @@
 
 # Example
- 
+
 
 ## socketWebClient.js
 
-JavaScript to connect to the server.
-This script also sends very long messages in chunks of `chunksize=6+1204`.  
+Use this JavaScript to connect to the server.
+
+The server sends JSON encoded messages in the form of
+`{'opcode':code, /*messag depeding on opcode*/}`
+Opcodes that are handled inside this script.  
+- ready
+- next
+- close
+
+**Note** every message send to the server is acknowledged by the server  
+with an opcode 'next'.
+
+This script handles my required dialog right after the handshake is done and the connection  
+is established.
+
+- the server sends opcode 'ready' 
+- the script sends back a generated UUID. `{'opcode':'uuid', 'message':uuid}`  
+With this UUID the client registers with the server  
+- The serve sends a message with opcode 'next'  
+signaling that the client can send the next message.
+
+
+This script also sends very long messages in chunks of `chunksize=6 * 1204`.  
+
+
 
 
 ## testWithWebSocket.php
