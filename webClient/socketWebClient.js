@@ -1,7 +1,8 @@
 function socketWebClient(server, port, app) {
     'uses strict';
     var
-            tmp = [], queue = [], uuid, socket = {}, serveros, proto, chunkSize = 6 * 1024,
+            tmp = [], queue = [], uuid, socket = {}, serveros, proto, 
+                    chunkSize = 6 * 1024, 
             socketOpen = false, socketSend = false;
     //******************
     //* figure out what 
