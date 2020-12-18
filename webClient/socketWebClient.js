@@ -23,6 +23,7 @@ function socketWebClient(server, port, app) {
 
         callbackStatus('Try to connect ...');
         socket = new WebSocket('' + proto + server + ':' + port + app);
+        
         socket.onopen = function () {
             queue = [];
             callbackStatus('Connected');
