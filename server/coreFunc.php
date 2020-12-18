@@ -97,7 +97,7 @@ trait coreFunc {
             }
         }
 
-        if (!isset($Headers['host']) ||
+        if (!isset($Headers['host']) || !isset($Headers['origin']) ||
                 !isset($Headers['sec-websocket-key']) ||
                 (!isset($Headers['upgrade']) || strtolower($Headers['upgrade']) != 'websocket') ||
                 (!isset($Headers['connection']) || strpos(strtolower($Headers['connection']), 'upgrade') === FALSE)) {
