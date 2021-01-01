@@ -5,7 +5,7 @@ class socketTalk {
     public $uuid, $connected = false, $serveros = 'linux', $chunkSize = 6 * 1024;
     private $socketMaster;
 
-    function __construct($Address, $Port, $application = '/') {
+    function __construct($Address, $Port, $application = '/', $uu = '') {
         $context = stream_context_create();
         $arr = explode('://', $Address, 2);
         if (count($arr) > 1) {
@@ -31,6 +31,19 @@ class socketTalk {
         $json = json_decode($buff);
         if ($json->opcode != 'ready') {
             $this->connected = false;
+        }
+        if ($uu != '') {
+            $this->uuid = $uu;
+        }
+    }
+
+    final function broadcast($message) {
+        $this->talk(['opcode' => 'broadcast', 'message' => $message]);
+    }
+
+    final function feedback($message) {
+        if ($this->uuid) {
+            $this->talk(['opcode' => 'feedback', 'uuid' => $this->uuid, 'message' => $message]);
         }
     }
 
