@@ -161,12 +161,10 @@ class WebSocketServer {
         if ($client->Headers === 'websocket') {
             $message = $this->Decode($message);
             if ($this->opcode == 10) { //pong
-                //     $this->opcode = 1; // text frame 
                 $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
                 return;
             }
-            if ($this->opcode == 8) { //Connection Close Frame             
-                //   $this->opcode = 1; // text frame 
+            if ($this->opcode == 8) { //Connection Close Frame 
                 $this->log("Connection Close frame received from socket #$SocketID");
                 $this->Close($SocketID);
                 return;
@@ -196,6 +194,15 @@ class WebSocketServer {
             $message = $this->Encode($message);
         }
         return fwrite($this->Sockets[$SocketID], $message, strlen($message));
+    }
+
+    function feedback($packet) {
+        foreach ($this->Clients as $client) {
+            if ($packet->uuid == $client->uuid && $client->Headers === 'websocket') {
+                $this->Write($client->ID, json_encode($packet));
+                return;
+            }
+        }
     }
 
     public function broadCast($SocketID, $M) {
@@ -256,7 +263,7 @@ class WebSocketServer {
     function onData($SocketID, $message) { // ...message receipt; $message contains the decoded message
         // $this->Log("Received " . strlen($message) . " Bytes from socket #$SocketID");
         if (method_exists($this->Clients[$SocketID]->app, 'onData')) {
-            $this->Clients[$SocketID]->app->onData($SocketID, ($message));
+            $this->Clients[$SocketID]->app->onData($SocketID, $message);
         }
     }
 
