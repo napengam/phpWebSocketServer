@@ -44,7 +44,7 @@ class resourcePhp extends resource {
              * $packet
              * *****************************************
              */
-            $this->feedback($packet);
+            $this->server->feedback($packet);
             return;
         }
 
@@ -58,16 +58,5 @@ class resourcePhp extends resource {
          * *****************************************
          */
     }
-
-    function feedback($packet) {
-        foreach ($this->server->Clients as $client) {
-            if ($packet->uuid == $client->uuid && $client->Headers === 'websocket') {
-                $this->server->Write($client->ID, json_encode($packet));
-                return;
-            }
-        }
-    }
-
 }
 
-?>
