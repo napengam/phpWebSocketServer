@@ -11,26 +11,26 @@ $json = file_get_contents('php://input');
 $payload = (object) json_decode($json, true);
 /*
  * ***********************************************
- * connect to teh server
+ * connect to the server
  * ***********************************************
  */
-$talk = new socketTalk($Address, $Port, '/php');
+$talk = new socketTalk($Address, $Port, '/php', $payload->uuid);
 /*
  * ***********************************************
  * send feedback to client
  * ***********************************************
  */
 
-$talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "doing some work sleep(1)"]);
-sleep(1);// work
-$talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "very importand work  sleep(2)"]);
-sleep(2);// work
+$talk->feedback("doing some work sleep(1)");
+sleep(1); // work
+$talk->feedback("very importand work  sleep(2)");
+sleep(2); // work
 for ($i = 0; $i < 1000000; $i++) {
     if ($i % 1000 == 0) {
-        $talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "loop $i"]);
+        $talk->feedback("loop $i");
     }
 }
-$talk->talk(['opcode' => 'feedback', 'uuid' => $payload->uuid, 'message' => "done"]);
+$talk->feedback( "done");
 /*
  * ***********************************************
  * end of AJAX call

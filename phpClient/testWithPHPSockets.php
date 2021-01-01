@@ -18,7 +18,7 @@ if ($message == '') {
     //return;
     $message = 'hallo from PHP';
 } else {
-    $talk->talk(['opcode' => 'broadcast', 'message' => "$message"]);
+    $talk->broadcast($message);
     $talk->silent();
     exit;
 }
@@ -34,12 +34,12 @@ for ($i = 0; $i < 9 * 1024; $i++) {
  * ***********************************************
  */
 
-$talk->talk(['opcode' => 'broadcast', 'message' => "$message 1"]);
-$talk->talk(['opcode' => 'broadcast', 'message' => "$message 2"]);
-$talk->talk(['opcode' => 'broadcast', 'message' => "$message 3"]);
-$talk->talk(['opcode' => 'broadcast', 'message' => "$message 4"]);
-$talk->talk(['opcode' => 'broadcast', 'message' => "$message 5"]);
-$talk->talk(['opcode' => 'broadcast', 'message' => "$longString 6~6~6~6"]);
+$talk->broadcast("$message 1");
+$talk->broadcast("$message 2");
+$talk->broadcast("$message 3");
+$talk->broadcast("$message 4");
+$talk->broadcast("$message 5");
+$talk->broadcast("$longString 6~6~6~6");
 
 
 $talk->silent();
