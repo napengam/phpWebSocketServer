@@ -1,10 +1,10 @@
 <?php
 
-require __DIR__ . '/coreFunc.php';
+require __DIR__ . '/RFC6455.php';
 
 class WebSocketServer {
 
-    use coreFunc; // TRAIT to implement various methods
+    use RFC6455; // TRAIT to implement methods reuqired by RFC6455
 
     public
             $logging = '',
@@ -111,13 +111,15 @@ class WebSocketServer {
                         $this->Log("New client connecting on socket #$SocketID");
                     }
                 } else {
+
                     $Client = $this->Clients[$SocketID];
+                    $dataBuffer = fread($Socket, $this->bufferLength);
+
                     if ($Client->Handshake == false) {
-                        $dataBuffer = fread($Socket, $this->bufferLength);
                         if ($this->Handshake($Socket, $dataBuffer)) {
                             if ($this->Clients[$SocketID]->app === NULL) {
-                                $this->Log('Application incomplete or does not exist');
-                                $this->Log("Telling Client to disconnect on  #$SocketID");
+                                $this->Log("Application incomplete or does not exist);"
+                                        . " Telling Client to disconnect on  #$SocketID");
                                 $msg = (object) Array('opcode' => 'close', 'os' => $this->serveros);
                                 $this->Write($SocketID, json_encode($msg));
                                 $this->Close($Socket);
@@ -129,7 +131,6 @@ class WebSocketServer {
                             }
                         }
                     } else {
-                        $dataBuffer = fread($Socket, $this->bufferLength);
                         if ($dataBuffer === false) {
                             $this->Close($Socket);
                         } else if (strlen($dataBuffer) == 0) {
