@@ -1,13 +1,12 @@
 function socketWebClient(server, port, app) {
     'uses strict';
     var
-            tmp = [], queue = [], uuid, socket = {}, serveros, proto, 
-                    chunkSize = 6 * 1024, 
+            tmp = [], queue = [], uuid, socket = {}, serveros, proto,
+            chunkSize = 6 * 1024,
             socketOpen = false, socketSend = false;
-    //******************
-    //* figure out what 
-    // * protokoll to use
-    //******************/
+    //********************************************
+    // figure out what  protokoll to use
+    //*******************************************
     tmp = server.split('://');
     if (tmp[0] === 'ssl') {
         proto = 'wss://';
@@ -23,7 +22,7 @@ function socketWebClient(server, port, app) {
 
         callbackStatus('Try to connect ...');
         socket = new WebSocket('' + proto + server + ':' + port + app);
-        
+
         socket.onopen = function () {
             queue = [];
             callbackStatus('Connected');
@@ -55,7 +54,8 @@ function socketWebClient(server, port, app) {
                     queue = [];
                 }
                 return;
-            } else if (packet.opcode === 'ready') {
+            }
+            if (packet.opcode === 'ready') {
                 socketOpen = true;
                 socketSend = true;
                 serveros = packet.os;
@@ -63,7 +63,8 @@ function socketWebClient(server, port, app) {
                 sendMsg(msg);
                 callbackReady(packet);
                 return;
-            } else if (packet.opcode === 'close') {
+            }
+            if (packet.opcode === 'close') {
                 socketOpen = false;
                 socketSend = false;
                 callbackStatus('Server closed connection');
@@ -152,7 +153,6 @@ function socketWebClient(server, port, app) {
     function isOpen() {
         return socketOpen;
     }
-
 
     return {
         'init': init,
