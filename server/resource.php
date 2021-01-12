@@ -14,7 +14,7 @@ class resource {
     function onOpen($SocketID) {       
     }
 
-    function onData($SocketID, $M) { // date has benn received from client        
+    function onData($SocketID, $M) { //... a message from client        
     }
 
     function onClose($SocketID) { // ...socket has been closed AND deleted        
