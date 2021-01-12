@@ -15,7 +15,7 @@ class resourceDefault extends resource {
          * *****************************************
          * $M is JSON like
          * {'opcode':task, <followed by whatever is expected based on the value of opcode>}
-         * Thsi is just an example used here , you can send what ever you want.
+         * This is just an example used here , you can send what ever you want.
          * *****************************************
          */
 
@@ -40,7 +40,7 @@ class resourceDefault extends resource {
         if ($packet->opcode === 'uuid') {
             /*
              * *****************************************
-             * wbe client registers
+             * web client registers
              * *****************************************
              */
             $this->server->Clients[$SocketID]->uuid = $packet->message;
@@ -52,10 +52,10 @@ class resourceDefault extends resource {
             /*
              * *****************************************
              * send feedback to client with uuid found
-             * $packet
+             * in $packet
              * *****************************************
              */
-            $this->feedback($packet);
+            $this->server->feedback($packet);
             return;
         }
 
@@ -70,15 +70,4 @@ class resourceDefault extends resource {
          */
     }
 
-    function feedback($packet) {
-        foreach ($this->server->Clients as $client) {
-            if ($packet->uuid == $client->uuid && $client->Headers === 'websocket') {
-                $this->server->Write($client->ID, json_encode($packet));
-                return;
-            }
-        }
-    }
-
 }
-
-?>
