@@ -65,7 +65,7 @@ class WebSocketServer {
         }
     }
 
-    function isSecure(&$Address) {
+    private function isSecure(&$Address) {
         $arr = explode('://', $Address);
         if (count($arr) > 1) {
             if (strncasecmp($arr[0], 'ssl', 3) == 0) {
@@ -84,13 +84,18 @@ class WebSocketServer {
         }
         $a = true;
         $nulll = NULL;
+        $socketArrayWrite = $socketArrayExceptions = NULL;
         while ($a) {
             $socketArrayRead = $this->Sockets;
-            $socketArrayWrite = $socketArrayExceptions = NULL;
-            stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, $nulll);
+            stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, 0,200);
             foreach ($socketArrayRead as $Socket) {
                 $SocketID = intval($Socket);
                 if ($Socket === $this->socketMaster) {
+                    /*
+                     * ***********************************************
+                     * new client
+                     * ***********************************************
+                     */
                     $clientSocket = stream_socket_accept($Socket);
                     if (!is_resource($clientSocket)) {
                         $this->Log("$SocketID, Connection could not be established");
@@ -110,36 +115,56 @@ class WebSocketServer {
                         $this->Sockets[$SocketID] = $clientSocket;
                         $this->Log("New client connecting on socket #$SocketID");
                     }
-                } else {
+                    continue;
+                }
+                /*
+                 * ***********************************************
+                 * read data from socket and check
+                 * ***********************************************
+                 */
+                $dataBuffer = fread($Socket, $this->bufferLength);
+                if ($dataBuffer === false || strlen($dataBuffer) == 0) {
+                    $this->onError($SocketID, "Client disconnected - TCP connection lost");
+                    $this->Close($Socket);
+                    continue;
+                }
 
-                    $Client = $this->Clients[$SocketID];
-                    $dataBuffer = fread($Socket, $this->bufferLength);
-
-                    if ($Client->Handshake == false) {
-                        if ($this->Handshake($Socket, $dataBuffer)) {
-                            if ($this->Clients[$SocketID]->app === NULL) {
-                                $this->Log("Application incomplete or does not exist);"
-                                        . " Telling Client to disconnect on  #$SocketID");
-                                $msg = (object) Array('opcode' => 'close', 'os' => $this->serveros);
-                                $this->Write($SocketID, json_encode($msg));
-                                $this->Close($Socket);
-                            } else {
-                                $this->Log("Telling Client to start on  #$SocketID");
-                                $msg = (object) Array('opcode' => 'ready', 'os' => $this->serveros);
-                                $this->Write($SocketID, json_encode($msg));
-                                $this->onOpen($SocketID);
-                            }
-                        }
-                    } else {
-                        if ($dataBuffer === false) {
+                $Client = $this->Clients[$SocketID];
+                if ($Client->Handshake == false) {
+                    /*
+                     * ***********************************************
+                     * handshake
+                     * ***********************************************
+                     */
+                    if ($this->Handshake($Socket, $dataBuffer)) {
+                        if ($Client->app === NULL) {
+                            $this->Log("Application incomplete or does not exist);"
+                                    . " Telling Client to disconnect on  #$SocketID");
+                            $msg = (object) Array('opcode' => 'close', 'os' => $this->serveros);
+                            $this->Write($SocketID, json_encode($msg));
                             $this->Close($Socket);
-                        } else if (strlen($dataBuffer) == 0) {
-                            $this->onError($SocketID, "Client disconnected - TCP connection lost");
-                            $SocketID = $this->Close($Socket);
                         } else {
-                            $this->Read($SocketID, $dataBuffer);
+                            $this->Log("Telling Client to start on  #$SocketID");
+                            $msg = (object) Array('opcode' => 'ready', 'os' => $this->serveros);
+                            $this->Write($SocketID, json_encode($msg));
+                            $Client->app->onOpen($SocketID);
                         }
                     }
+                    continue;
+                }
+                /*
+                 * ***********************************************
+                 * message from client
+                 * ***********************************************
+                 */
+                $message = $this->Read($SocketID, $dataBuffer);
+                if ($message != '') {
+                    /*
+                     * ***********************************************
+                     * route message to application class 
+                     * ***********************************************
+                     */
+                    $Client->app->onData($SocketID, $message);
                 }
             }
         }
@@ -157,24 +182,24 @@ class WebSocketServer {
         return $SocketID;
     }
 
-    public function Read($SocketID, $message) {
+    private function Read($SocketID, $message) {
         $client = $this->Clients[$SocketID];
         if ($client->Headers === 'websocket') {
             $message = $this->Decode($message);
             if ($this->opcode == 10) { //pong
                 $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
-                return;
+                return '';
             }
             if ($this->opcode == 8) { //Connection Close Frame 
                 $this->log("Connection Close frame received from socket #$SocketID");
                 $this->Close($SocketID);
-                return;
+                return '';
             }
         }
 
         $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
         if ($this->serverCommand($client, $message)) {
-            return;
+            return '';
         }
 
         if ($client->bufferON) {
@@ -184,20 +209,19 @@ class WebSocketServer {
                 $this->log("Too many chunks from socket #$SocketID");
                 $this->onCLose($SocketID);
             }
-            return;
+            return '';
         }
-
-        $this->onData($SocketID, $message);
+        return $message;
     }
 
-    public function Write($SocketID, $message) {
+    public final function Write($SocketID, $message) {
         if ($this->Clients[$SocketID]->Headers === 'websocket') {
             $message = $this->Encode($message);
         }
         return fwrite($this->Sockets[$SocketID], $message, strlen($message));
     }
 
-    function feedback($packet) {
+    public final function feedback($packet) {
         foreach ($this->Clients as $client) {
             if ($packet->uuid == $client->uuid && $client->Headers === 'websocket') {
                 $this->Write($client->ID, json_encode($packet));
@@ -206,7 +230,7 @@ class WebSocketServer {
         }
     }
 
-    public function broadCast($SocketID, $M) {
+    public final function broadCast($SocketID, $M) {
         $ME = $this->Encode($M);
         foreach ($this->Clients as $client) {
             if ($client->Headers === 'websocket') {
@@ -218,7 +242,7 @@ class WebSocketServer {
         }
     }
 
-    public function registerResource($name, $app) {
+    public final function registerResource($name, $app) {
         $this->allApps[$name] = $app;
         foreach (['registerServer', 'onOpen', 'onData', 'onClose', 'onError'] as $method) {
             if (!method_exists($app, $method)) {
@@ -247,24 +271,9 @@ class WebSocketServer {
         return false;
     }
 
-    function Log($m) {
+    public final function Log($m) {
         if ($this->logging) {
             $this->logging->log($m);
-        }
-    }
-
-// Methods to be configured by the user; executed directly after...
-    function onOpen($SocketID) { //...successful handshake
-        $this->Log("Handshake with socket #$SocketID successful");
-        if (method_exists($this->Clients[$SocketID]->app, 'onOpen')) {
-            $this->Clients[$SocketID]->app->onOpen($SocketID);
-        }
-    }
-
-    function onData($SocketID, $message) { // ...message receipt; $message contains the decoded message
-        // $this->Log("Received " . strlen($message) . " Bytes from socket #$SocketID");
-        if (method_exists($this->Clients[$SocketID]->app, 'onData')) {
-            $this->Clients[$SocketID]->app->onData($SocketID, $message);
         }
     }
 
