@@ -1,9 +1,9 @@
 function socketWebClient(server, port, app) {
-    'uses strict';
+    'use strict';
     var
             tmp = [], queue = [], uuid, socket = {}, serveros, proto,
-            chunkSize = 6 * 1024,
-            socketOpen = false, socketSend = false;
+            chunkSize = 6 * 1024, socketOpen = false, socketSend = false;
+    
     //********************************************
     // figure out what  protokoll to use
     //*******************************************
@@ -21,8 +21,11 @@ function socketWebClient(server, port, app) {
     function init() {
 
         callbackStatus('Try to connect ...');
+        //********************************************
+        //  connect to server at port
+        //*******************************************
         socket = new WebSocket('' + proto + server + ':' + port + app);
-
+        
         socket.onopen = function () {
             queue = [];
             callbackStatus('Connected');
@@ -35,7 +38,9 @@ function socketWebClient(server, port, app) {
             socketOpen = false;
             queue = [];
         };
-
+        //********************************************
+        //  look at message from server
+        //*******************************************
         socket.onmessage = function (msg) {
             var packet;
             if (msg.data.length === 0 || msg.data.indexOf('pong') >= 0) {
@@ -48,14 +53,23 @@ function socketWebClient(server, port, app) {
                 //******************/
                 queue.shift();
                 if (queue.length > 0) {
+                    //********************************************
+                    //  next in line to send
+                    //*******************************************
                     msg = queue[0];
                     socket.send(msg);
                 } else {
+                    //********************************************
+                    //  ready for next message; via kick start
+                    //*******************************************
                     queue = [];
                 }
                 return;
             }
             if (packet.opcode === 'ready') {
+                //********************************************
+                //  server is read expection UUID
+                //*******************************************
                 socketOpen = true;
                 socketSend = true;
                 serveros = packet.os;
@@ -65,53 +79,31 @@ function socketWebClient(server, port, app) {
                 return;
             }
             if (packet.opcode === 'close') {
+                //********************************************
+                //  Server has closed connections
+                //*******************************************
                 socketOpen = false;
                 socketSend = false;
                 callbackStatus('Server closed connection');
                 return;
             }
+            //********************************************
+            //  have external fucntion look at message
+            //*******************************************
             callbackReadMessage(packet);
         };
+        //********************************************
+        //  server has gone 
+        //*******************************************
         socket.onclose = function () {
             queue = [];
             socketOpen = false;
             socketSend = false;
         };
     }
-    function callbackStatus(state) { // dummy callback
-        return state;
-    }
-    function callbackReady(p) { // dummy callback
-        return p;
-    }
-    function callbackReadMessage(p) { // dummy callback
-        return p;
-    }
-    function setCallbackStatus(func) {
-        //  overwrite dummy call back with your own func
-        callbackStatus = func;
-    }
-    function setCallbackReady(func) {
-        //  overwrite dummy call back with your own func
-        callbackReady = func;
-    }
-    function setCallbackReadMessage(func) {
-        //  overwrite dummy call back with your own func
-        callbackReadMessage = func;
-    }
-
-    function generateUUID() { // Public Domain/MIT
-        var d = new Date().getTime();
-        if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-            d += performance.now(); //use high-precision timer if available
-        }
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = (d + Math.random() * 16) % 16 | 0;
-            d = Math.floor(d / 16);
-            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-        });
-    }
-
+    //********************************************
+    //  messages are queued
+    //*******************************************
     function sendMsg(msgObj) {
         var i, j, nChunks, msg, sendNow = false;
         if (!socketSend || !socketOpen) {
@@ -119,6 +111,9 @@ function socketWebClient(server, port, app) {
         }
         msg = JSON.stringify(msgObj);
         if (msg.length < chunkSize) {
+            //********************************************
+            //  normal short message
+            //*******************************************
             queue.push(msg);
         } else {
             //********************************************
@@ -139,11 +134,60 @@ function socketWebClient(server, port, app) {
         }
 
         if ((queue.length === 1 || sendNow) && socketOpen) {
+            //********************************************
+            //  kick start sending messages
+            //*******************************************
             msg = queue[0];
             socket.send(msg);
             sendNow = false;
         }
     }
+    //********************************************
+    //  dumy functions; should be set from outside
+    //*******************************************
+
+    function callbackStatus(p) { // dummy callback
+        return p;
+    }
+    function callbackReady(p) { // dummy callback
+        return p;
+    }
+    function callbackReadMessage(p) { // dummy callback
+        return p;
+    }
+    //********************************************
+    //  functions to set/overwrite dummy funcitons
+    //*******************************************
+
+    function setCallbackStatus(func) {
+        //  overwrite dummy call back with your own func
+        callbackStatus = func;
+    }
+    function setCallbackReady(func) {
+        //  overwrite dummy call back with your own func
+        callbackReady = func;
+    }
+    function setCallbackReadMessage(func) {
+        //  overwrite dummy call back with your own func
+        callbackReadMessage = func;
+    }
+    //********************************************
+    //  
+    //*******************************************
+
+    function generateUUID() { // Public Domain/MIT
+        var d = new Date().getTime();
+        if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+            d += performance.now(); //use high-precision timer if available
+        }
+        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (d + Math.random() * 16) % 16 | 0;
+            d = Math.floor(d / 16);
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+    }
+
+    
     function quit() {
         sendMsg({'opcode': 'quit', 'role': 'thisUserRole'});
         socket.close();
@@ -153,6 +197,9 @@ function socketWebClient(server, port, app) {
     function isOpen() {
         return socketOpen;
     }
+    //********************************************
+    //  reveal these fucntion to the caller
+    //*******************************************
 
     return {
         'init': init,
