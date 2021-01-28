@@ -12,6 +12,8 @@ function startGUI() {
     sock.setCallbackReady(ready);
     sock.setCallbackReadMessage(readMessage);
     sock.setCallbackStatus(sockStatus);
+    sock.setCallbackClose(closeSocket);
+
     sock.init();
     uuid = sock.uuid;
 
@@ -28,6 +30,12 @@ function startGUI() {
         // report connection status
         //*******************************
         document.getElementById('connect').innerHTML = m;
+    }
+    function closeSocket() {
+        //*******************************
+        // report connection status
+        //*******************************
+        document.getElementById('connect').innerHTML = 'Server is gone; closed socket';
     }
 
     function readMessage(packet) {

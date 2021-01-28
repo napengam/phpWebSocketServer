@@ -3,7 +3,7 @@ function socketWebClient(server, port, app) {
     var
             tmp = [], queue = [], uuid, socket = {}, serveros, proto,
             chunkSize = 6 * 1024, socketOpen = false, socketSend = false;
-    
+
     //********************************************
     // figure out what  protokoll to use
     //*******************************************
@@ -25,7 +25,8 @@ function socketWebClient(server, port, app) {
         //  connect to server at port
         //*******************************************
         socket = new WebSocket('' + proto + server + ':' + port + app);
-        
+
+
         socket.onopen = function () {
             queue = [];
             callbackStatus('Connected');
@@ -68,7 +69,7 @@ function socketWebClient(server, port, app) {
             }
             if (packet.opcode === 'ready') {
                 //********************************************
-                //  server is read expection UUID
+                //  server is ready, expecting UUID
                 //*******************************************
                 socketOpen = true;
                 socketSend = true;
@@ -88,7 +89,7 @@ function socketWebClient(server, port, app) {
                 return;
             }
             //********************************************
-            //  have external fucntion look at message
+            //  have external function look at message
             //*******************************************
             callbackReadMessage(packet);
         };
@@ -99,6 +100,7 @@ function socketWebClient(server, port, app) {
             queue = [];
             socketOpen = false;
             socketSend = false;
+            callbackClose();
         };
     }
     //********************************************
@@ -143,7 +145,7 @@ function socketWebClient(server, port, app) {
         }
     }
     //********************************************
-    //  dumy functions; should be set from outside
+    //  dummy functions; should be set from outside
     //*******************************************
 
     function callbackStatus(p) { // dummy callback
@@ -155,9 +157,12 @@ function socketWebClient(server, port, app) {
     function callbackReadMessage(p) { // dummy callback
         return p;
     }
-    //********************************************
-    //  functions to set/overwrite dummy funcitons
-    //*******************************************
+    function callbackClose() { // dummy callback
+        return '';
+    }
+    //**************************************************
+    //  functions to set/overwrite dummy functions above
+    //**************************************************
 
     function setCallbackStatus(func) {
         //  overwrite dummy call back with your own func
@@ -171,14 +176,21 @@ function socketWebClient(server, port, app) {
         //  overwrite dummy call back with your own func
         callbackReadMessage = func;
     }
+    function setCallbackClose(func) {
+        //  overwrite dummy call back with your own func
+        callbackClose = func;
+    }
     //********************************************
-    //  
+    //  convenient
     //*******************************************
+    function broadcast(msg) {
+        sendMsg({'opcode': 'broadcast', 'message': msg});
+    }
 
     function generateUUID() { // Public Domain/MIT
         var d = new Date().getTime();
         if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-            d += performance.now(); //use high-precision timer if available
+            d += performance.now(); // use high-precision timer if available
         }
         return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
             var r = (d + Math.random() * 16) % 16 | 0;
@@ -187,7 +199,7 @@ function socketWebClient(server, port, app) {
         });
     }
 
-    
+
     function quit() {
         sendMsg({'opcode': 'quit', 'role': 'thisUserRole'});
         socket.close();
@@ -198,7 +210,7 @@ function socketWebClient(server, port, app) {
         return socketOpen;
     }
     //********************************************
-    //  reveal these fucntion to the caller
+    //  reveal these function to the caller
     //*******************************************
 
     return {
@@ -211,7 +223,9 @@ function socketWebClient(server, port, app) {
         'isOpen': isOpen,
         'setCallbackReady': setCallbackReady,
         'setCallbackReadMessage': setCallbackReadMessage,
-        'setCallbackStatus': setCallbackStatus
+        'setCallbackStatus': setCallbackStatus,
+        'setCallbackClose': setCallbackClose,
+        'broadcast': broadcast
     };
 }
 

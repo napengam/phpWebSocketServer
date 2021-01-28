@@ -48,25 +48,26 @@ class socketTalk {
     }
 
     final function talk($msg) {
-        if ($this->connected) {
-            $json = json_encode((object) $msg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
-            $len = mb_strlen($json);
-            if ($len > $this->chunkSize) {
-                $nChunks = floor($len / $this->chunkSize);
-                if ($this->writeWait('bufferON')) {
-                    for ($i = 0, $j = 0; $i < $nChunks; $i++, $j += $this->chunkSize) {
-                        if ($this->writeWait(mb_substr($json, $j, $j + $this->chunkSize)) === false) {
-                            break;
-                        }
+        if ($this->connected === false) {
+            return;
+        }
+        $json = json_encode((object) $msg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
+        $len = mb_strlen($json);
+        if ($len > $this->chunkSize) {
+            $nChunks = floor($len / $this->chunkSize);
+            if ($this->writeWait('bufferON')) {
+                for ($i = 0, $j = 0; $i < $nChunks; $i++, $j += $this->chunkSize) {
+                    if ($this->writeWait(mb_substr($json, $j, $j + $this->chunkSize)) === false) {
+                        break;
                     }
                 }
-                if ($len % $this->chunkSize > 0) {
-                    $this->writeWait(mb_substr($json, $j, $j + $len % $this->chunkSize));
-                }
-                $this->writeWait('bufferOFF');
-            } else {
-                $this->writeWait($json);
             }
+            if ($len % $this->chunkSize > 0) {
+                $this->writeWait(mb_substr($json, $j, $j + $len % $this->chunkSize));
+            }
+            $this->writeWait('bufferOFF');
+        } else {
+            $this->writeWait($json);
         }
     }
 
@@ -78,7 +79,7 @@ class socketTalk {
     }
 
     final function writeWait($m) {
-        if ($this->connected == false) {
+        if ($this->connected === false) {
             return false;
         }
         fwrite($this->socketMaster, $m);
