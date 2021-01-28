@@ -5,6 +5,10 @@ and normal sockets over **ssl:// ,tcp://**
 
 As of 2020-12-07 it works also with PHP 8.0   
 
+
+## A detailed documentaion is located here: https://vmd55223.contaboserver.net/phpwebsocket/book/index.php
+
+
 **NO DEPENDENCIES**
 
 implemented by  
