@@ -10,7 +10,7 @@ Clients to test the server are located in
 
 # Files
 
-## coreFunc.php
+## RFC6455.php
 
 A php trait used in class `webSocketServer.php`  
 Implements methods 
@@ -37,9 +37,13 @@ onData    | data received from client
 onClose   | socket has been closed AND deleted
 onError   | any connection-releated error
 onOther   | any connection-releated notification
-onOpening | being accepted and added to the client list
 
-If any of these methods are missing the application will be rejected by the server.   
+
+If any of the above methods are missing the application will be rejected by the server.   
+
+Method|What
+------|----
+getPacket | decode JSON packet and check for JSON errors
 
 This class also provides a method enabling the server to register itself with  
 the application, thus giving access to information within the server like sockets  
@@ -48,6 +52,7 @@ and client structures.
 Method|What
 ------|----
 registerServer    | // as said
+
 
 
 
@@ -74,15 +79,16 @@ Class that will serve requests for resource  **web**
 ## webSocketServer.php
 
 Class to implement the server.  
-Consumes trait `coreFunc.php`
+Consumes trait `RFC6465.php`
 
 The server handles connection request from clients, performes a handshake with clients.   
 
 To keep track of all the clients an associated sockets there are two array where we store  
 this information.  
-`$this->Sockets=[]; $this->Clients=[]`
+`$this->Sockets=[]`  
+`$this->Clients=[]`
 
-Lets say a clientz is accepted on `$clientSocket`  then   
+Lets say a client is accepted on `$clientSocket`  then   
 
 With `SocketID=intval($clientSocket)` we generate an index into  
 `$this->Sockets[$SocketID]=$clientSocket;`   
@@ -113,10 +119,17 @@ Feel free to use whatever supports your needs.
 
 ## runSocketServer.php
 
-Example:
+First create an instance of the server
 
-Registers the application  `resourceDefault.php` and `resourceWeb.php` and `resourcePHP.php` with the server
-then starts the server.
+
+Next registers the application  
+- `resourceDefault.php` 
+- `resourceWeb.php` 
+-`resourcePHP.php` 
+
+with the server.  
+
+Next starts the server.
 
 On a shell on Linux  just start it, with logging to console, like:
 
