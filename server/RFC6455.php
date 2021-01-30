@@ -3,8 +3,6 @@
 trait RFC6455 {
 
     public function Encode($M) {
-        // inspiration for Encode() method : 
-        // http://stackoverflow.com/questions/8125507/how-can-i-send-and-receive-websocket-messages-on-the-server-side
         $L = strlen($M);
         $bHead = [];
         if ($this->opcode == 10) { // POng
@@ -96,7 +94,7 @@ trait RFC6455 {
                 $Headers['get'] = trim($reqResource[1]);
             }
         }
-  
+
         if (!isset($Headers['host']) || !isset($Headers['origin']) ||
                 !isset($Headers['sec-websocket-key']) ||
                 (!isset($Headers['upgrade']) || strtolower($Headers['upgrade']) != 'websocket') ||
