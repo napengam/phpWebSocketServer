@@ -15,7 +15,7 @@ class WebSocketServer {
             $implicitFlush = true,
             $Clients = [],
             $clientIPs = [],
-            $maxPerIP = 5,
+            $maxPerIP = 0, // maximum number of websocket connections from one IP
             $opcode = 1, // text frame  
             $maxChunks = 100,
             $serveros;
@@ -98,12 +98,19 @@ class WebSocketServer {
                      * ***********************************************
                      */
                     $clientSocket = stream_socket_accept($Socket);
+                    /*
+                     * ***********************************************
+                     * get IP of client
+                     * ***********************************************
+                     */
                     $ipport = stream_socket_get_name($clientSocket, true);
-                    $ip = explode(':', $ipport);
+                    $ip = $this->extractPort($ipport);
+
                     if (!is_resource($clientSocket)) {
                         $this->Log("$SocketID, Connection could not be established");
                         continue;
                     } else {
+                        $this->Log("Connecting from IP: $ip");
                         $SocketID = intval($clientSocket);
                         $this->Clients[$SocketID] = (object) [
                                     'ID' => $SocketID,
@@ -114,24 +121,11 @@ class WebSocketServer {
                                     'bufferON' => false,
                                     'buffer' => [],
                                     'app' => NULL,
-                                    'ip' => $ip[0]
+                                    'ip' => $ip
                         ];
-                        if (!isset($this->clientIPs[$ip[0]])) {
-                            $this->clientIPs[$ip[0]] = (object) [
-                                        'socketId' => $SocketID,
-                                        'count' => 1
-                            ];
-                        } else {
-                            if ($this->maxPerID > 0) {
-                                $this->clientIPs[$ip[0]]->count++;
-                                if ($this->clientIPs[$ip[0]]->count > $this->maxPerID) {
-                                    $this->Close($Socket);
-                                    $this->Log("$SocketID, To many connections from: " . $ip[0]);
-                                }
-                            }
-                        }
                         $this->Sockets[$SocketID] = $clientSocket;
-                        $this->Log("New client connecting on socket #$SocketID");
+
+                        $this->Log("New client connecting from $ipport on socket #$SocketID");
                     }
                     continue;
                 }
@@ -162,6 +156,23 @@ class WebSocketServer {
                             $this->Write($SocketID, json_encode($msg));
                             $this->Close($Socket);
                         } else {
+                            if ($this->Clients[$SocketID]->Headers == 'websocket') {
+                                $ip = $Client->ip;
+                                if ($this->maxPerIP > 0 && !isset($this->clientIPs[$ip])) {
+                                    $this->clientIPs[$ip] = (object) [
+                                                'SocketId' => $SocketID,
+                                                'count' => 1
+                                    ];
+                                } else if ($this->maxPerIP > 0) {
+                                    $this->clientIPs[$ip]->count++;
+                                    if ($this->clientIPs[$ip]->count > $this->maxPerIP) {
+                                        $this->Close($SocketID);
+                                        $this->Log("$SocketID, To many connections from: " . $ip);
+                                        continue;
+                                    }
+                                }
+                            }
+
                             $this->Log("Telling Client to start on  #$SocketID");
                             $msg = (object) Array('opcode' => 'ready', 'os' => $this->serveros);
                             $this->Write($SocketID, json_encode($msg));
@@ -195,7 +206,7 @@ class WebSocketServer {
         stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
         $SocketID = intval($Socket);
         $this->onClose($SocketID);
-        if ($this->maxPerID > 0) {
+        if ($this->Clients[$SocketID]->Headers == 'websocket' && $this->maxPerIP > 0) {
             $ip = $this->Clients[$SocketID]->ip;
             $this->clientIPs[$ip]->count--;
             if ($this->clientIPs[$ip]->count <= 0) {
