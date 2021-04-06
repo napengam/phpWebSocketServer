@@ -84,7 +84,8 @@ trait RFC6455 {
             }
             return true;
         }
-        $this->Log('Handshake: webClient');
+
+        $this->Log("Handshake: webClient");
         foreach ($Lines as $Line) {
             if (strpos($Line, ":") !== false) {
                 $Header = explode(":", $Line, 2);
@@ -129,6 +130,22 @@ trait RFC6455 {
             $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
         }
         return true;
+    }
+
+    public function extractPort($inIP) {
+
+        // [2001:db8:85a3:8d3:1319:8a2e:370:7348]:8765  ?????
+
+        $arr = explode(']:', $inIP); // ipv6 ? ;
+        if (count($arr) == 2) {
+            return $arr[0] . ']';
+        }
+        // 2001:db8:85a3:8d3:1319:8a2e:370:7348  ?????
+        $arr = explode(':', $inIP); // ipv6 ? ;
+        if (count($arr) > 2) {
+            return implode(':', $arr[0]);
+        }
+        return $arr[0];
     }
 
 }
