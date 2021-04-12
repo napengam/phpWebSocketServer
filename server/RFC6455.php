@@ -132,20 +132,33 @@ trait RFC6455 {
         return true;
     }
 
-    public function extractPort($inIP) {
+    public function extractIP($inIP) {
 
-        // [2001:db8:85a3:8d3:1319:8a2e:370:7348]:8765  ?????
+        // [2001:db8:85a3:8d3:1319:8a2e:370:7348]:8765   ?????     
+        //  2001:db8:85a3:8d3:1319:8a2e:370:7348
+        // 127.0.0.1:1234
 
-        $arr = explode(']:', $inIP); // ipv6 ? ;
-        if (count($arr) == 2) {
-            return $arr[0] . ']';
+        $inIP = trim($inIP);
+
+        $n = mb_strlen($inIP);
+        for ($i = 0; $i < $n; $i++) {
+            $c = mb_substr($inIP, $i, 1);
+            if ($c == '[' && $i == 0) {
+                $p = mb_strpos($inIP, ']');
+                if ($p > 0) {
+                    return mb_substr($inIP, 1, $p - 1);
+                }
+            } else if ($c == ':') {
+                return mb_substr($inIP, 0, $n);
+            } else if ($c == '.') {
+                $p = mb_strpos($inIP, ':');
+                if ($p > 0) {
+                    return mb_substr($inIP, 0, $p);
+                } else {
+                    return mb_substr($inIP, 0, $n);
+                }
+            }
         }
-        // 2001:db8:85a3:8d3:1319:8a2e:370:7348  ?????
-        $arr = explode(':', $inIP); // ipv6 ? ;
-        if (count($arr) > 2) {
-            return implode(':', $arr[0]);
-        }
-        return $arr[0];
     }
 
 }
