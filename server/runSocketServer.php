@@ -1,4 +1,5 @@
 <?php
+
 /*
  * ***********************************************
  * the runtime
@@ -63,7 +64,13 @@ if ($logger->error === '') {
  * *****************************************
  */
 $server = new WebsocketServer($Address, $Port, $logger, $keyAndCertFile, $pathToCert);
-
+/*
+ * ***********************************************
+ * set some server variables
+ * ***********************************************
+ */
+$server->maxPerIP = 0;   // 0=unlimited 
+$server->allowedIP = []; // non websocket clients from all hosts; set like ['127.0.0.1','::1'] 
 /*
  * ***********************************************
  * instantiate backend 'applications'
