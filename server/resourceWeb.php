@@ -22,7 +22,7 @@ class resourceWeb extends resource {
 
         $packet = $this->getPacket($M);
         $this->packet = $packet;
-        
+
         if ($packet->opcode === 'jsonerror') {
             $this->server->Log("jsonerror closing #$SocketID");
             $this->server->Close($SocketID);
@@ -38,15 +38,14 @@ class resourceWeb extends resource {
             $this->server->Close($SocketID);
             return;
         }
-
-        if ($packet->opcode === 'uuid') {
+        if ($packet->opcode === 'feedback') {
             /*
              * *****************************************
-             * client registers
+             * send feedback to client with uuid found
+             * in $packet
              * *****************************************
              */
-            $this->server->Clients[$SocketID]->uuid = $packet->message;
-            $this->server->log("Broadcast $M");
+            $this->server->feedback($packet);
             return;
         }
         if ($packet->opcode === 'broadcast') {
@@ -55,8 +54,10 @@ class resourceWeb extends resource {
         }
         /*
          * *****************************************
-         * unknown opcode-> do nothing
+         * unknown opcode-> do nothing or close socket
          * *****************************************
+         * $this->server>close($SocketID);
+         *  
          */
     }
 
