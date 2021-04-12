@@ -15,7 +15,7 @@ function startGUI() {
     sock.setCallbackClose(closeSocket);
 
     sock.init();
-    uuid = sock.uuid;
+
 
     //********************************************
     //  create a long message
@@ -53,7 +53,16 @@ function startGUI() {
     }
     function ready() {
         // ***********************************************
-        //   test if messages apear in same order as send
+        // we have now the uuid from the server and can start
+        // ***********************************************
+        uuid = sock.uuid();
+        document.getElementById('uuid').innerHTML = uuid;
+        talkToOthers();
+    }
+
+    function talkToOthers() {
+        // ***********************************************
+        //  test if messages apear in same order as send
         // no message is lost and very long message is buffered
         // ***********************************************
         sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo11 from :' + uuid});
@@ -62,6 +71,7 @@ function startGUI() {
         sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo44 from :' + uuid});
         sock.sendMsg({'opcode': 'broadcast', 'message': longString + uuid});
     }
+
 
     function triggerAJAX() {
         //****************************************
@@ -77,7 +87,7 @@ function startGUI() {
     //  instrument the buttons
     //*******************************************
 
-    document.getElementById('ready').onclick = ready;
+    document.getElementById('ready').onclick = talkToOthers;
     document.getElementById('ajax').onclick = triggerAJAX;
     document.getElementById('uuid').innerHTML = uuid;
 
