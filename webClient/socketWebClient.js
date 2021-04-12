@@ -1,7 +1,7 @@
 function socketWebClient(server, port, app) {
     'use strict';
     var
-            tmp = [], queue = [], uuid, socket = {}, serveros, proto,
+            tmp = [], queue = [], uuid, uu, socket = {}, serveros, proto,
             chunkSize = 6 * 1024, socketOpen = false, socketSend = false;
 
     //********************************************
@@ -17,7 +17,9 @@ function socketWebClient(server, port, app) {
         server = tmp[1];
     }
 
-    uuid = generateUUID();
+    uuid = function () {
+        return uu;
+    };
     function init() {
 
         callbackStatus('Try to connect ...');
@@ -25,7 +27,6 @@ function socketWebClient(server, port, app) {
         //  connect to server at port
         //*******************************************
         socket = new WebSocket('' + proto + server + ':' + port + app);
-
 
         socket.onopen = function () {
             queue = [];
@@ -69,13 +70,11 @@ function socketWebClient(server, port, app) {
             }
             if (packet.opcode === 'ready') {
                 //********************************************
-                //  server is ready, expecting UUID
+                //  server is ready, receive  UUID from server
                 //*******************************************
                 socketOpen = true;
                 socketSend = true;
-                serveros = packet.os;
-                msg = {'opcode': 'uuid', 'message': uuid};
-                sendMsg(msg);
+                uu = packet.uuid;
                 callbackReady(packet);
                 return;
             }
@@ -187,19 +186,6 @@ function socketWebClient(server, port, app) {
         sendMsg({'opcode': 'broadcast', 'message': msg});
     }
 
-    function generateUUID() { // Public Domain/MIT
-        var d = new Date().getTime();
-        if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-            d += performance.now(); // use high-precision timer if available
-        }
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = (d + Math.random() * 16) % 16 | 0;
-            d = Math.floor(d / 16);
-            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-        });
-    }
-
-
     function quit() {
         sendMsg({'opcode': 'quit', 'role': 'thisUserRole'});
         socket.close();
@@ -216,9 +202,7 @@ function socketWebClient(server, port, app) {
     return {
         'init': init,
         'sendMsg': sendMsg,
-        'uuid': function () {
-            return uuid;
-        }(),
+        'uuid': uuid,
         'quit': quit,
         'isOpen': isOpen,
         'setCallbackReady': setCallbackReady,
