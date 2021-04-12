@@ -4,18 +4,20 @@ require __DIR__ . '/RFC6455.php';
 
 class WebSocketServer {
 
-    use RFC6455; // TRAIT to implement methods reuqired by RFC6455
+    use RFC6455; // TRAIT to implement methods required by RFC6455
 
     public
             $logging = '',
             $Sockets = [],
             $bufferLength = 10 * 4096,
+            $bufferChunk = 8 * 1024, // client sends in chuncks of 6kBytes 
             $errorReport = E_ALL,
             $timeLimit = 0,
             $implicitFlush = true,
             $Clients = [],
             $clientIPs = [],
-            $maxPerIP = 0, // maximum number of websocket connections from one IP
+            $maxPerIP = 0, // maximum number of websocket connections from one IP 0=unlimited
+            $allowedIP = [], // ['127.0.0.1','::1'] 
             $opcode = 1, // text frame  
             $maxChunks = 100,
             $serveros;
@@ -100,11 +102,11 @@ class WebSocketServer {
                     $clientSocket = stream_socket_accept($Socket);
                     /*
                      * ***********************************************
-                     * get IP of client
+                     * get IP:Port of client
                      * ***********************************************
                      */
                     $ipport = stream_socket_get_name($clientSocket, true);
-                    $ip = $this->extractPort($ipport);
+                    $ip = $this->extractIP($ipport); // can be ipv4 or ipv6
 
                     if (!is_resource($clientSocket)) {
                         $this->Log("$SocketID, Connection could not be established");
@@ -135,8 +137,10 @@ class WebSocketServer {
                  * ***********************************************
                  */
                 $dataBuffer = fread($Socket, $this->bufferLength);
-                if ($dataBuffer === false || strlen($dataBuffer) == 0) {
-                    $this->onError($SocketID, "Client disconnected - TCP connection lost");
+                if ($dataBuffer === false ||
+                        strlen($dataBuffer) == 0 || // use mb_strlen isntead of strlen ???
+                        strlen($dataBuffer) >= $this->bufferChunk) {  // to avoid malicious overload 
+                    $this->onError($SocketID, "Client disconnected by Server - TCP connection lost");
                     $this->Close($Socket);
                     continue;
                 }
@@ -156,14 +160,19 @@ class WebSocketServer {
                             $this->Write($SocketID, json_encode($msg));
                             $this->Close($Socket);
                         } else {
-                            if ($this->Clients[$SocketID]->Headers == 'websocket') {
+                            if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->Headers == 'websocket') {
+                                /*
+                                 * ***********************************************
+                                 * track number of websocket connectins from this IP
+                                 * ***********************************************
+                                 */
                                 $ip = $Client->ip;
-                                if ($this->maxPerIP > 0 && !isset($this->clientIPs[$ip])) {
+                                if (!isset($this->clientIPs[$ip])) {
                                     $this->clientIPs[$ip] = (object) [
                                                 'SocketId' => $SocketID,
                                                 'count' => 1
                                     ];
-                                } else if ($this->maxPerIP > 0) {
+                                } else {
                                     $this->clientIPs[$ip]->count++;
                                     if ($this->clientIPs[$ip]->count > $this->maxPerIP) {
                                         $this->Close($SocketID);
@@ -171,10 +180,23 @@ class WebSocketServer {
                                         continue;
                                     }
                                 }
+                            } else if (count($this->allowedIP) > 0) {
+                                /*
+                                 * ***********************************************
+                                 * check if tcp client connects from allowed host
+                                 * ***********************************************
+                                 */
+                                if (!is_set($this->allowedIP[$Client->ip])) {
+                                    $this->Close($SocketID);
+                                    $this->Log("$SocketID, No connection allowed from: " . $Client->ip);
+                                    continue;
+                                }
                             }
 
                             $this->Log("Telling Client to start on  #$SocketID");
-                            $msg = (object) Array('opcode' => 'ready', 'os' => $this->serveros);
+                            $uuid = $this->guidv4();
+                            $msg = (object) ['opcode' => 'ready', 'uuid' => $uuid];
+                            $this->Clients[$SocketID]->uuid = $uuid;
                             $this->Write($SocketID, json_encode($msg));
                             $Client->app->onOpen($SocketID);
                         }
@@ -206,7 +228,7 @@ class WebSocketServer {
         stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
         $SocketID = intval($Socket);
         $this->onClose($SocketID);
-        if ($this->Clients[$SocketID]->Headers == 'websocket' && $this->maxPerIP > 0) {
+        if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->Headers == 'websocket') {
             $ip = $this->Clients[$SocketID]->ip;
             $this->clientIPs[$ip]->count--;
             if ($this->clientIPs[$ip]->count <= 0) {
@@ -311,6 +333,21 @@ class WebSocketServer {
         if ($this->logging) {
             $this->logging->log($m);
         }
+    }
+
+    public function guidv4($data = null) {
+        // from https://www.uuidgenerator.net/dev-corner/php
+        // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+        $data = $data ?? random_bytes(16);
+        assert(strlen($data) == 16);
+
+        // Set version to 0100
+        $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+        // Set bits 6-7 to 10
+        $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+
+        // Output the 36 character UUID.
+        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
     function onClose($SocketID) { // ...socket has been closed AND deleted
