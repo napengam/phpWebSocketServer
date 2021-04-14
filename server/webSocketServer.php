@@ -19,8 +19,7 @@ class WebSocketServer {
             $maxPerIP = 0, // maximum number of websocket connections from one IP 0=unlimited
             $allowedIP = [], // ['127.0.0.1','::1'] 
             $opcode = 1, // text frame  
-            $maxChunks = 100,
-            $serveros;
+            $maxChunks = 100; // avoid flooding during bufferON
     protected
             $Address,
             $Port,
@@ -46,21 +45,22 @@ class WebSocketServer {
         $context = stream_context_create();
         if ($this->isSecure($Address)) {
             stream_context_set_option($context, 'ssl', 'local_cert', $keyAndCertFile);
-            stream_context_set_option($context, 'ssl', 'capth', $pathToCert);
+            stream_context_set_option($context, 'ssl', 'capath', $pathToCert);
             stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
             stream_context_set_option($context, 'ssl', 'verify_peer', false);
-            $usingSSL = "using SSL";
+            $usingSSL = "ssl://";
         }
-        $socket = stream_socket_server("$Address:$Port", $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
+        $socket = stream_socket_server("$usingSSL$Address:$Port", $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
         $this->Log("Server initialized on " . PHP_OS . "  $Address:$Port $usingSSL");
         if (!$socket) {
             $this->Log("Error $errno creating stream: $errstr", true);
             exit;
         }
-        $this->serveros = PHP_OS;
+
         $this->Sockets[intval($socket)] = $socket;
         $this->socketMaster = $socket;
+        $this->allowedIP[] = gethostbyname($Address);
 
         error_reporting($this->errorReport);
         set_time_limit($this->timeLimit);
@@ -73,6 +73,7 @@ class WebSocketServer {
         $arr = explode('://', $Address);
         if (count($arr) > 1) {
             if (strncasecmp($arr[0], 'ssl', 3) == 0) {
+                $Address = $arr[1];
                 return true;
             }
             $Address = $arr[1]; // just the host
@@ -127,7 +128,7 @@ class WebSocketServer {
                         ];
                         $this->Sockets[$SocketID] = $clientSocket;
 
-                        $this->Log("New client connecting from $ipport on socket #$SocketID");
+                        $this->Log("New client connecting from $ipport on socket #$SocketID\r\n");
                     }
                     continue;
                 }
@@ -156,10 +157,11 @@ class WebSocketServer {
                         if ($Client->app === NULL) {
                             $this->Log("Application incomplete or does not exist);"
                                     . " Telling Client to disconnect on  #$SocketID");
-                            $msg = (object) Array('opcode' => 'close', 'os' => $this->serveros);
+                            $msg = (object) ['opcode' => 'close'];
                             $this->Write($SocketID, json_encode($msg));
                             $this->Close($Socket);
                         } else {
+
                             if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->Headers == 'websocket') {
                                 /*
                                  * ***********************************************
@@ -176,17 +178,19 @@ class WebSocketServer {
                                     $this->clientIPs[$ip]->count++;
                                     if ($this->clientIPs[$ip]->count > $this->maxPerIP) {
                                         $this->Close($SocketID);
-                                        $this->Log("$SocketID, To many connections from: " . $ip);
+                                        $msg = "To many connections from:  $ip";
+                                        $this->Log("$SocketID, $msg");
+                                        $this->Write($SocketID, json_encode((object) ['opcode' => 'error', 'error' => $msg]));
                                         continue;
                                     }
                                 }
-                            } else if (count($this->allowedIP) > 0) {
+                            } else if (count($this->allowedIP) > 0 && $this->Clients[$SocketID]->Headers != 'websocket') {
                                 /*
                                  * ***********************************************
                                  * check if tcp client connects from allowed host
                                  * ***********************************************
                                  */
-                                if (!is_set($this->allowedIP[$Client->ip])) {
+                                if (!in_array($Client->ip, $this->allowedIP)) {
                                     $this->Close($SocketID);
                                     $this->Log("$SocketID, No connection allowed from: " . $Client->ip);
                                     continue;
