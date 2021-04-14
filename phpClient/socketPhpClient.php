@@ -2,7 +2,7 @@
 
 class socketTalk {
 
-    public $uuid, $connected = false, $serveros = 'linux', $chunkSize = 6 * 1024;
+    public $uuid, $connected = false, $chunkSize = 6 * 1024;
     private $socketMaster;
 
     function __construct($Address, $Port, $application = '/', $uu = '') {
