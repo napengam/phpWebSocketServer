@@ -70,7 +70,6 @@ $server = new WebsocketServer($Address, $Port, $logger, $keyAndCertFile, $pathTo
  * ***********************************************
  */
 $server->maxPerIP = 0;   // 0=unlimited 
-$server->allowedIP = []; // non websocket clients from all hosts; set like ['127.0.0.1','::1'] 
 /*
  * ***********************************************
  * instantiate backend 'applications'
