@@ -61,6 +61,7 @@ class WebSocketServer {
         $this->Sockets[intval($socket)] = $socket;
         $this->socketMaster = $socket;
         $this->allowedIP[] = gethostbyname($Address);
+        $this->allowedIP[] = '::1';
 
         error_reporting($this->errorReport);
         set_time_limit($this->timeLimit);
