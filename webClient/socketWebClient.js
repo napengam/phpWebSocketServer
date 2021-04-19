@@ -180,10 +180,16 @@ function socketWebClient(server, port, app) {
         callbackClose = func;
     }
     //********************************************
-    //  convenient
+    //   convenient
     //*******************************************
     function broadcast(msg) {
         sendMsg({'opcode': 'broadcast', 'message': msg});
+    }
+    //********************************************
+    //  convenient
+    //********************************************
+    function feedback(msg, uuid) {
+        sendMsg({'opcode': 'broadcast', 'message': msg, 'uuid': uuid});
     }
 
     function quit() {
@@ -209,7 +215,8 @@ function socketWebClient(server, port, app) {
         'setCallbackReadMessage': setCallbackReadMessage,
         'setCallbackStatus': setCallbackStatus,
         'setCallbackClose': setCallbackClose,
-        'broadcast': broadcast
+        'broadcast': broadcast,
+        'feedback': feedback
     };
 }
 
