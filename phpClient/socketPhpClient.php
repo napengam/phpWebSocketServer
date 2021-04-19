@@ -32,6 +32,7 @@ class socketTalk {
         if ($json->opcode != 'ready') {
             $this->connected = false;
         }
+        $this->fromUUID = $json->uuid; // assigned by server to this script
         if ($uu != '') {
             $this->uuid = $uu;
         }
@@ -43,7 +44,11 @@ class socketTalk {
 
     final function feedback($message) {
         if ($this->uuid) {
-            $this->talk(['opcode' => 'feedback', 'uuid' => $this->uuid, 'message' => $message]);
+            $this->talk([
+                'opcode' => 'feedback',
+                'uuid' => $this->uuid,
+                'message' => $message,
+                'fromUUID' => $this->fromUUID]);
         }
     }
 
