@@ -48,7 +48,7 @@ function startGUI() {
             obj.innerHTML += packet.message + '<br>';
         } else if (packet.opcode === 'feedback') {
             obj = document.getElementById('feedback');
-            obj.innerHTML = packet.message;
+            obj.innerHTML = packet.fromUUID + '---' + packet.message;
         }
     }
     function ready() {
@@ -62,14 +62,14 @@ function startGUI() {
 
     function talkToOthers() {
         // ***********************************************
-        //  test if messages apear in same order as send
+        //  test if messages apear in other webclients  in same order as send
         // no message is lost and very long message is buffered
-        // ***********************************************
-        sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo11 from :' + uuid});
-        sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo22 from :' + uuid});
-        sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo33 from :' + uuid});
-        sock.sendMsg({'opcode': 'broadcast', 'message': 'hallo44 from :' + uuid});
-        sock.sendMsg({'opcode': 'broadcast', 'message': longString + uuid});
+        // ****************************************************
+        sock.broadcast(`hallo11 from :${uuid}`);
+        sock.broadcast(`hallo22 from :${uuid}`);
+        sock.broadcast(`hallo33 from :${uuid}`);
+        sock.broadcast(`hallo44 from :${uuid}`);
+        sock.broadcast(longString + uuid);
     }
 
 
