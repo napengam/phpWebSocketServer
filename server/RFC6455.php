@@ -75,7 +75,7 @@ trait RFC6455 {
 
         if ($Lines[0] == "php process") {
             $this->Log('Handshake:' . $Buffer);
-            $this->Clients[$SocketID]->Headers = 'tcp';
+            $this->Clients[$SocketID]->clientType = 'tcp';
             $this->Clients[$SocketID]->Handshake = true;
             preg_match("/GET (.*) HTTP/i", $Buffer, $reqResource);
             $Headers['get'] = trim($reqResource[1]);
@@ -124,7 +124,7 @@ trait RFC6455 {
         $statusLine = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n\r\n";
         fwrite($Socket, $statusLine, strlen($statusLine));
 
-        $this->Clients[$SocketID]->Headers = 'websocket';
+        $this->Clients[$SocketID]->clientType = 'websocket';
         $this->Clients[$SocketID]->Handshake = true;
         if (isset($this->allApps[$Headers['get']])) {
             $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
