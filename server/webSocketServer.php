@@ -119,13 +119,14 @@ class WebSocketServer {
                         $this->Clients[$SocketID] = (object) [
                                     'ID' => $SocketID,
                                     'uuid' => '',
-                                    'Headers' => null,
+                                    'clientType' => null,
                                     'Handshake' => null,
                                     'timeCreated' => null,
                                     'bufferON' => false,
                                     'buffer' => [],
                                     'app' => NULL,
-                                    'ip' => $ip
+                                    'ip' => $ip,
+                                    'fyi' => ''
                         ];
                         $this->Sockets[$SocketID] = $clientSocket;
 
@@ -163,7 +164,7 @@ class WebSocketServer {
                             $this->Close($Socket);
                         } else {
 
-                            if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->Headers == 'websocket') {
+                            if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->clientType == 'websocket') {
                                 /*
                                  * ***********************************************
                                  * track number of websocket connectins from this IP
@@ -185,7 +186,7 @@ class WebSocketServer {
                                         continue;
                                     }
                                 }
-                            } else if (count($this->allowedIP) > 0 && $this->Clients[$SocketID]->Headers != 'websocket') {
+                            } else if (count($this->allowedIP) > 0 && $this->Clients[$SocketID]->clientType != 'websocket') {
                                 /*
                                  * ***********************************************
                                  * check if tcp client connects from allowed host
@@ -233,7 +234,7 @@ class WebSocketServer {
         stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
         $SocketID = intval($Socket);
         $this->onClose($SocketID);
-        if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->Headers == 'websocket') {
+        if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->clientType == 'websocket') {
             $ip = $this->Clients[$SocketID]->ip;
             $this->clientIPs[$ip]->count--;
             if ($this->clientIPs[$ip]->count <= 0) {
@@ -247,7 +248,7 @@ class WebSocketServer {
 
     private function Read($SocketID, $message) {
         $client = $this->Clients[$SocketID];
-        if ($client->Headers === 'websocket') {
+        if ($client->clientType === 'websocket') {
             $message = $this->Decode($message);
             if ($this->opcode == 10) { //pong
                 $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
@@ -260,7 +261,9 @@ class WebSocketServer {
             }
         }
 
-        $this->Write($SocketID, json_encode((object) ['opcode' => 'next']));
+        $this->Write($SocketID, json_encode((object) [
+                            'opcode' => 'next',
+                            'fyi' => $this->Clients[$SocketID]->fyi]));
         if ($this->serverCommand($client, $message)) {
             return '';
         }
@@ -278,7 +281,7 @@ class WebSocketServer {
     }
 
     public final function Write($SocketID, $message) {
-        if ($this->Clients[$SocketID]->Headers === 'websocket') {
+        if ($this->Clients[$SocketID]->clientType === 'websocket') {
             $message = $this->Encode($message);
         }
         return fwrite($this->Sockets[$SocketID], $message, strlen($message));
@@ -286,7 +289,7 @@ class WebSocketServer {
 
     public final function feedback($packet) {
         foreach ($this->Clients as $client) {
-            if ($packet->uuid == $client->uuid && $client->Headers === 'websocket') {
+            if ($packet->uuid == $client->uuid && $client->clientType === 'websocket') {
                 $this->Write($client->ID, json_encode($packet));
                 return;
             }
@@ -296,7 +299,7 @@ class WebSocketServer {
     public final function broadCast($SocketID, $M) {
         $ME = $this->Encode($M);
         foreach ($this->Clients as $client) {
-            if ($client->Headers === 'websocket') {
+            if ($client->clientType === 'websocket') {
                 if ($SocketID == $client->ID) {
                     continue;
                 }
