@@ -188,12 +188,12 @@ function socketWebClient(server, port, app) {
     //********************************************
     //  convenient
     //********************************************
-    function feedback(msg, uuid) {
-        sendMsg({'opcode': 'broadcast', 'message': msg, 'uuid': uuid});
+    function feedback(msg, toUUID) {
+        sendMsg({'opcode': 'feedback', 'message': msg, 'uuid': toUUID, 'from': uuid});
     }
 
     function quit() {
-        sendMsg({'opcode': 'quit', 'role': 'thisUserRole'});
+        sendMsg({'opcode': 'quit'});
         socket.close();
         socketOpen = false;
         socketSend = false;
