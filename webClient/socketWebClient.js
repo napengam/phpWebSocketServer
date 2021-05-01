@@ -111,7 +111,8 @@ function socketWebClient(server, port, app) {
             return;
         }
         msg = JSON.stringify(msgObj);
-        if (msg.length < chunkSize) {
+
+        if (msg.length < chunkSize || chunkSize === 0) {
             //********************************************
             //  normal short message
             //*******************************************
