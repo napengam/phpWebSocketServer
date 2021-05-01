@@ -32,31 +32,46 @@ trait RFC6455 {
 
     public function Decode($payload) {
         // detect ping or pong frame
+
+        $this->fin = ord($payload[0]) & 128;
         $this->opcode = ord($payload[0]) & 15;
         $length = ord($payload[1]) & 127;
         if ($length == 126) {
+            $l0 = ord($payload[2]) << 8;
+            $l1 = ord($payload[3]);
+            $dataLength = ($l0 | $l1);
             $masks = substr($payload, 4, 4);
-            $data = substr($payload, 8);
+            $data = substr($payload, 8, $dataLength);
         } else if ($length == 127) {
             $masks = substr($payload, 10, 4);
-            $data = substr($payload, 14);
+            $l0 = ord($payload[2]) << 56;
+            $l1 = ord($payload[3]) << 48;
+            $l2 = ord($payload[4]) << 40;
+            $l3 = ord($payload[5]) << 32;
+            $l4 = ord($payload[6]) << 24;
+            $l5 = ord($payload[7]) << 16;
+            $l6 = ord($payload[8]) << 8;
+            $l7 = ord($payload[9]);
+            $dataLength = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
+            $data = substr($payload, 14, $dataLength);
         } else {
             $masks = substr($payload, 2, 4);
             $data = substr($payload, 6, $length); // hgs 30.09.2016
+            $dataLength = strlen($data);
         }
         $text = '';
-        $l = strlen($data);
+
         $m0 = $masks[0];
         $m1 = $masks[1];
         $m2 = $masks[2];
         $m3 = $masks[3];
-        for ($i = 0; $i < $l;) {
+        for ($i = 0; $i < $dataLength;) {
             $text .= $data[$i++] ^ $m0;
-            if ($i < $l) {
+            if ($i < $dataLength) {
                 $text .= $data[$i++] ^ $m1;
-                if ($i < $l) {
+                if ($i < $dataLength) {
                     $text .= $data[$i++] ^ $m2;
-                    if ($i < $l) {
+                    if ($i < $dataLength) {
                         $text .= $data[$i++] ^ $m3;
                     }
                 }
