@@ -43,7 +43,7 @@ $console = false;
 if ($argc > 1) {
     parse_str(implode('&', array_slice($argv, 1)), $_GET);
     $logdir = check_set('ld', $logDir);
-    $console = check_set('co', false);
+    $console = check_set('co', false); 
 }
 /*
  * ***********************************************
@@ -63,7 +63,7 @@ if ($logger->error === '') {
  * create server 
  * *****************************************
  */
-$server = new WebsocketServer($Address, $Port, $logger, $keyAndCertFile, $pathToCert);
+$server = new websocketServer($Address, $Port, $logger, $keyAndCertFile, $pathToCert);
 /*
  * ***********************************************
  * set some server variables
