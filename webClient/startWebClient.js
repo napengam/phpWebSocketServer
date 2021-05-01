@@ -21,7 +21,7 @@ function startGUI() {
     //  create a long message
     //*******************************************
 
-    for (i = 0; i < 16 * 1024; i++) {
+    for (i = 0; i < 16 * 1024 ; i++) {
         longString += 'X';
     }
 
