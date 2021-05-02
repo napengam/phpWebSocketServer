@@ -150,7 +150,7 @@ class webSocketServer {
                  * in chunks.
                  * ***********************************************
                  */
-                
+
                 //stream_set_read_buffer($Socket, 0); // no buffering hgs 01.05.2021
 
 
@@ -162,7 +162,7 @@ class webSocketServer {
 
                 $dataBuffer = fread($Socket, $this->bufferLength);
                 if ($dataBuffer === false ||
-                        strlen($dataBuffer) == 0 || // use mb_strlen insntead of strlen ???
+                        strlen($dataBuffer) == 0 || 
                         strlen($dataBuffer) >= $this->bufferChunk) {  // to avoid malicious overload 
                     $this->onError($SocketID, "Client disconnected by Server - TCP connection lost");
                     $this->Close($Socket);
@@ -194,58 +194,19 @@ class webSocketServer {
                  * handshake
                  * ***********************************************
                  */
+                
                 if ($this->Handshake($Socket, $dataBuffer) === false) {
                     continue; // something is wrong 
                 }
                 /*
                  * ***********************************************
                  * handshake according RFC 6455 is ok .
-                 * Now check for apps and connections
+                 * Now,for this client, check for apps and connections
                  * ***********************************************
-                 */
-                if ($Client->app === NULL) {
-                    $this->Log("Application incomplete or does not exist);"
-                            . " Telling Client to disconnect on  #$SocketID");
-                    $msg = (object) ['opcode' => 'close'];
-                    $this->Write($SocketID, json_encode($msg));
-                    $this->Close($Socket);
-                    continue;
-                }
-
-                if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->clientType == 'websocket') {
-                    /*
-                     * ***********************************************
-                     * track number of websocket connectins from this IP
-                     * ***********************************************
-                     */
-                    $ip = $Client->ip;
-                    if (!isset($this->clientIPs[$ip])) {
-                        $this->clientIPs[$ip] = (object) [
-                                    'SocketId' => $SocketID,
-                                    'count' => 1
-                        ];
-                    } else {
-                        $this->clientIPs[$ip]->count++;
-                        if ($this->clientIPs[$ip]->count > $this->maxPerIP) {
-                            $msg = "To many connections from:  $ip";
-                            $this->Log("$SocketID, $msg");
-                            $this->Write($SocketID, json_encode((object) ['opcode' => 'close', 'error' => $msg]));
-                            $this->Close($SocketID);
-                            continue;
-                        }
-                    }
-                } else if (count($this->allowedIP) > 0 && $this->Clients[$SocketID]->clientType != 'websocket') {
-                    /*
-                     * ***********************************************
-                     * check if tcp client connects from allowed host
-                     * ***********************************************
-                     */
-                    if (!in_array($Client->ip, $this->allowedIP)) {
-                        $this->Close($SocketID);
-                        $this->Log("$SocketID, No connection allowed from: " . $Client->ip);
-                        continue;
-                    }
-                }
+                 */                
+                if($this->specificChecks($SocketID)===false){
+                    continue; // something is wrong
+                }               
                 /*
                  * ***********************************************
                  * all checks passed now let client work
@@ -352,6 +313,57 @@ class webSocketServer {
         }
         $app->registerServer($this);
         return true;
+    }
+
+    private function specificChecks($SocketID) {
+
+        $ok = true;
+        $Client = $this->Clients[$SocketID];
+        
+        if ($Client->app === NULL) {
+            $this->Log("Application incomplete or does not exist);"
+                    . " Telling Client to disconnect on  #$SocketID");
+            $msg = (object) ['opcode' => 'close'];
+            $this->Write($SocketID, json_encode($msg));
+            $this->Close($SocketID);
+            $ok = false;
+        }
+
+        if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->clientType == 'websocket') {
+            /*
+             * ***********************************************
+             * track number of websocket connectins from this IP
+             * ***********************************************
+             */
+            $ip = $Client->ip;
+            if (!isset($this->clientIPs[$ip])) {
+                $this->clientIPs[$ip] = (object) [
+                            'SocketId' => $SocketID,
+                            'count' => 1
+                ];
+            } else {
+                $this->clientIPs[$ip]->count++;
+                if ($this->clientIPs[$ip]->count > $this->maxPerIP) {
+                    $msg = "To many connections from:  $ip";
+                    $this->Log("$SocketID, $msg");
+                    $this->Write($SocketID, json_encode((object) ['opcode' => 'close', 'error' => $msg]));
+                    $this->Close($SocketID);
+                    $ok = false;
+                }
+            }
+        } else if (count($this->allowedIP) > 0 && $this->Clients[$SocketID]->clientType != 'websocket') {
+            /*
+             * ***********************************************
+             * check if tcp client connects from allowed host
+             * ***********************************************
+             */
+            if (!in_array($Client->ip, $this->allowedIP)) {
+                $this->Close($SocketID);
+                $this->Log("$SocketID, No connection allowed from: " . $Client->ip);
+                $ok = false;
+            }
+        }
+        return $ok;
     }
 
     private function serverCommand($client, &$message) {
