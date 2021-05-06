@@ -129,9 +129,10 @@ class webSocketServer {
                                 'uuid' => '',
                                 'clientType' => null,
                                 'Handshake' => false,
-                                'timeCreated' => time(),
+                                'timeCreated' => time(), // not used yet
                                 'bufferON' => false,
-                                'buffer' => [],
+                                'fin' => true, // RFC6455 final fragment in message 
+                                'buffer' => [], // buffers message chunks
                                 'app' => NULL,
                                 'ip' => $ip,
                                 'fyi' => ''
@@ -151,7 +152,7 @@ class webSocketServer {
                  * ***********************************************
                  */
 
-                //stream_set_read_buffer($Socket, 0); // no buffering hgs 01.05.2021
+//stream_set_read_buffer($Socket, 0); // no buffering hgs 01.05.2021
 
 
                 /*
@@ -162,7 +163,7 @@ class webSocketServer {
 
                 $dataBuffer = fread($Socket, $this->bufferLength);
                 if ($dataBuffer === false ||
-                        strlen($dataBuffer) == 0 || 
+                        strlen($dataBuffer) == 0 ||
                         strlen($dataBuffer) >= $this->bufferChunk) {  // to avoid malicious overload 
                     $this->onError($SocketID, "Client disconnected by Server - TCP connection lost");
                     $this->Close($Socket);
@@ -194,7 +195,7 @@ class webSocketServer {
                  * handshake
                  * ***********************************************
                  */
-                
+
                 if ($this->Handshake($Socket, $dataBuffer) === false) {
                     continue; // something is wrong 
                 }
@@ -203,10 +204,10 @@ class webSocketServer {
                  * handshake according RFC 6455 is ok .
                  * Now,for this client, check for apps and connections
                  * ***********************************************
-                 */                
-                if($this->specificChecks($SocketID)===false){
+                 */
+                if ($this->specificChecks($SocketID) === false) {
                     continue; // something is wrong
-                }               
+                }
                 /*
                  * ***********************************************
                  * all checks passed now let client work
@@ -254,11 +255,22 @@ class webSocketServer {
                 $this->Close($SocketID);
                 return '';
             }
+            if ($this->fin == 0 && $this->opcode == 0) {
+                $this->Clients[$SocketID]->fin = false; // fragmented message
+            } else if ($this->fin != 0 && $this->opcode != 0) {
+                $this->Clients[$SocketID]->fin = true;
+            }
         }
 
         $this->Write($SocketID, json_encode((object) [
                             'opcode' => 'next',
                             'fyi' => $this->Clients[$SocketID]->fyi]));
+        /*
+         * ***********************************************
+         * take car of buffering messages either because
+         * buggerON=true or fin=false
+         * ***********************************************
+         */
         if ($this->serverCommand($client, $message)) {
             return '';
         }
@@ -319,7 +331,7 @@ class webSocketServer {
 
         $ok = true;
         $Client = $this->Clients[$SocketID];
-        
+
         if ($Client->app === NULL) {
             $this->Log("Application incomplete or does not exist);"
                     . " Telling Client to disconnect on  #$SocketID");
@@ -367,24 +379,35 @@ class webSocketServer {
     }
 
     private function serverCommand($client, &$message) {
-        if ($message === 'bufferON') {
-            $client->bufferON = true;
-            $client->buffer = [];
-            $this->Log('Buffering ON');
-            return true;
-        }
+        if ($client->fin === true) {
+            if ($message === 'bufferON') {
+                $client->bufferON = true;
+                $client->buffer = [];
+                $this->Log('Buffering ON');
+                return true;
+            }
 
-        if ($message === 'bufferOFF') {
-            $client->bufferON = false;
-            $message = implode('', $client->buffer);
-            $client->buffer = [];
-            $this->Log('Buffering OFF');
+            if ($message === 'bufferOFF') {
+                $client->bufferON = false;
+                $message = implode('', $client->buffer);
+                $client->buffer = [];
+                $this->Log('Buffering OFF');
+                return false;
+            }
         }
-
-        if ($this->fin == 0) {
-            $this->Log("FIN=0 ; $this->opcode");
+        if ($client->bufferON === false) {
+            if ($client->fin === false && count($client->buffer) == 0) {
+                $this->Log("FIN=false ");
+                $client->buffer[] = $message; // a fragement
+                return true;
+            }
+            if ($client->fin === true && count($client->buffer) > 0) {
+                $client->buffer[] = $message; // last fragement
+                $message = implode('', $client->buffer);
+                $client->buffer = [];
+                $this->Log('FIN=true');
+            }
         }
-
 
         return false;
     }
@@ -396,17 +419,17 @@ class webSocketServer {
     }
 
     public function guidv4() {
-        // from https://www.uuidgenerator.net/dev-corner/php
-        // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+// from https://www.uuidgenerator.net/dev-corner/php
+// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
         $data = random_bytes(16);
         assert(strlen($data) == 16);
 
-        // Set version to 0100
+// Set version to 0100
         $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-        // Set bits 6-7 to 10
+// Set bits 6-7 to 10
         $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
 
-        // Output the 36 character UUID.
+// Output the 36 character UUID.
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
