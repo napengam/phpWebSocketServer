@@ -27,7 +27,7 @@ class socketTalk {
         }
         $this->connected = true;
         fwrite($this->socketMaster, $this->setHandshake($Address));
-        $buff = fread($this->socketMaster, 1024); 
+        $buff = fread($this->socketMaster, 1024);
         if (!$this->getHandshake($buff)) {
             $this->silent();
             return;
@@ -132,7 +132,7 @@ class socketTalk {
     }
 
     function getHandshake($Buffer) {
-        $Headers = [];    
+        $Headers = [];
         $Lines = explode("\n", $Buffer);
         foreach ($Lines as $Line) {
             if (strpos($Line, ":") !== false) {
@@ -186,6 +186,7 @@ class socketTalk {
         $m1 = $masks[1];
         $m2 = $masks[2];
         $m3 = $masks[3];
+        $text = '';
         for ($i = 0; $i < $L;) {
             $text .= $M[$i++] ^ $m0;
             if ($i < $L) {
