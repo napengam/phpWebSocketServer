@@ -244,23 +244,23 @@ class webSocketServer {
 
     private function extractMessage($SocketID, $message) {
         $client = $this->Clients[$SocketID];
-        if ($client->clientType === 'websocket') {
-            $message = $this->Decode($message);
-            if ($this->opcode == 10) { //pong
-                $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
-                return '';
-            }
-            if ($this->opcode == 8) { //Connection Close Frame 
-                $this->log("Connection Close frame received from socket #$SocketID");
-                $this->Close($SocketID);
-                return '';
-            }
-            if ($this->fin == 0 && $this->opcode == 0) {
-                $this->Clients[$SocketID]->fin = false; // fragmented message
-            } else if ($this->fin != 0 && $this->opcode != 0) {
-                $this->Clients[$SocketID]->fin = true;
-            }
+
+        $message = $this->Decode($message);
+        if ($this->opcode == 10) { //pong
+            $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
+            return '';
         }
+        if ($this->opcode == 8) { //Connection Close Frame 
+            $this->log("Connection Close frame received from socket #$SocketID");
+            $this->Close($SocketID);
+            return '';
+        }
+        if ($this->fin == 0 && $this->opcode == 0) {
+            $this->Clients[$SocketID]->fin = false; // fragmented message
+        } else if ($this->fin != 0 && $this->opcode != 0) {
+            $this->Clients[$SocketID]->fin = true;
+        }
+
 
         $this->Write($SocketID, json_encode((object) [
                             'opcode' => 'next',
@@ -288,9 +288,9 @@ class webSocketServer {
     }
 
     public final function Write($SocketID, $message) {
-        if ($this->Clients[$SocketID]->clientType === 'websocket') {
-            $message = $this->Encode($message);
-        }
+
+        $message = $this->Encode($message);
+
         return fwrite($this->Sockets[$SocketID], $message, strlen($message));
     }
 
