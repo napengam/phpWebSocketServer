@@ -59,7 +59,7 @@ trait RFC6455 {
             $moff = 10;
             $poff = 14;
         }
-        
+
         $masks = substr($payload, $moff, 4);
         $data = substr($payload, $poff, $length); // hgs 30.09.2016
         $text = '';
@@ -90,19 +90,7 @@ trait RFC6455 {
         $reqResource = [];
         $Lines = explode("\n", $Buffer);
 
-        if ($Lines[0] == "php process") {
-            $this->Log('Handshake:' . $Buffer);
-            $this->Clients[$SocketID]->clientType = 'tcp';
-            $this->Clients[$SocketID]->Handshake = true;
-            preg_match("/GET (.*) HTTP/i", $Buffer, $reqResource);
-            $Headers['get'] = trim($reqResource[1]);
-            if (isset($this->allApps[$Headers['get']])) {
-                $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
-            }
-            return true;
-        }
 
-        $this->Log("Handshake: webClient");
         foreach ($Lines as $Line) {
             if (strpos($Line, ":") !== false) {
                 $Header = explode(":", $Line, 2);
@@ -112,7 +100,7 @@ trait RFC6455 {
                 $Headers['get'] = trim($reqResource[1]);
             }
         }
-
+        $this->Log("Handshake: " . $Headers['get'] . "Client");
         if (!isset($Headers['host']) || !isset($Headers['origin']) ||
                 !isset($Headers['sec-websocket-key']) ||
                 (!isset($Headers['upgrade']) || strtolower($Headers['upgrade']) != 'websocket') ||
@@ -140,8 +128,12 @@ trait RFC6455 {
         $Token = base64_encode($Token);
         $statusLine = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n\r\n";
         fwrite($Socket, $statusLine, strlen($statusLine));
-
-        $this->Clients[$SocketID]->clientType = 'websocket';
+        if (stripos($Headers['get'], 'web') !== false) {
+            $this->Clients[$SocketID]->clientType = 'websocket';
+        } else {
+            $this->Clients[$SocketID]->clientType = 'tcp';
+        }
+        $this->Log('ClientType:' .  $this->Clients[$SocketID]->clientType);
         $this->Clients[$SocketID]->Handshake = true;
         if (isset($this->allApps[$Headers['get']])) {
             $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
