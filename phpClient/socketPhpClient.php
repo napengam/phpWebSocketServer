@@ -94,7 +94,7 @@ class socketTalk {
             return false;
         }
         fwrite($this->socketMaster, $this->encodeForServer($m));
-        $buff = $this->decodeFromServer(fread($this->socketMaster, 256)); // wait for ACK
+        $buff = $this->decodeFromServer(fread($this->socketMaster, 1024)); // wait for ACK
         $ack = json_decode($buff);
         if ($ack->opcode != 'next') {
             $this->silent();
@@ -159,11 +159,7 @@ class socketTalk {
     private function encodeForServer($M) {
         $L = strlen($M);
         $bHead = [];
-        if ($this->opcode == 10) { // POng
-            $bHead[0] = 137;
-        } else {
-            $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
-        }
+        $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
         $masks = random_bytes(4);
         if ($L <= 125) {
             $bHead[1] = $L | 128;
@@ -228,7 +224,7 @@ class socketTalk {
             $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
             $poff = 10;
         }
-        $data = substr($payload, $poff, $length); // hgs 30.09.2016
+        $data = substr($payload, $poff, $length); 
 
         return $data;
     }
