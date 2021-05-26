@@ -1,3 +1,5 @@
+<meta name="google-site-verification" content="9RThX62pakuWChXBfUw-llDMYzLJmCaxw94glD6aTUI" />
+
 # phpWebSocketServer
 
 Server written in PHP to handle connections via websocksets **wss:// or ws://**  
