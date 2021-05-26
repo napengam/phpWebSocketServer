@@ -110,13 +110,13 @@ class socketTalk {
 
         /*
          * ***********************************************
-         * we expect this Token from the server
+         * we expect this Token from the 
+         * server in its responds
          * ***********************************************
          */
 
-        $Token = "";
         $sah1 = sha1($key . "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-        for ($i = 0; $i < 20; $i++) {
+        for ($i = 0, $Token = ""; $i < 20; $i++) {
             $Token .= chr(hexdec(substr($sah1, $i * 2, 2)));
         }
         $this->expectedToken = base64_encode($Token);
@@ -182,8 +182,7 @@ class socketTalk {
         $m1 = $masks[1];
         $m2 = $masks[2];
         $m3 = $masks[3];
-        $text = '';
-        for ($i = 0; $i < $L;) {
+        for ($i = 0, $text = ''; $i < $L;) {
             $text .= $M[$i++] ^ $m0;
             if ($i < $L) {
                 $text .= $M[$i++] ^ $m1;
@@ -224,7 +223,7 @@ class socketTalk {
             $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
             $poff = 10;
         }
-        $data = substr($payload, $poff, $length); 
+        $data = substr($payload, $poff, $length);
 
         return $data;
     }
