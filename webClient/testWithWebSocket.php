@@ -6,6 +6,8 @@
         <title>WebClient</title>
     </head>
     <body>
+        <button id="open" >Connect to Server</button><br>
+        <button id="close" >Close connection</button><br>
         Status:<b><span id='connect'>not connected</span></b><br>
         <button id="ajax" >CALL Backend via AJAX</button><br>
         Here you will see feedback from backend : <b><span id='feedback'></span> </b>
