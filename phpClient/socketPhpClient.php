@@ -37,6 +37,7 @@ class socketTalk {
         $json = json_decode($buff);
         if ($json->opcode != 'ready') {
             $this->connected = false;
+            return; 
         }
         $this->fromUUID = $json->uuid; // assigned by server to this script
         if ($uu != '') {
