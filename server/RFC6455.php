@@ -6,7 +6,9 @@ trait RFC6455 {
         $L = strlen($M);
         $bHead = [];
         if ($this->opcode == 10) { // POng
-            $bHead[0] = 137;
+            $bHead[0] = 138; // send pong
+        } else if ($this->opcode == 9) { // PIng
+            $bHead[0] = 137; // send ping
         } else {
             $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
         }
@@ -90,7 +92,6 @@ trait RFC6455 {
         $reqResource = [];
         $Lines = explode("\n", $Buffer);
 
-
         foreach ($Lines as $Line) {
             if (strpos($Line, ":") !== false) {
                 $Header = explode(":", $Line, 2);
@@ -133,7 +134,7 @@ trait RFC6455 {
         } else {
             $this->Clients[$SocketID]->clientType = 'tcp';
         }
-        $this->Log('ClientType:' .  $this->Clients[$SocketID]->clientType);
+        $this->Log('ClientType:' . $this->Clients[$SocketID]->clientType);
         $this->Clients[$SocketID]->Handshake = true;
         if (isset($this->allApps[$Headers['get']])) {
             $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
