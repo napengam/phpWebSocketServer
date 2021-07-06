@@ -100,6 +100,10 @@ class webSocketServer {
                  * Here we continue to wait for another second 
                  * ***********************************************
                  */
+
+//                if ($this->pingClients()) {
+//                    $this->Log("Ping Clients");
+//                }
                 continue;
             }
             foreach ($socketArrayRead as $Socket) {
@@ -135,7 +139,8 @@ class webSocketServer {
                                 'buffer' => [], // buffers message chunks
                                 'app' => NULL,
                                 'ip' => $ip,
-                                'fyi' => ''
+                                'fyi' => '',
+                                'expectPong' => false
                     ];
                     $this->Sockets[$SocketID] = $clientSocket;
                     $this->Log("New client connecting from $ipport on socket #$SocketID\r\n");
@@ -242,12 +247,23 @@ class webSocketServer {
         return $SocketID;
     }
 
-    private function extractMessage($SocketID, $message) {
+    private function extractMessage($SocketID, $messageFrame) {
         $client = $this->Clients[$SocketID];
 
-        $message = $this->Decode($message);
+        $message = $this->Decode($messageFrame);
         if ($this->opcode == 10) { //pong
-            $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
+            if ($client->expectPong == false) {
+                $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
+            } else {
+                $this->log("Expected Pong frame received from socket #$SocketID"); // just ignore
+                $client->expectPong = false;
+            }
+            return '';
+        }
+        if ($this->opcode == 9) { //ping received
+            $this->log("Ping frame received from socket #$SocketID"); // just ignore
+            $messageFrame[0] = 138; // send back as pong
+            fwrite($this->Sockets[$SocketID], $messageFrame, strlen($messageFrame));
             return '';
         }
         if ($this->opcode == 8) { //Connection Close Frame 
@@ -268,7 +284,7 @@ class webSocketServer {
         /*
          * ***********************************************
          * take car of buffering messages either because
-         * buggerON=true or fin=false
+         * buffrerON===true or fin===false
          * ***********************************************
          */
         if ($this->serverCommand($client, $message)) {
@@ -305,14 +321,27 @@ class webSocketServer {
 
     public final function broadCast($SocketID, $M) {
         $ME = $this->Encode($M);
-        foreach ($this->Clients as $client) {
+        $nw = false;
+        foreach ($this->Clients as &$client) {
             if ($client->clientType === 'websocket') {
-                if ($SocketID == $client->ID) {
+                if ($SocketID != -1 && $SocketID == $client->ID) {
                     continue;
                 }
                 fwrite($this->Sockets[$client->ID], $ME, strlen($ME));
+                $client->expectPong = true;
+                $nw = true;
             }
         }
+        return $nw;
+    }
+
+    public final function pingClients() {
+
+        $this->opcode = 9; // PING
+        $nw = $this->broadCast(-1, json_encode((object) [
+                            'opcode' => 'PING']
+        ));
+        return $nw;
     }
 
     public final function registerResource($name, $app) {
