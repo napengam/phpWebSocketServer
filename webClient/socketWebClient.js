@@ -1,7 +1,7 @@
 function socketWebClient(server, port, app) {
     'use strict';
     var
-            tmp = [], queue = [], uuid, uu, socket = {}, proto,
+            tmp = [], queue = [], uuid, uu, socket = null, proto,
             chunkSize = 6 * 1024, socketOpen = false, socketSend = false;
 
     //********************************************
@@ -21,6 +21,10 @@ function socketWebClient(server, port, app) {
         return uu;
     };
     function init() {
+
+        if (socket !== null) {
+            socket.close();
+        }
 
         callbackStatus('Try to connect ...');
         //********************************************
@@ -217,7 +221,8 @@ function socketWebClient(server, port, app) {
         'setCallbackStatus': setCallbackStatus,
         'setCallbackClose': setCallbackClose,
         'broadcast': broadcast,
-        'feedback': feedback
+        'feedback': feedback,
+
     };
 }
 
