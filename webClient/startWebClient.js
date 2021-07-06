@@ -87,6 +87,8 @@ function startGUI() {
     //  instrument the buttons
     //*******************************************
 
+    document.getElementById('open').onclick = sock.init;
+    document.getElementById('close').onclick = sock.quit;
     document.getElementById('ready').onclick = talkToOthers;
     document.getElementById('ajax').onclick = triggerAJAX;
     document.getElementById('uuid').innerHTML = uuid;
