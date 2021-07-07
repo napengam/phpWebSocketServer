@@ -320,27 +320,30 @@ class webSocketServer {
     }
 
     public final function broadCast($SocketID, $M) {
-        $ME = $this->Encode($M);
-        $nw = false;
+        $ME = $this->Encode($M);      
         foreach ($this->Clients as &$client) {
             if ($client->clientType === 'websocket') {
-                if ($SocketID != -1 && $SocketID == $client->ID) {
+                if ($SocketID == $client->ID) {
                     continue;
                 }
-                fwrite($this->Sockets[$client->ID], $ME, strlen($ME));
-                $client->expectPong = true;
-                $nw = true;
+                fwrite($this->Sockets[$client->ID], $ME, strlen($ME));              
             }
         }
-        return $nw;
+        return;
     }
 
     public final function pingClients() {
 
         $this->opcode = 9; // PING
-        $nw = $this->broadCast(-1, json_encode((object) [
-                            'opcode' => 'PING']
-        ));
+        $m = $this->Encode(json_encode((object) ['opcode' => 'PING']));
+        $nw = false;
+        foreach ($this->Clients as &$client) {
+            if ($client->clientType === 'websocket') {
+                fwrite($this->Sockets[$client->ID], $m, strlen($m));
+                $client->expectPong = true;
+                $nw = true;
+            }
+        }
         return $nw;
     }
 
