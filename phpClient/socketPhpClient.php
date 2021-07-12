@@ -19,7 +19,10 @@ class socketTalk {
         }
         $errno = 0;
         $errstr = '';
-        $this->socketMaster = stream_socket_client("$Address:$Port", $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
+        if ($Port) {
+            $Port = ":$Port";
+        }
+        $this->socketMaster = stream_socket_client("$Address$Port", $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
 
         if (!$this->socketMaster) {
             $this->connected = false;
@@ -37,7 +40,7 @@ class socketTalk {
         $json = json_decode($buff);
         if ($json->opcode != 'ready') {
             $this->connected = false;
-            return; 
+            return;
         }
         $this->fromUUID = $json->uuid; // assigned by server to this script
         if ($uu != '') {
@@ -183,6 +186,7 @@ class socketTalk {
         $m1 = $masks[1];
         $m2 = $masks[2];
         $m3 = $masks[3];
+        $text = '';
         for ($i = 0, $text = ''; $i < $L;) {
             $text .= $M[$i++] ^ $m0;
             if ($i < $L) {
@@ -230,3 +234,6 @@ class socketTalk {
     }
 
 }
+
+$x = new socketTalk('tcp://ws.finnhub.io/', '');
+
