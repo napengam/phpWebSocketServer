@@ -30,7 +30,6 @@ This script also sends very long messages in chunks of `chunksize=6 * 1204`.
 
 
 
-
 ## testWithWebSocket.php
 
 Example to SHOW `broadcast` from other web clients and `feedback` from  
@@ -41,15 +40,20 @@ Have the server started and waiting ....
 **Step 1**
 
 In a browser window open `http://your.web.server/testWithWebSocket.php`.  
-You will see this when you perform **Step 2**
+You will see this.  
 
-![webApp](w1.PNG)
+![webApp](out1.JPG)
 
 **Step 2**
 
 In an other browser window open `http://your.web.server/testWithWebSocket.php`.  
 This will broadcast into the page you opened  in **Step 1**.  
-Press the button in the page you opened in **Step 1** then you will see the output below
+Press the button ***Talk to others***  then you will see the output below
 
-![webApp](w2.PNG)
+![webApp](out2.JPG)
 
+
+Press button ***CALL Backend via AJAX*** then ypu will see ouput form the  
+backend script `../phpClient/simulateBackend.php` flowing in.  
+
+![webApp](out3.JPG)
