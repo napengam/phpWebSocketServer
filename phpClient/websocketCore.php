@@ -11,7 +11,7 @@ class websocketCore {
         $arr = explode('://', $Address, 2);
         $prot = '';
         if (count($arr) > 1) {
-            if (strncasecmp($arr[0], 'ssl', 3) == 0) {
+            if (stripos(' ssl wss ',$arr[0]) !== false) {
                 stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
                 stream_context_set_option($context, 'ssl', 'verify_peer', false);
                 stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
