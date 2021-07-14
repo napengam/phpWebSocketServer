@@ -4,10 +4,9 @@ if ($argc > 1) {
     parse_str(implode('&', array_slice($argv, 1)), $_GET);
 }
 
-require 'socketPhpClient.php';
+require 'websocketPhp.php';
 include '../include/adressPort.inc.php';
-
-$talk = new socketTalk($Address, $Port, '/php');
+$talk = new websocketPhp($Address, $Port, '/php');
 if (!isset($_GET['m'])) {
     $_GET['m'] = '';
 }
@@ -40,7 +39,6 @@ $talk->broadcast("$message 3");
 $talk->broadcast("$message 4");
 $talk->broadcast("$message 5");
 $talk->broadcast("äüöÄÜÖß$longString 6~6~6~6 ÄÜÖßäüö");
-
 
 $talk->silent();
 
