@@ -5,31 +5,39 @@ class socketTalk {
     public $uuid, $connected = false, $chunkSize = 6 * 1024;
     private $socketMaster;
 
-    function __construct($Address, $Port, $application = '/', $uu = '') {
+    function __construct($Address, $Port, $app = '/php', $uu = '') {
         $context = stream_context_create();
         $arr = explode('://', $Address, 2);
+        $prot = '';
         if (count($arr) > 1) {
             if (strncasecmp($arr[0], 'ssl', 3) == 0) {
                 stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
                 stream_context_set_option($context, 'ssl', 'verify_peer', false);
                 stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
+                $px = '443';
+                $prot = 'ssl://';
+                $Address = $arr[1];
             } else {
+                $prot = 'tcp://';
                 $Address = $arr[1]; // just the host
+                $px = '80';
             }
         }
         $errno = 0;
         $errstr = '';
         if ($Port) {
             $Port = ":$Port";
+        } else {
+            $Port = ":$px";
         }
-        $this->socketMaster = stream_socket_client("$Address$Port", $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
+        $this->socketMaster = stream_socket_client("$prot$Address$Port", $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
 
         if (!$this->socketMaster) {
             $this->connected = false;
             return;
         }
         $this->connected = true;
-        fwrite($this->socketMaster, $this->setHandshake($Address));
+        fwrite($this->socketMaster, $this->setHandshake($Address, $app));
         $buff = fread($this->socketMaster, 1024);
         if (!$this->getHandshake($buff)) {
             $this->silent();
@@ -107,7 +115,7 @@ class socketTalk {
         return true;
     }
 
-    function setHandshake($server) {
+    function setHandshake($server, $app = '/') {
 
         $this->key = random_bytes(16);
         $key = base64_encode($this->key);
@@ -124,15 +132,16 @@ class socketTalk {
             $Token .= chr(hexdec(substr($sah1, $i * 2, 2)));
         }
         $this->expectedToken = base64_encode($Token);
+        $req = [];
+        $req[] = "GET $app HTTP/1.1";
+        $req[] = "Host: $server";
+        $req[] = "Upgrade: websocket";
+        $req[] = "Connection: Upgrade";
+        $req[] = "Sec-WebSocket-Key: $key";
+        $req[] = "Origin: ";
+        $req[] = "Sec-WebSocket-Version: 13";
 
-        return
-                "GET /php HTTP/1.1\r\n
-        Host: $server\r\n
-        Upgrade: websocket\r\n
-        Connection: Upgrade\r\n
-        Sec-WebSocket-Key: $key\r\n
-        Origin: \r\n     
-        Sec-WebSocket-Version: 13\r\n";
+        return implode("\r\n", $req) . "\r\n\r\n";
     }
 
     function getHandshake($Buffer) {
@@ -146,13 +155,13 @@ class socketTalk {
                 $Headers['101'] = trim($Line);
             }
         }
-        if ($Headers['101'] != "HTTP/1.1 101 Switching Protocols") {
+        if (strcasecmp($Headers['101'], "HTTP/1.1 101 Switching Protocols") <> 0) {
             return false;
         }
-        if ($Headers['upgrade'] != 'websocket') {
+        if (strcasecmp($Headers['upgrade'], 'websocket') <> 0) {
             return false;
         }
-        if ($Headers['connection'] != 'Upgrade') {
+        if (strcasecmp($Headers['connection'], 'Upgrade') <> 0) {
             return false;
         } if ($Headers['sec-websocket-accept'] != $this->expectedToken) {
             return false;
@@ -187,7 +196,8 @@ class socketTalk {
         $m2 = $masks[2];
         $m3 = $masks[3];
         $text = '';
-        for ($i = 0, $text = ''; $i < $L;) {
+        for ($i = 0, $text = ''; $i < $L;
+        ) {
             $text .= $M[$i++] ^ $m0;
             if ($i < $L) {
                 $text .= $M[$i++] ^ $m1;
@@ -203,7 +213,7 @@ class socketTalk {
     }
 
     private function decodeFromServer($payload) {
-        // detect ping or pong frame, or fragments
+// detect ping or pong frame, or fragments
 
         $this->fin = ord($payload[0]) & 128;
         $this->opcode = ord($payload[0]) & 15;
@@ -232,8 +242,4 @@ class socketTalk {
 
         return $data;
     }
-
 }
-
-$x = new socketTalk('tcp://ws.finnhub.io/', '');
-
