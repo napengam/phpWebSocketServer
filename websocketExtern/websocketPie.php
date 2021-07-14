@@ -20,5 +20,5 @@ class websocketPie extends websocketCore {
 
 }
 
-$x = new websocketPie("ssl://demo.piesocket.com",'',"/v3/1?api_key=oCdCMcMPQpbvNjUIzqtvF1d2X2okWpDQj4AwARJuAgtjhzKxVEjQU6IdCjwm");
+$x = new websocketPie("wss://demo.piesocket.com",'',"/v3/1?api_key=oCdCMcMPQpbvNjUIzqtvF1d2X2okWpDQj4AwARJuAgtjhzKxVEjQU6IdCjwm");
 
