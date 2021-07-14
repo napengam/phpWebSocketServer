@@ -1,6 +1,6 @@
 <?php
 
-require 'socketPhpClient.php';
+require 'websocketPhp.php';
 include '../include/adressPort.inc.php';
 /*
  * ***********************************************
@@ -14,7 +14,7 @@ $payload = (object) json_decode($json, true);
  * connect to the server
  * ***********************************************
  */
-$talk = new socketTalk($Address, $Port, '/php', $payload->uuid);
+$talk = new websocketPhp($Address, $Port, '/php', $payload->uuid);
 /*
  * ***********************************************
  * send feedback to client
@@ -30,7 +30,7 @@ for ($i = 0; $i < 1000000; $i++) {
         $talk->feedback("loop $i");
     }
 }
-$talk->feedback( "done");
+$talk->feedback("done");
 /*
  * ***********************************************
  * end of AJAX call
