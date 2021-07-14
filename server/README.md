@@ -138,21 +138,21 @@ On a shell on Linux  just start it, with logging to console, like:
 you shoud then see an out put like the one below on system using SSL
 
 
-> [Thu, 03 Oct 19 16:03:36 +0200] - Server initialized on Linux  ssl://xyz.server.net:8083 using SSL  
-> [Thu, 03 Oct 19 16:03:36 +0200] - Starting server...  
-> [Thu, 03 Oct 19 16:03:36 +0200] - Application : /  
-> [Thu, 03 Oct 19 16:03:36 +0200] - Application : /web  
-> [Thu, 03 Oct 19 16:03:36 +0200] - Application : /php  
+> php runSocketServer.php  co=1   
+> Wed, 14 Jul 2021 10:01:21 +0200; Server initialized on Linux  xxx.yyy.net:8096 ssl://  
+> Wed, 14 Jul 2021 10:01:21 +0200; Starting server...  
+> Wed, 14 Jul 2021 10:01:21 +0200; Registered resource : /  
+> Wed, 14 Jul 2021 10:01:21 +0200; Registered resource : /web  
 
 on a system not using SSL you should see a similar output like the one below
 
-> php runSocketserver.php
-
-> [Thu, 03 Oct 19 16:00:28 +0200] - Server initialized on WINNT  127.0.0.1:8083  
-> [Thu, 03 Oct 19 16:00:28 +0200] - Starting server...  
-> [Thu, 03 Oct 19 16:00:28 +0200] - Application : /  
-> [Thu, 03 Oct 19 16:00:28 +0200] - Application : /web  
-> [Thu, 03 Oct 19 16:00:28 +0200] - Application : /php  
+> php runSocketServer.php co=1  
+> Wed, 14 Jul 2021 09:04:35 +0200; Server initialized on WINNT  localhost:8091   
+> Wed, 14 Jul 2021 09:04:35 +0200; Starting server...  
+> Wed, 14 Jul 2021 09:04:35 +0200; Registered resource : /  
+> Wed, 14 Jul 2021 09:04:35 +0200; Registered resource : /web  
+> Wed, 14 Jul 2021 09:04:35 +0200; Registered resource : /php  
+>  
 
 
 ## makeCertKey
