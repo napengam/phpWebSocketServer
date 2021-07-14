@@ -261,7 +261,7 @@ class webSocketServer {
             return '';
         }
         if ($this->opcode == 9) { //ping received
-            $this->log("Ping frame received from socket #$SocketID"); // just ignore
+            $this->log("Ping frame received from socket #$SocketID"); 
             $messageFrame[0] = 138; // send back as pong
             fwrite($this->Sockets[$SocketID], $messageFrame, strlen($messageFrame));
             return '';
