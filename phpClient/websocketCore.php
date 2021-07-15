@@ -11,7 +11,7 @@ class websocketCore {
         $arr = explode('://', $Address, 2);
         $prot = '';
         if (count($arr) > 1) {
-            if (stripos(' ssl wss ',$arr[0]) !== false) {
+            if (stripos(' ssl wss ', $arr[0]) !== false) {
                 stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
                 stream_context_set_option($context, 'ssl', 'verify_peer', false);
                 stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
@@ -55,11 +55,25 @@ class websocketCore {
     }
 
     final function readSocket() {
-        $buff = '';
-        if ($this->connected) {
-            $buff = $this->decodeFromServer(fread($this->socketMaster, 1024));
+
+        if ($this->connected === false) {
+            return;
         }
-        return $buff;
+        $buff = [];
+        do {
+            $buff[] = $this->decodeFromServer(fread($this->socketMaster, 1024));
+            if ($this->opcode == 9) { // ping frame
+                $this->frame[0] = 138; // send back as pong
+                fwrite($this->socketMaster, $this->frame, strlen($this->frame));
+                return '';
+            } else if ($this->opcode == 10) { // pong frame ignore
+                return '';
+            } else if ($this->opcode == 8) { // close frame
+                $this->silent();
+                return '';
+            }
+        } while ($this->fin == false);
+        return implode('', $buff);
     }
 
     final function silent() {
@@ -173,33 +187,34 @@ class websocketCore {
         return (implode(array_map("chr", $bHead)) . $masks . $text);
     }
 
-    final function decodeFromServer($payload) {
+    final function decodeFromServer($frame) {
 // detect ping or pong frame, or fragments
 
-        $this->fin = ord($payload[0]) & 128;
-        $this->opcode = ord($payload[0]) & 15;
-        $length = ord($payload[1]) & 127;
+        $this->fin = ord($frame[0]) & 128;
+        $this->opcode = ord($frame[0]) & 15;
+        $this->frame = $frame;
+        $length = ord($frame[1]) & 127;
 
         if ($length <= 125) {
             $poff = 2;
         } else if ($length == 126) {
-            $l0 = ord($payload[2]) << 8;
-            $l1 = ord($payload[3]);
+            $l0 = ord($frame[2]) << 8;
+            $l1 = ord($frame[3]);
             $length = ($l0 | $l1);
             $poff = 4;
         } else if ($length == 127) {
-            $l0 = ord($payload[2]) << 56;
-            $l1 = ord($payload[3]) << 48;
-            $l2 = ord($payload[4]) << 40;
-            $l3 = ord($payload[5]) << 32;
-            $l4 = ord($payload[6]) << 24;
-            $l5 = ord($payload[7]) << 16;
-            $l6 = ord($payload[8]) << 8;
-            $l7 = ord($payload[9]);
+            $l0 = ord($frame[2]) << 56;
+            $l1 = ord($frame[3]) << 48;
+            $l2 = ord($frame[4]) << 40;
+            $l3 = ord($frame[5]) << 32;
+            $l4 = ord($frame[6]) << 24;
+            $l5 = ord($frame[7]) << 16;
+            $l6 = ord($frame[8]) << 8;
+            $l7 = ord($frame[9]);
             $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
             $poff = 10;
         }
-        $data = substr($payload, $poff, $length);
+        $data = substr($frame, $poff, $length);
 
         return $data;
     }
