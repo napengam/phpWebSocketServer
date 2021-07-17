@@ -23,6 +23,9 @@ class websocketCore {
                 $Address = $arr[1]; // just the host
                 $px = '80';
             }
+        } else {
+            $prot = 'tcp://';
+            $px = '80';
         }
         $this->prot = $prot;
         $errno = 0;
