@@ -32,38 +32,38 @@ trait RFC6455 {
         return (implode(array_map("chr", $bHead)) . $M);
     }
 
-    public function Decode($payload) {
+    public function Decode($frame) {
         // detect ping or pong frame, or fragments
 
-        $this->fin = ord($payload[0]) & 128;
-        $this->opcode = ord($payload[0]) & 15;
-        $length = ord($payload[1]) & 127;
+        $this->fin = ord($frame[0]) & 128;
+        $this->opcode = ord($frame[0]) & 15;
+        $length = ord($frame[1]) & 127;
 
         if ($length <= 125) {
             $moff = 2;
             $poff = 6;
         } else if ($length == 126) {
-            $l0 = ord($payload[2]) << 8;
-            $l1 = ord($payload[3]);
+            $l0 = ord($frame[2]) << 8;
+            $l1 = ord($frame[3]);
             $length = ($l0 | $l1);
             $moff = 4;
             $poff = 8;
         } else if ($length == 127) {
-            $l0 = ord($payload[2]) << 56;
-            $l1 = ord($payload[3]) << 48;
-            $l2 = ord($payload[4]) << 40;
-            $l3 = ord($payload[5]) << 32;
-            $l4 = ord($payload[6]) << 24;
-            $l5 = ord($payload[7]) << 16;
-            $l6 = ord($payload[8]) << 8;
-            $l7 = ord($payload[9]);
+            $l0 = ord($frame[2]) << 56;
+            $l1 = ord($frame[3]) << 48;
+            $l2 = ord($frame[4]) << 40;
+            $l3 = ord($frame[5]) << 32;
+            $l4 = ord($frame[6]) << 24;
+            $l5 = ord($frame[7]) << 16;
+            $l6 = ord($frame[8]) << 8;
+            $l7 = ord($frame[9]);
             $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
             $moff = 10;
             $poff = 14;
         }
 
-        $masks = substr($payload, $moff, 4);
-        $data = substr($payload, $poff, $length); // hgs 30.09.2016
+        $masks = substr($frame, $moff, 4);
+        $data = substr($frame, $poff, $length); // hgs 30.09.2016
         $text = '';
         $m0 = $masks[0];
         $m1 = $masks[1];
