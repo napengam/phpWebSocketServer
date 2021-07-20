@@ -8,9 +8,10 @@
 class logToFile {
 
     public $logFile, $error = '', $fh = '', $console;
-    private $logDir, $maxEntry = 100000, $numLinesNow;
+    private $logDir, $maxEntry = 100000, $numLinesNow, $logOnOff;
 
     function __construct($logDir, $console = false) {
+        $this->logOnOff = true;
         $this->console = $console;
         if ($logDir == '') {
             $logDir = getcwd();
@@ -41,12 +42,15 @@ class logToFile {
             }
             $this->fh = fopen("$this->logDir/$logFile", 'w+');
         } else if ($option == 'a') {// append to logfile
-            $this->fh = fopen("$this->logDir/$logFile", 'a+');          
+            $this->fh = fopen("$this->logDir/$logFile", 'a+');
             $this->numLinesNow++;
         }
     }
 
     function log($m) {
+        if ($this->logOnOff === false) {
+            return;
+        }
         if ($this->fh) {
             fputs($this->fh, date('r') . "; " . $m . "\r\n");
             $this->numLinesNow++;
@@ -65,6 +69,10 @@ class logToFile {
         if ($this->fh) {
             fclose($this->fh);
         }
+    }
+
+    function logMode($onOff) {
+        $this->logOnOff = $onOff;
     }
 
     private function numLines($file) {
