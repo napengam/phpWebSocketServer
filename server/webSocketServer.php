@@ -34,11 +34,8 @@ class webSocketServer {
 
         /*
          * ***********************************************
-         * below has to be done once ,if server runs on system using
-         * letsencrypt
-         * 
-         * openssl pkcs12 -export -in hostname.crt -inkey hostname.key -out hostname.p12
-         * openssl pkcs12 -in hostname.p12 -nodes -out hostname.pem
+         * as of 2021-07-21 context is set with 
+         * cert.pem and privkey.pem
          * ***********************************************
          */
         $usingSSL = '';
