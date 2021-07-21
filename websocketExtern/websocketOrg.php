@@ -20,10 +20,15 @@ class websocketOrg extends websocketCore {
          * ***********************************************
          */
 
-        $this->finBit = false;
-        $this->writeSocket("Hello");
-        $this->finBit = true;
-        $this->writeSocket(" from PHP fragmented");
+        $this->finBit = false; // trun fragmenting on
+        
+        $this->writeSocket("Hello"); //first fragment
+        
+        $this->writeSocket(" from "); // next fragment
+        
+        $this->finBit = true; // last fragment, turn  off now
+        $this->writeSocket("PHP fragmented");
+        
         $respo = $this->readSocket();
         /*
          * ***********************************************
