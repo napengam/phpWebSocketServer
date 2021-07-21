@@ -2,7 +2,8 @@
 
 class websocketCore {
 
-    public $prot, $uuid, $connected = false, $chunkSize = 6 * 1024;
+    public $prot, $uuid, $connected = false, $knowServer = true, $firstFragment = true,
+            $chunkSize = 6 * 1024, $finBit = true;
 
     //private $socketMaster;
 
@@ -150,7 +151,21 @@ class websocketCore {
     final function encodeForServer($M) {
         $L = strlen($M);
         $bHead = [];
-        $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
+        if ($this->finBit) {
+            if ($this->firstFragment) {
+                $bHead[0] = 129; // 0x1 text frame (FIN + opcode)#
+            } else {
+                $bHead[0] = 128; // final fragment
+                $this->firstFragment = true;
+            }
+        } else {
+            if ($this->firstFragment) {
+                $bHead[0] = 1;  // first text fragment
+                $this->firstFragment = false;
+            } else {
+                $bHead[0] = 0; // nextfragemnt
+            }
+        }
         $masks = random_bytes(4);
         if ($L <= 125) {
             $bHead[1] = $L | 128;
@@ -215,6 +230,7 @@ class websocketCore {
             $l6 = ord($frame[8]) << 8;
             $l7 = ord($frame[9]);
             $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
+        
             $poff = 10;
         }
         $data = substr($frame, $poff, $length);
