@@ -26,7 +26,7 @@ class webSocketServer {
             $socketMaster,
             $allApps = [];
 
-    function __construct($Address, $Port, $logger, $keyAndCertFile = '', $pathToCert = '') {
+    function __construct($Address, $Port, $logger, $certFile = '', $pkFile = '') {
 
         $errno = 0;
         $errstr = '';
@@ -44,9 +44,10 @@ class webSocketServer {
         $usingSSL = '';
         $context = stream_context_create();
         if ($this->isSecure($Address)) {
-            stream_context_set_option($context, 'ssl', 'local_cert', $keyAndCertFile);
-            stream_context_set_option($context, 'ssl', 'capath', $pathToCert);
-            stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
+            stream_context_set_option($context, 'ssl', 'local_cert', $certFile);
+            stream_context_set_option($context, 'ssl', 'local_pk', $pkFile);
+//            stream_context_set_option($context, 'ssl', 'capath', $pathToCert);
+//            stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
             stream_context_set_option($context, 'ssl', 'verify_peer', false);
             $usingSSL = "ssl://";
         }
@@ -73,7 +74,7 @@ class webSocketServer {
     private function isSecure(&$Address) {
         $arr = explode('://', $Address);
         if (count($arr) > 1) {
-            if (strncasecmp($arr[0], 'ssl', 3) == 0) {
+            if (strncasecmp($arr[0], 'ssl', 3) == 0 || strncasecmp($arr[0], 'wss', 3) == 0) {
                 $Address = $arr[1];
                 return true;
             }
@@ -261,7 +262,7 @@ class webSocketServer {
             return '';
         }
         if ($this->opcode == 9) { //ping received
-            $this->log("Ping frame received from socket #$SocketID"); 
+            $this->log("Ping frame received from socket #$SocketID");
             $messageFrame[0] = 138; // send back as pong
             fwrite($this->Sockets[$SocketID], $messageFrame, strlen($messageFrame));
             return '';
@@ -320,13 +321,13 @@ class webSocketServer {
     }
 
     public final function broadCast($SocketID, $M) {
-        $ME = $this->Encode($M);      
+        $ME = $this->Encode($M);
         foreach ($this->Clients as &$client) {
             if ($client->clientType === 'websocket') {
                 if ($SocketID == $client->ID) {
                     continue;
                 }
-                fwrite($this->Sockets[$client->ID], $ME, strlen($ME));              
+                fwrite($this->Sockets[$client->ID], $ME, strlen($ME));
             }
         }
         return;
