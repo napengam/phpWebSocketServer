@@ -46,7 +46,9 @@ class websocketPhp extends websocketCore {
         }
         $json = json_encode((object) $msg, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_NUMERIC_CHECK);
         $len = mb_strlen($json);
+
         if ($len > $this->chunkSize && $this->chunkSize > 0) {
+            
             $nChunks = floor($len / $this->chunkSize);
             if ($this->writeWait('bufferON')) {
                 for ($i = 0, $j = 0; $i < $nChunks; $i++, $j += $this->chunkSize) {
@@ -64,7 +66,7 @@ class websocketPhp extends websocketCore {
         }
     }
 
-    
+
     final function writeWait($m) {
         if ($this->connected === false) {
             return false;
