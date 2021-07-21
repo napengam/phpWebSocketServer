@@ -1,6 +1,0 @@
-#
-# script ro merge key and certificate into one file
-#
-openssl pkcs12 -export -password pass: -in cert.pem -inkey privkey.pem -out tmp.p12
-openssl pkcs12 -in tmp.p12 -password pass: -nodes -out certKey.pem
-rm tmp.p12
