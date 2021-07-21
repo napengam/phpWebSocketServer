@@ -155,9 +155,6 @@ on a system not using SSL you should see a similar output like the one below
 >  
 
 
-## makeCertKey
-
-Linux shell script to create file containing sertificate and key
 
 ## websocketserver.service
 
