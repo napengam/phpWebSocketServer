@@ -1,8 +1,9 @@
 <?php
+
 /*
   #
   # script for linux shell to merge key and certificate into one file
-  # as this is requiered by PHP in case you use https:// to communicate with 
+  # as this is used by PHP in case you use https:// to communicate with
   # your web server
   #
   openssl pkcs12 -export -in cert.pem -inkey privkey.pem -out tmp.p12
@@ -10,5 +11,14 @@
   rm tmp.p12
 
  */
-$keyAndCertFile = '/etc/letsencrypt/live/your.server.net/certKey.pem';
-$pathToCert = '/etc/letsencrypt/live/your.server.net/';
+//$keyAndCertFile = '/etc/letsencrypt/live/your.server.net/certKey.pem';
+//$pathToCert = '/etc/letsencrypt/live/your.server.net/';
+
+
+/*
+ * ***********************************************
+ * as of 2021-07-21 using these two files instead of above
+ * ***********************************************
+ */
+$certFile = '/etc/letsencrypt/live/your.server.net/cert.pem';
+$pkFile = '/etc/letsencrypt/live/your.server.net/privkey.pem';
