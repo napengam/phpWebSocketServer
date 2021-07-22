@@ -1,6 +1,14 @@
 <?php
 
 /*
+ *      _               _      _       
+   ___ | |__  ___  ___ | | ___| |_ ___
+  / _ \| '_ \/ __|/ _ \| |/ _ \ __/ _ \
+ | (_) | |_) \__ \ (_) | |  __/ ||  __/
+  \___/|_.__/|___/\___/|_|\___|\__\___|
+
+ * 
+ * 
   #
   # script for linux shell to merge key and certificate into one file
   # as this is used by PHP in case you use https:// to communicate with
@@ -13,7 +21,7 @@
  */
 //$keyAndCertFile = '/etc/letsencrypt/live/your.server.net/certKey.pem';
 //$pathToCert = '/etc/letsencrypt/live/your.server.net/';
-
+/***********************************************************************************/
 
 /*
  * ***********************************************
