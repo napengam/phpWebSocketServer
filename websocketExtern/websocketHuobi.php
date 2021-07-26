@@ -4,13 +4,13 @@ include __DIR__ . "/../phpClient/websocketCore.php";
 
 class websocketHuobi extends websocketCore {
 
-    public $uuid, $connected = false, $chunkSize = 6 * 1024;
+   
 
     //private $socketMaster;
 
-    function __construct($Address, $Port = '', $app = '/', $uu = '') {
+    function __construct($Address) {
 
-        if (parent::__construct($Address, $Port, $app, $uu) == false) {
+        if (parent::__construct($Address) == false) {
             return;
         }
 
@@ -22,5 +22,5 @@ class websocketHuobi extends websocketCore {
 
 }
 
-$x = new websocketHuobi("wss://api.hbdm.com", '', '/center-notification');
+$x = new websocketHuobi("wss://api.hbdm.com/center-notification");
 

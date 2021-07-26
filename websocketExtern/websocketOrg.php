@@ -4,13 +4,10 @@ include __DIR__ . "/../phpClient/websocketCore.php";
 
 class websocketOrg extends websocketCore {
 
-    public $uuid, $connected = false, $chunkSize = 6 * 1024;
+   
+    function __construct($Address) {
 
-    //private $socketMaster;
-
-    function __construct($Address, $Port = '', $app = '/', $uu = '') {
-
-        if (parent::__construct($Address, $Port, $app, $uu) == false) {
+        if (parent::__construct($Address) == false) {
             return;
         }
 
@@ -20,7 +17,7 @@ class websocketOrg extends websocketCore {
          * ***********************************************
          */
 
-        $this->finBit = false; // trun fragmenting on
+        $this->finBit = false; // turn fragmenting on
         
         $this->writeSocket("Hello"); //first fragment
         

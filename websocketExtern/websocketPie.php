@@ -4,13 +4,10 @@ include __DIR__ . "/../phpClient/websocketCore.php";
 
 class websocketPie extends websocketCore {
 
-    public $uuid, $connected = false, $chunkSize = 6 * 1024;
+   
+    function __construct($Address) {
 
-    //private $socketMaster;
-
-    function __construct($Address, $Port = '', $app = '/', $uu = '') {
-
-        if (parent::__construct($Address, $Port, $app, $uu) == false) {
+        if (parent::__construct($Address) == false) {
             return;
         }
        
@@ -20,5 +17,5 @@ class websocketPie extends websocketCore {
 
 }
 
-$x = new websocketPie("wss://demo.piesocket.com",'',"/v3/1?api_key=oCdCMcMPQpbvNjUIzqtvF1d2X2okWpDQj4AwARJuAgtjhzKxVEjQU6IdCjwm");
+$x = new websocketPie("wss://demo.piesocket.com/v3/1?api_key=oCdCMcMPQpbvNjUIzqtvF1d2X2okWpDQj4AwARJuAgtjhzKxVEjQU6IdCjwm");
 
