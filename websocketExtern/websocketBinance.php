@@ -19,5 +19,5 @@ class websocketBinance extends websocketCore {
 
 }
 
-$x = new websocketBinance("wss://stream.binance.com:9443/ws/btcusdt@ticker", "");
+$x = new websocketBinance("wss://stream.binance.com:9443/ws/btcusdt@ticker");
 

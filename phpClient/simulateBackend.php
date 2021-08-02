@@ -14,7 +14,8 @@ $payload = (object) json_decode($json, true);
  * connect to the server
  * ***********************************************
  */
-$talk = new websocketPhp($Address, $Port, '/php', $payload->uuid);
+$talk = new websocketPhp($Address . '/php');
+$talk->uuid = $payload->uuid;
 /*
  * ***********************************************
  * send feedback to client

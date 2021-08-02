@@ -6,7 +6,7 @@ if ($argc > 1) {
 
 require 'websocketPhp.php';
 include '../include/adressPort.inc.php';
-$talk = new websocketPhp($Address, $Port, '/php');
+$talk = new websocketPhp($Address.'/php');
 if (!isset($_GET['m'])) {
     $_GET['m'] = '';
 }

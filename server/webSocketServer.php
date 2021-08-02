@@ -26,7 +26,7 @@ class webSocketServer {
             $socketMaster,
             $allApps = [];
 
-    function __construct($Address, $Port, $logger, $certFile = '', $pkFile = '') {
+    function __construct($Address, $logger, $certFile = '', $pkFile = '') {
 
         $errno = 0;
         $errstr = '';
@@ -40,11 +40,10 @@ class webSocketServer {
          */
         $usingSSL = '';
         $context = stream_context_create();
-        if ($this->isSecure($Address)) {
+        $Port = '';
+        if ($this->isSecure($Address, $Port)) { // $Port will set by function
             stream_context_set_option($context, 'ssl', 'local_cert', $certFile);
             stream_context_set_option($context, 'ssl', 'local_pk', $pkFile);
-//            stream_context_set_option($context, 'ssl', 'capath', $pathToCert);
-//            stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
             stream_context_set_option($context, 'ssl', 'verify_peer', false);
             $usingSSL = "ssl://";
         }
@@ -68,16 +67,30 @@ class webSocketServer {
         }
     }
 
-    private function isSecure(&$Address) {
+    private function isSecure(&$Address, &$port) {
+        $secure = false;
         $arr = explode('://', $Address);
         if (count($arr) > 1) {
             if (strncasecmp($arr[0], 'ssl', 3) == 0 || strncasecmp($arr[0], 'wss', 3) == 0) {
                 $Address = $arr[1];
-                return true;
+                $secure = true;
+                $port = '443'; // default
+            } else {
+                $Address = $arr[1]; // just the host
+                $port = '80'; // default
             }
-            $Address = $arr[1]; // just the host
         }
-        return false;
+        /*
+         * ***********************************************
+         * extract port from $Address if given
+         * ***********************************************
+         */
+        $arr = explode(':', $Address);
+        if (count($arr) > 1) {
+            $Address = $arr[0];
+            $port = $arr[1]; // overwrite default
+        }
+        return $secure;
     }
 
     public function Start() {
@@ -123,8 +136,8 @@ class webSocketServer {
                      * ***********************************************
                      */
                     $ipport = stream_socket_get_name($clientSocket, true);
-                    $ip = $this->extractIP($ipport); // can be ipv4 or ipv6
-                    $this->Log("Connecting from IP: $ip");
+                    $ip = $this->extractIPort($ipport); // can be ipv4 or ipv6
+                    $this->Log("Connecting from IP: $ip->ip");
                     $SocketID = intval($clientSocket);
                     $this->Clients[$SocketID] = (object) [
                                 'ID' => $SocketID,
@@ -136,7 +149,7 @@ class webSocketServer {
                                 'fin' => true, // RFC6455 final fragment in message 
                                 'buffer' => [], // buffers message chunks
                                 'app' => NULL,
-                                'ip' => $ip,
+                                'ip' => $ip->ip,
                                 'fyi' => '',
                                 'expectPong' => false
                     ];

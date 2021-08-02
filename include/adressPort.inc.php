@@ -3,15 +3,19 @@
 /*
  * **************************
  * include address and port like:
- * $Address=[ssl:// |wss:// | tcp://]server.at.com
+ * $Address=[ssl:// |wss://|ws:// | tcp://]server.at.com[:port]
  * Use ssl:// or wss:// if your server supports secure protocol
  * otherwise use tcp:// or just the host name only
  * 
  * $Port=number
  * **************************
  */
-//$Address = 'ssl://your.server.net';
-//$Address = 'tcp://your.server.net';
-$Address = 'tcp://localhost';
-$Port = 8096;
+//$Address = 'ssl://your.server.net[:port]';
+//$Address = 'wss://your.server.net[:port]';
+//$Address = 'ws://your.server.net[:port]';
+//$Address = 'tcp://your.server.net[:port]';
+
+
+$Address = 'ws://localhost:8091';
+
 

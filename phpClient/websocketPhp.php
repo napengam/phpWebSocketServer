@@ -4,13 +4,13 @@ include __DIR__ . "/websocketCore.php";
 
 class websocketPhp extends websocketCore {
 
-    public $uuid, $connected = false, $chunkSize = 6 * 1024;
+    public $uuid = '', $connected = false, $chunkSize = 6 * 1024;
 
     //private $socketMaster;
 
-    function __construct($Address, $Port, $app = '/php', $uu = '') {
+    function __construct($Address) {
 
-        if (parent::__construct($Address, $Port, $app, $uu)) {
+        if (parent::__construct($Address)) {
 
             $buff = fread($this->socketMaster, 1024); // wait for ACK       
             $buff = $this->decodeFromServer($buff);
@@ -20,9 +20,6 @@ class websocketPhp extends websocketCore {
                 return;
             }
             $this->fromUUID = $json->uuid; // assigned by server to this script
-            if ($uu != '') {
-                $this->uuid = $uu;
-            }
         }
     }
 
@@ -48,7 +45,7 @@ class websocketPhp extends websocketCore {
         $len = mb_strlen($json);
 
         if ($len > $this->chunkSize && $this->chunkSize > 0) {
-            
+
             $nChunks = floor($len / $this->chunkSize);
             if ($this->writeWait('bufferON')) {
                 for ($i = 0, $j = 0; $i < $nChunks; $i++, $j += $this->chunkSize) {
@@ -65,7 +62,6 @@ class websocketPhp extends websocketCore {
             $this->writeWait($json);
         }
     }
-
 
     final function writeWait($m) {
         if ($this->connected === false) {

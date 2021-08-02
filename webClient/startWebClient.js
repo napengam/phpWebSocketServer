@@ -8,7 +8,7 @@ function startGUI() {
     //  Prepare the socket ecosystem :-)
     //*******************************************
 
-    sock = socketWebClient(server, port, '/web');
+    sock = socketWebClient(server,  '/web');
     sock.setCallbackReady(ready);
     sock.setCallbackReadMessage(readMessage);
     sock.setCallbackStatus(sockStatus);

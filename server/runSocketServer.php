@@ -63,7 +63,7 @@ if ($logger->error === '') {
  * create server 
  * *****************************************
  */
-$server = new websocketServer($Address, $Port, $logger, $certFile, $pkFile);
+$server = new websocketServer($Address, $logger, $certFile, $pkFile);
 /*
  * ***********************************************
  * set some server variables

@@ -1,22 +1,10 @@
-function socketWebClient(server, port, app) {
+function socketWebClient(server, app) {
     'use strict';
     var
-            tmp = [], queue = [], uuid, uu, socket = null, proto,
+            queue = [], uuid, uu, socket = null, 
             chunkSize = 6 * 1024, socketOpen = false, socketSend = false;
 
-    //********************************************
-    // figure out what  protokoll to use
-    //*******************************************
-    tmp = server.split('://');
-    if (tmp[0] === 'ssl') {
-        proto = 'wss://';
-    } else {
-        proto = 'ws://';
-    }
-    if (tmp.length > 1) {
-        server = tmp[1];
-    }
-
+    
     uuid = function () {
         return uu;
     };
@@ -30,7 +18,7 @@ function socketWebClient(server, port, app) {
         //********************************************
         //  connect to server at port
         //*******************************************
-        socket = new WebSocket('' + proto + server + ':' + port + app);
+        socket = new WebSocket( server + app);
 
         socket.onopen = function () {
             queue = [];
