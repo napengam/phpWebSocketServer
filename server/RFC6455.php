@@ -102,13 +102,21 @@ trait RFC6455 {
             }
         }
         $this->Log("Handshake: " . $Headers['get'] . "Client");
-        if (!isset($Headers['host']) || !isset($Headers['origin']) ||
-                !isset($Headers['sec-websocket-key']) ||
-                (!isset($Headers['upgrade']) || strtolower($Headers['upgrade']) != 'websocket') ||
-                (!isset($Headers['connection']) || strpos(strtolower($Headers['connection']), 'upgrade') === FALSE)) {
+
+        foreach (['host', 'origin', 'sec-websocket-key', 'upgrade', 'connection','sec-websocket-version'] as $key) {
+            if (isset($Headers[$key]) === false) {
+                fwrite($Socket, "HTTP/1.1 400 Bad Request", strlen("HTTP/1.1 400 Bad Request"));
+                $this->onError($SocketID, "Handshake aborted - HTTP/1.1 400 Bad Request");
+                $this->Close($Socket);
+                return false;
+            }
+        }
+
+        if (strtolower($Headers['upgrade']) != 'websocket' ||
+              strpos(strtolower($Headers['connection']), 'upgrade') === FALSE) {
             $errorResponds[] = "HTTP/1.1 400 Bad Request";
         }
-        if (!isset($Headers['sec-websocket-version']) || strtolower($Headers['sec-websocket-version']) != 13) {
+        if ($Headers['sec-websocket-version'] != 13) {
             $errorResponds[] = "HTTP/1.1 426 Upgrade Required\r\nSec-WebSocketVersion: 13";
         }
         if (!isset($Headers['get'])) {
@@ -129,10 +137,15 @@ trait RFC6455 {
         $Token = base64_encode($Token);
         $statusLine = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n\r\n";
         fwrite($Socket, $statusLine, strlen($statusLine));
-        if (stripos($Headers['get'], 'web') !== false) {
-            $this->Clients[$SocketID]->clientType = 'websocket';
+
+        if (isset($Headers['client-type'])) {
+            if (strcasecmp($Headers['client-type'], 'php') == 0) {
+                $this->Clients[$SocketID]->clientType = 'tcp';
+            } else {
+                $this->Clients[$SocketID]->clientType = 'websocket';
+            }
         } else {
-            $this->Clients[$SocketID]->clientType = 'tcp';
+            $this->Clients[$SocketID]->clientType = 'websocket';
         }
         $this->Log('ClientType:' . $this->Clients[$SocketID]->clientType);
         $this->Clients[$SocketID]->Handshake = true;
@@ -142,33 +155,44 @@ trait RFC6455 {
         return true;
     }
 
-    public function extractIP($inIP) {
+    function extractIPort($inIP) {
 
         // [2001:db8:85a3:8d3:1319:8a2e:370:7348]:8765   ?????     
-        //  2001:db8:85a3:8d3:1319:8a2e:370:7348 
+        //  2001:db8:85a3:8d3:1319:8a2e:370:7348
         // 127.0.0.1:1234
 
         $inIP = trim($inIP);
-
+        $ip = $port = '';
         $n = mb_strlen($inIP);
         for ($i = 0; $i < $n; $i++) {
             $c = mb_substr($inIP, $i, 1);
             if ($c == '[' && $i == 0) {
                 $p = mb_strpos($inIP, ']');
                 if ($p > 0) {
-                    return mb_substr($inIP, 1, $p - 1);
+                    $ip = mb_substr($inIP, 1, $p - 1);
+                    if ($p + 1 < $n) {
+                        $c = mb_substr($inIP, $p + 1, 1);
+                        if ($c == ':') {
+                            $port = mb_substr($inIP, $p + 2);
+                        }
+                    }
+                    break;
                 }
             } else if ($c == ':') {
-                return mb_substr($inIP, 0, $n);
+                $ip = mb_substr($inIP, 0, $n);
             } else if ($c == '.') {
                 $p = mb_strpos($inIP, ':');
                 if ($p > 0) {
-                    return mb_substr($inIP, 0, $p);
+                    $ip = mb_substr($inIP, 0, $p);
+                    $port = mb_substr($inIP, $p + 1);
+                    break;
                 } else {
-                    return mb_substr($inIP, 0, $n);
+                    $ip = mb_substr($inIP, 0, $n);
+                    break;
                 }
             }
         }
+        return (object) ['ip' => $ip, 'port' => $port];
     }
 
 }
