@@ -2,17 +2,23 @@
 
 class websocketCore {
 
-    public $prot, $uuid, $connected = false, $knowServer = true, $firstFragment = true,
-            $chunkSize = 6 * 1024, $finBit = true;
+    public $prot, $connected = false, $firstFragment = true, $finBit = true;
 
     //private $socketMaster;
 
-    function __construct($Address, $Port, $app = '/php', $uu = '') {
+    function __construct($Address) {
         $context = stream_context_create();
+
+        /*
+         * ***********************************************
+         * extract protokol and set default port
+         * ***********************************************
+         */
         $arr = explode('://', $Address, 2);
         $prot = '';
         if (count($arr) > 1) {
-            if (stripos(' ssl wss ', $arr[0]) !== false) {
+            $p = strtolower($arr[0]);
+            if ($p === 'ssl' || $p === 'wss') {
                 stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
                 stream_context_set_option($context, 'ssl', 'verify_peer', false);
                 stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
@@ -28,14 +34,37 @@ class websocketCore {
             $prot = 'tcp://';
             $px = '80';
         }
+        /*
+         * ***********************************************
+         * extract endpoint $app, default= '/'
+         * ***********************************************
+         */
+        $app = '/';
+        $arr = explode('/', $Address, 2);
+        if (count($arr) > 1) {
+            $Address = $arr[0];
+            $app = '/' . $arr[1];
+        }
+        /*
+         * ***********************************************
+         * extract port from $Address
+         * ***********************************************
+         */
+        $Port = '';
+        $arr = explode(':', $Address);
+        if (count($arr) > 1) {
+            $Address = $arr[0];
+            $Port = $arr[1];
+        }
+
         $this->prot = $prot;
-        $errno = 0;
-        $errstr = '';
         if ($Port) {
             $Port = ":$Port";
         } else {
             $Port = ":$px";
         }
+        $errno = 0;
+        $errstr = '';
         $this->socketMaster = stream_socket_client("$prot$Address$Port", $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
 
         if (!$this->socketMaster) {
@@ -47,6 +76,7 @@ class websocketCore {
         $buff = fread($this->socketMaster, 1024);
         if (!$this->getHandshake($buff)) {
             $this->silent();
+            echo $this->errorHandshake;
             return false;
         }
         return true;
@@ -64,7 +94,7 @@ class websocketCore {
             return;
         }
         $buff = [];
-        do {
+        do { // probaly reading fragements
             $buff[] = $this->decodeFromServer(fread($this->socketMaster, 1024));
             if ($this->opcode == 9) { // ping frame
                 $this->frame[0] = 138; // send back as pong
@@ -94,7 +124,7 @@ class websocketCore {
 
         /*
          * ***********************************************
-         * we expect this Token from the 
+         * we expect $this->expectedToken  from the 
          * server in its responds
          * ***********************************************
          */
@@ -119,12 +149,14 @@ class websocketCore {
         $req[] = "Sec-WebSocket-Key: $key";
         $req[] = "Origin: $prot$server ";
         $req[] = "Sec-WebSocket-Version: 13";
+        $req[] = "Client-Type: php";  // hgs private , not part of RCF7455
 
         return implode("\r\n", $req) . "\r\n\r\n";
     }
 
     private function getHandshake($Buffer) {
         $Headers = [];
+        $this->errorHandshake = $Buffer;
         $Lines = explode("\n", $Buffer);
         foreach ($Lines as $Line) {
             if (strpos($Line, ":") !== false) {
@@ -134,6 +166,12 @@ class websocketCore {
                 $Headers['101'] = trim($Line);
             }
         }
+        foreach (['101', 'upgrade', 'connection', 'sec-websocket-accept']as $key) {
+            if (isset($Headers[$key]) === false) {
+                return false;
+            }
+        }
+
         if (stripos($Headers['101'], "HTTP/1.1 101") === false) {
             return false;
         }
@@ -145,6 +183,7 @@ class websocketCore {
         } if ($Headers['sec-websocket-accept'] != $this->expectedToken) {
             return false;
         }
+        $this->errorHandshake = '';
         return true;
     }
 
@@ -230,7 +269,7 @@ class websocketCore {
             $l6 = ord($frame[8]) << 8;
             $l7 = ord($frame[9]);
             $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
-        
+
             $poff = 10;
         }
         $data = substr($frame, $poff, $length);
