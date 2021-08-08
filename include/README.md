@@ -1,21 +1,18 @@
 
 ## adressPort.inc.php
 
-Holds information about certificates/key,
-adress of host and port.
+Holds adress of the server  
+Used only by php/web testclients
 
 <b>NOTE:</b>
-
-Specify the host adress like.
+Specify the  adress like.
 <ul>
-<li> ssl://xyzabc.worldserver.net   
-<li> tcp://xyzabc.worldserver.net
+<li> ssl://xyzabc.worldserver.net[:port]   
+<li> wss://xyzabc.worldserver.net[:port]
+<li> ws://xyzabc.worldserver.net [:port]  
+<li> tcp://xyzabc.worldserver.net[:port]
 </ul>  
 
-## certPath.inc.php 
+If no port is given default is 443 fro ssl:// wss://  
+adn 80 for ws:// tcp://
 
-Holds path to certificates and keyfile
-
-## logToFile.inc.php
-
-Path to directory where to create log files.
