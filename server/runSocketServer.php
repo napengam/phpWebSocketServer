@@ -48,7 +48,7 @@ if ($logger->error === '') {
     $logger->logOpen(basename($param['logfile']));
 } else {
     $logger = '';
-    openlog('websock', LOG_PID, LOG_USER);
+    openlog('websock', LOG_PID, LOG_USER); 
     syslog(LOG_ERR, "can not create loging with ". $param['logfile']);
     closelog();
 }
