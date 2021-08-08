@@ -15,6 +15,7 @@ include __DIR__ . '/logToFile.php';
  * inlcude the core server
  * ***********************************************
  */
+include __DIR__ . "/getOptions.php";
 include __DIR__ . "/webSocketServer.php";
 /*
  * **********************************************
@@ -26,25 +27,14 @@ include __DIR__ . '/resourceDefault.php';
 include __DIR__ . '/resourceWeb.php';
 include __DIR__ . '/resourcePHP.php';
 
-function check_set($n, $v = '') {
-    if (isset($_GET[$n])) {
-        return ($_GET[$n]);
-    }
-    return($v);
-}
-
 /*
  * ***********************************************
  * check for parameters 
  * ***********************************************
  */
-$logdir = '';
-$console = false;
-if ($argc > 1) {
-    parse_str(implode('&', array_slice($argv, 1)), $_GET);
-    $logdir = check_set('ld', $logDir);
-    $console = check_set('co', false);
-}
+
+$o = new getOptions();
+$param = $o->default;
 /*
  * ***********************************************
  * create a logger
@@ -52,18 +42,22 @@ if ($argc > 1) {
  * log to console
  * ***********************************************
  */
-$logger = new logToFile($logDir, $console);
+
+$logger = new logToFile(dirname($param['logfile']), $param['console']);
 if ($logger->error === '') {
-    $logger->logOpen('webSockLog');
+    $logger->logOpen(basename($param['logfile']));
 } else {
     $logger = '';
+    openlog('websock', LOG_PID, LOG_USER);
+    syslog(LOG_ERR, "can not create loging with ". $param['logfile']);
+    closelog();
 }
 /*
  * *****************************************
  * create server 
  * *****************************************
  */
-$server = new websocketServer($Address, $logger, $certFile, $pkFile);
+$server = new websocketServer($param['adress'], $logger, $param['certFile'], $param['pkFile']);
 /*
  * ***********************************************
  * set some server variables
