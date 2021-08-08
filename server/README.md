@@ -21,6 +21,19 @@ decode| decode messages coming from a websocket
 encode| encode message to be send to a websocket
 handshake|handle handshake with connecting clients
 
+## getOptions.php
+
+Reads default websock.ini for essential options
+
+## websock.ini
+
+; holds these options  
+;  
+adress='ws://localhost:8096'  
+logfile=D:/temp/websock.log  
+console=false  
+certFile=''  
+pkFile=''  
 
 ## logToFile
 
@@ -133,7 +146,7 @@ Next starts the server.
 
 On a shell on Linux  just start it, with logging to console, like:
 
-> php runSocketserver.php co=1
+> php runSocketserver.php -console 1
 
 you shoud then see an out put like the one below on system using SSL
 
@@ -146,7 +159,8 @@ you shoud then see an out put like the one below on system using SSL
 
 on a system not using SSL you should see a similar output like the one below
 
-> php runSocketServer.php co=1  
+> php runSocketServer.php -console 1  
+
 > Wed, 14 Jul 2021 09:04:35 +0200; Server initialized on WINNT  localhost:8091   
 > Wed, 14 Jul 2021 09:04:35 +0200; Starting server...  
 > Wed, 14 Jul 2021 09:04:35 +0200; Registered resource : /  
