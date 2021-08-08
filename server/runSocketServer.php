@@ -34,7 +34,7 @@ include __DIR__ . '/resourcePHP.php';
  */
 
 $o = new getOptions();
-$param = $o->default;
+$option = $o->default;
 /*
  * ***********************************************
  * create a logger
@@ -43,13 +43,13 @@ $param = $o->default;
  * ***********************************************
  */
 
-$logger = new logToFile(dirname($param['logfile']), $param['console']);
+$logger = new logToFile(dirname($option['logfile']), $option['console']);
 if ($logger->error === '') {
-    $logger->logOpen(basename($param['logfile']));
+    $logger->logOpen(basename($option['logfile']));
 } else {
     $logger = '';
     openlog('websock', LOG_PID, LOG_USER); 
-    syslog(LOG_ERR, "can not create loging with ". $param['logfile']);
+    syslog(LOG_ERR, "can not create loging with ". $option['logfile']);
     closelog();
 }
 /*
@@ -57,7 +57,7 @@ if ($logger->error === '') {
  * create server 
  * *****************************************
  */
-$server = new websocketServer($param['adress'], $logger, $param['certFile'], $param['pkFile']);
+$server = new websocketServer($option['adress'], $logger, $option['certFile'], $option['pkFile']);
 /*
  * ***********************************************
  * set some server variables
