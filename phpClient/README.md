@@ -15,16 +15,10 @@ With this you can connect to any websocket server,. See directory ***websocketOr
 Class that extends ***websocketCore***  , implemets dialog with this websocket server.  
 Same functionality like ***socketPhpClient.php***
 
-## socketPhpClient.php
-
-Class to connect to the server. 
-This class also sends long messages in chunks of ``$chunkSize=8*1024``
-
 
 ## testWithPHPSockets.php
 
 Have the server started and waiting ....
-
 
 
 in the command window  where you startet the server you should see some output
