@@ -32,7 +32,7 @@ class webSocketServer {
         $errstr = '';
         $this->logging = $logger;
 
-        /*
+        /* 
          * ***********************************************
          * as of 2021-07-21 context is set with 
          * cert.pem and privkey.pem
