@@ -8,7 +8,8 @@ and normal sockets over **ssl:// ,tcp://**
 As of 2020-12-07 it works also with PHP 8.0   
 
 
-## A detailed documentation is located here: https://vmd55223.contaboserver.net/phpwebsocket/book/index.php
+# A detailed documentation is located here: 
+## https://hgsweb.de/phpwebsocketDoc
 
 
 **NO DEPENDENCIES**
@@ -33,7 +34,7 @@ This server allows you to establish communication between web applications livin
 and enables backend scripts, in my case PHP, to communicate information back to web applications that 
 have called the backend script to perform some action.
 
-In the example here, web applications identify themself with a UUID to the server. If the web application triggers  
+Clients receive a UUID from the server upon connection. If the web application triggers  
 backend scripts via AJAX it passes the UUID to the backend scripts. The script is now able to report  
 back to the web client by sending the UUID along with an opcode 'feedback' and other parameters to the server.  
 With the given UUID the server now knows to what web client to send the message. Loop closed !
@@ -47,11 +48,9 @@ See example in directory webClient
 # Configuration
 ## Part 1
 
-- Step into the `include` directory and adapt the 
-- `adressPort.inc.php` to your needs.  
+- Step into the `server` directory and adapt the 
+- `websock.ini` to your needs.  
 You will find some documentation in this file.
--  `logToFile.inc.php` set the directory where logfiles will live
-- If your server uses  `https://` follow the instructions in `certPath.inc.php` and set the global variables in there accordingly.
 
 ## Part 2
 
@@ -80,14 +79,14 @@ Example of web client to connect and communicate with the server  using resource
 
   
 - Number of Files
-  - 'php' => int 14
-  - 'js' => int 1  
+  - 'php' => int 24
+  - 'js' => int 2  
   
 - Number of Lines of Code
-  - 'php' => int 1194
-  - 'js' => int 169  
+  - 'php' => int 1950
+  - 'js' => int 313  
   
 - Size in KBytes
-  - 'php' => float 35
-  - 'js' => float 5
+  - 'php' => float 59
+  - 'js' => float 10
 
