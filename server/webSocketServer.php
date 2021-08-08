@@ -52,6 +52,9 @@ class webSocketServer {
         $this->Log("Server initialized on " . PHP_OS . "  $Address:$Port $usingSSL");
         if (!$socket) {
             $this->Log("Error $errno creating stream: $errstr", true);
+            openlog('websock', LOG_PID, LOG_USER);
+            syslog(LOG_ERR, "Error $errno creating stream: $errstr with $usingSSL$Address:$Port");
+            closelog();
             exit;
         }
 
