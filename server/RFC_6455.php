@@ -1,6 +1,6 @@
 <?php
 
-trait RFC6455 {
+trait RFC_6455 {
 
     public function Encode($M) {
         $L = strlen($M);

@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/RFC6455.php';
+require __DIR__ . '/RFC_6455.php';
 
 class webSocketServer {
 
