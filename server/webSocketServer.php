@@ -4,7 +4,7 @@ require __DIR__ . '/RFC_6455.php';
 
 class webSocketServer {
 
-    use RFC6455; // TRAIT to implement methods required by RFC6455
+    use RFC_6455; // TRAIT to implement methods required by RFC6455
 
     public
             $logging = '',
