@@ -45,7 +45,4 @@ class getOptions {
         }
         return $out;
     }
-
 }
-$x = new getOptions();
-$o = $x->default;
