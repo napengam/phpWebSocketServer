@@ -10,7 +10,7 @@ class getOptions {
         if (isset($in['i'])) {
             $ini = parse_ini_file($in['i'], false, INI_SCANNER_TYPED);
         } else {
-            $ini = parse_ini_file('websock.ini', false, INI_SCANNER_TYPED);           
+            $ini = parse_ini_file('websock.ini', false, INI_SCANNER_TYPED);
         }
 
         if ($ini === false) {
@@ -23,8 +23,8 @@ class getOptions {
     }
 
     private function overwriteAdd($default, $param) {
-        foreach ($param as $key => $value) {           
-                $default[$key] = $value;            
+        foreach ($param as $key => $value) {
+            $default[$key] = $value;
         }
         return $default;
     }
@@ -39,10 +39,12 @@ class getOptions {
                     if ($i + 1 < $argc) {
                         $i++;
                         $out[mb_substr($exp, 1)] = $argv[$i];
+                        break;
                     }
                 }
             }
         }
         return $out;
     }
+
 }
