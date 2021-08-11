@@ -19,9 +19,8 @@ with an opcode 'next'.
 This script handles my required dialog right after the handshake is done and the connection  
 is established.
 
-- the server sends opcode 'ready' 
-- the script sends back a generated UUID. `{'opcode':'uuid', 'message':uuid}`  
-With this UUID the client registers with the server  
+- the server sends opcode 'ready' and a UUID to identify this client  
+With this UUID the client is registered with the server  
 - The serve sends a message with opcode 'next'  
 signaling that the client can send the next message.
 
