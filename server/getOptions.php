@@ -38,8 +38,14 @@ class getOptions {
                 if ($exp == $argv[$i]) {
                     if ($i + 1 < $argc) {
                         $i++;
-                        $out[mb_substr($exp, 1)] = $argv[$i];
+                        if (mb_substr($argv[$i], 0, 1) !== '-') {
+                            $out[mb_substr($exp, 1)] = $argv[$i];
+                        } else {
+                            $out[mb_substr($exp, 1)] = '1';
+                        }
                         break;
+                    } else {
+                        $out[mb_substr($exp, 1)] = '1';
                     }
                 }
             }
