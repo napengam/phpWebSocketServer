@@ -92,7 +92,7 @@ Class that will serve requests for resource  **web**
 ## webSocketServer.php
 
 Class to implement the server.  
-Consumes trait `RFC6465.php`
+Consumes trait `RFC6455.php`
 
 The server handles connection request from clients, performes a handshake with clients.   
 
@@ -114,8 +114,7 @@ will be routed to the resource, application, the client specified in the **GET**
 In the given examples resources are **/web** and **/php** 
 
 Next the server sends a message **ready** to the client, that is waiting for this  
-message. A client connecting through websocket now sends its UUID which is tracked  
-along other informations for this client.
+message and a UUID which is tracked along other informations for this client.
 
 Any incoming message is allways acknowledged with a **next** message to the client.  
 Clients should wait for this message to arrive, before sending another message. 
@@ -146,12 +145,12 @@ Next starts the server.
 
 On a shell on Linux  just start it, with logging to console, like:
 
-> php runSocketserver.php -console 1
+> php runSocketserver.php -console  
 
 you shoud then see an out put like the one below on system using SSL
 
 
-> php runSocketServer.php  co=1   
+> php runSocketServer.php  -console  
 > Wed, 14 Jul 2021 10:01:21 +0200; Server initialized on Linux  xxx.yyy.net:8096 ssl://  
 > Wed, 14 Jul 2021 10:01:21 +0200; Starting server...  
 > Wed, 14 Jul 2021 10:01:21 +0200; Registered resource : /  
@@ -159,8 +158,7 @@ you shoud then see an out put like the one below on system using SSL
 
 on a system not using SSL you should see a similar output like the one below
 
-> php runSocketServer.php -console 1  
-
+> php runSocketServer.php -console  
 > Wed, 14 Jul 2021 09:04:35 +0200; Server initialized on WINNT  localhost:8091   
 > Wed, 14 Jul 2021 09:04:35 +0200; Starting server...  
 > Wed, 14 Jul 2021 09:04:35 +0200; Registered resource : /  
