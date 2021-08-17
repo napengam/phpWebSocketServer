@@ -99,5 +99,5 @@ class runSocketServer {
 * start 
 ************************************************
 */
-$s = new runSocketServer();
-$s->run();
+(new runSocketServer())->run();
+
