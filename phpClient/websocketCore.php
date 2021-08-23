@@ -79,6 +79,9 @@ class websocketCore {
             echo $this->errorHandshake;
             return false;
         }
+
+        //stream_set_read_buffer($this->socketMaster, 0);
+
         return true;
     }
 
@@ -94,17 +97,27 @@ class websocketCore {
             return;
         }
         $buff = [];
+        $i = 0;
         do { // probaly reading fragements
-            $buff[] = $this->decodeFromServer(fread($this->socketMaster, 1024));
+            $buff[$i] = $this->decodeFromServer(fread($this->socketMaster, 8192));
+
             if ($this->opcode == 9) { // ping frame
                 $this->frame[0] = 138; // send back as pong
                 fwrite($this->socketMaster, $this->frame, strlen($this->frame));
-                return '';
+                continue;
             } else if ($this->opcode == 10) { // pong frame ignore
-                return '';
+                contiue;
             } else if ($this->opcode == 8) { // close frame
                 $this->silent();
                 return '';
+            }
+
+            $this->length -= strlen($buff[$i]);
+            $i++;
+            while ($this->length > 0) {
+                $buff[$i] = fread($this->socketMaster, 8192);
+                $this->length -= strlen($buff[$i]);
+                $i++;
             }
         } while ($this->fin == false);
         return implode('', $buff);
@@ -272,6 +285,7 @@ class websocketCore {
 
             $poff = 10;
         }
+        $this->length = $length;
         $data = substr($frame, $poff, $length);
 
         return $data;
