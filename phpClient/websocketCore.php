@@ -79,9 +79,7 @@ class websocketCore {
             echo $this->errorHandshake;
             return false;
         }
-
-        //stream_set_read_buffer($this->socketMaster, 0);
-
+      
         return true;
     }
 
