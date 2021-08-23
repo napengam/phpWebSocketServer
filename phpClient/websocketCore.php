@@ -104,7 +104,7 @@ class websocketCore {
                 fwrite($this->socketMaster, $this->frame, strlen($this->frame));
                 continue;
             } else if ($this->opcode == 10) { // pong frame ignore
-                contiue;
+                continue;
             } else if ($this->opcode == 8) { // close frame
                 $this->silent();
                 return '';
