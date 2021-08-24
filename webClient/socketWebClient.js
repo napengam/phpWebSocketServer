@@ -1,10 +1,10 @@
 function socketWebClient(server, app) {
     'use strict';
     var
-            queue = [], uuid, uu, socket = null, 
-            chunkSize = 6 * 1024, socketOpen = false, socketSend = false;
+            queue = [], uuid, uu, socket = null,
+            chunkSize = 0 * 1024, socketOpen = false, socketSend = false;
 
-    
+
     uuid = function () {
         return uu;
     };
@@ -18,7 +18,7 @@ function socketWebClient(server, app) {
         //********************************************
         //  connect to server at port
         //*******************************************
-        socket = new WebSocket( server + app);
+        socket = new WebSocket(server + app);
 
         socket.onopen = function () {
             queue = [];
@@ -186,7 +186,7 @@ function socketWebClient(server, app) {
     }
 
     function quit() {
-        sendMsg({'opcode': 'quit'});
+        //sendMsg({'opcode': 'quit'});
         socket.close();
         socketOpen = false;
         socketSend = false;

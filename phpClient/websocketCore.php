@@ -79,7 +79,7 @@ class websocketCore {
             echo $this->errorHandshake;
             return false;
         }
-      
+
         return true;
     }
 
@@ -123,8 +123,10 @@ class websocketCore {
 
     final function silent() {
         if ($this->connected) {
-            $this->connected = false;
+           
+            $this->writeSocket(''); // close
             fclose($this->socketMaster);
+             $this->connected = false;
         }
     }
 
@@ -201,19 +203,23 @@ class websocketCore {
     final function encodeForServer($M) {
         $L = strlen($M);
         $bHead = [];
-        if ($this->finBit) {
-            if ($this->firstFragment) {
-                $bHead[0] = 129; // 0x1 text frame (FIN + opcode)#
-            } else {
-                $bHead[0] = 128; // final fragment
-                $this->firstFragment = true;
-            }
+        if ($L == 0) {
+            $bHead[0] = 136; // close frame if message length = 0
         } else {
-            if ($this->firstFragment) {
-                $bHead[0] = 1;  // first text fragment
-                $this->firstFragment = false;
+            if ($this->finBit) {
+                if ($this->firstFragment) {
+                    $bHead[0] = 129; // 0x1 text frame (FIN + opcode)#
+                } else {
+                    $bHead[0] = 128; // final fragment
+                    $this->firstFragment = true;
+                }
             } else {
-                $bHead[0] = 0; // nextfragemnt
+                if ($this->firstFragment) {
+                    $bHead[0] = 1;  // first text fragment
+                    $this->firstFragment = false;
+                } else {
+                    $bHead[0] = 0; // nextfragemnt
+                }
             }
         }
         $masks = random_bytes(4);

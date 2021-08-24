@@ -4,7 +4,7 @@ include __DIR__ . "/websocketCore.php";
 
 class websocketPhp extends websocketCore {
 
-    public $uuid = '', $connected = false, $chunkSize = 6 * 1024;
+    public $uuid = '', $connected = false, $chunkSize = 0; // 6 * 1024;
 
     //private $socketMaster;
 

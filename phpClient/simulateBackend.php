@@ -32,6 +32,7 @@ for ($i = 0; $i < 1000000; $i++) {
     }
 }
 $talk->feedback("done");
+$talk->silent();
 /*
  * ***********************************************
  * end of AJAX call

@@ -26,10 +26,10 @@ class runSocketServer {
         require __DIR__ . '/resourceDefault.php';
         require __DIR__ . '/resourceWeb.php';
         require __DIR__ . '/resourcePHP.php';
-    
     }
 
     function run() {
+        global $logger;
         /*
          * ***********************************************
          * check for parameters 
@@ -94,10 +94,11 @@ class runSocketServer {
     }
 
 }
+
 /*
-************************************************
-* start 
-************************************************
-*/
+ * ***********************************************
+ * start 
+ * ***********************************************
+ */
 (new runSocketServer())->run();
 

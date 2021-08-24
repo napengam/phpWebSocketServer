@@ -32,7 +32,7 @@ class webSocketServer {
         $errstr = '';
         $this->logging = $logger;
 
-        /* 
+        /*
          * ***********************************************
          * as of 2021-07-21 context is set with 
          * cert.pem and privkey.pem
@@ -166,28 +166,14 @@ class webSocketServer {
                  * setting unbuffered read, could be dangerous
                  * because a client can send unlimited amount of
                  * data and block the server. Therefor I do not 
-                 * use this option. Client has to send long messages
+                 * use this option. Client should send long messages
                  * in chunks.
                  * ***********************************************
                  */
 
-//stream_set_read_buffer($Socket, 0); // no buffering hgs 01.05.2021
+                //stream_set_read_buffer($Socket, 0); // no buffering hgs 01.05.2021
 
 
-                /*
-                 * ***********************************************
-                 * read data from socket and check
-                 * ***********************************************
-                 */
-
-                $dataBuffer = fread($Socket, $this->bufferLength);
-                if ($dataBuffer === false ||
-                        strlen($dataBuffer) == 0 ||
-                        strlen($dataBuffer) >= $this->bufferChunk) {  // to avoid malicious overload 
-                    $this->onError($SocketID, "Client disconnected by Server - TCP connection lost");
-                    $this->Close($Socket);
-                    continue;
-                }
                 $Client = $this->Clients[$SocketID];
 
                 if ($Client->Handshake) {
@@ -198,7 +184,7 @@ class webSocketServer {
                      * ***********************************************
                      */
 
-                    $message = $this->extractMessage($SocketID, $dataBuffer);
+                    $message = $this->extractMessage($SocketID);
                     if ($message != '') {
                         /*
                          * ***********************************************
@@ -207,6 +193,20 @@ class webSocketServer {
                          */
                         $Client->app->onData($SocketID, $message);
                     }
+                    continue;
+                }
+                /*
+                 * ***********************************************
+                 * read data fro handshake from socket and check
+                 * ***********************************************
+                 */
+
+                $dataBuffer = fread($Socket, $this->bufferLength);
+                if ($dataBuffer === false ||
+                        strlen($dataBuffer) == 0 ||
+                        strlen($dataBuffer) >= $this->bufferChunk) {  // to avoid malicious overload 
+                    $this->onError($SocketID, "Client disconnected by Server - TCP connection lost");
+                    $this->Close($Socket);
                     continue;
                 }
                 /*
@@ -261,10 +261,10 @@ class webSocketServer {
         return $SocketID;
     }
 
-    private function extractMessage($SocketID, $messageFrame) {
+    private function extractMessage($SocketID) {
         $client = $this->Clients[$SocketID];
 
-        $message = $this->Decode($messageFrame);
+        $message = $this->readDecode($SocketID);
         if ($this->opcode == 10) { //pong
             if ($client->expectPong == false) {
                 $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
@@ -297,7 +297,7 @@ class webSocketServer {
                             'fyi' => $this->Clients[$SocketID]->fyi]));
         /*
          * ***********************************************
-         * take car of buffering messages either because
+         * take care of buffering messages either because
          * buffrerON===true or fin===false
          * ***********************************************
          */
@@ -318,9 +318,7 @@ class webSocketServer {
     }
 
     public final function Write($SocketID, $message) {
-
         $message = $this->Encode($message);
-
         return fwrite($this->Sockets[$SocketID], $message, strlen($message));
     }
 
@@ -465,17 +463,15 @@ class webSocketServer {
     }
 
     public function guidv4() {
-// from https://www.uuidgenerator.net/dev-corner/php
-// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+        // from https://www.uuidgenerator.net/dev-corner/php
+        // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
         $data = random_bytes(16);
         assert(strlen($data) == 16);
-
-// Set version to 0100
+        // Set version to 0100
         $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-// Set bits 6-7 to 10
+        // Set bits 6-7 to 10
         $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-
-// Output the 36 character UUID.
+        // Output the 36 character UUID.
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
