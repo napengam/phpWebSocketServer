@@ -8,7 +8,7 @@
 class logToFile {
 
     public $logFile, $error = '', $fh = '', $console;
-    private $logDir, $maxEntry = 100000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
+    private $logDir, $maxEntry =100000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
 
     function __construct($logDir, $console = false) {
         $this->logOnOff = true;
@@ -41,6 +41,9 @@ class logToFile {
         }
         if ($option == 's') { // save logfile if exsists
             if (file_exists("$this->logDir/$logFile")) {
+                if (file_exists("$this->logDir/$this->logFileOrg-$this->pid")) {
+                    unlink("$this->logDir/$this->logFileOrg-$this->pid");
+                }
                 rename("$this->logDir/$logFile", "$this->logDir/$this->logFileOrg-$this->pid");
             }
             $this->fh = fopen("$this->logDir/$logFile", 'w+');
