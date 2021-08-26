@@ -8,7 +8,7 @@
 class logToFile {
 
     public $logFile, $error = '', $fh = '', $console;
-    private $logDir, $maxEntry = 100000, $numLinesNow, $logOnOff;
+    private $logDir, $maxEntry = 100000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
 
     function __construct($logDir, $console = false) {
         $this->logOnOff = true;
@@ -24,13 +24,16 @@ class logToFile {
         if (!is_writeable($logDir)) {
             $this->error = "$logDir is not writable";
         }
+        $this->pid = getmypid();
     }
 
     function logOpen($logFile, $option = 'a') {
-        $this->logFile = $logFile;
+        $this->logFile = $this->pid . "-" . $logFile;
         if ($logFile == '') {
             return;
         }
+        $this->logFileOrg = $logFile;
+        $logFile = $this->pid . "-" . $logFile;
         if (file_exists("$this->logDir/$logFile")) {
             if ($this->numLines("$this->logDir/$logFile") > $this->maxEntry) {
                 $option = 's';
@@ -38,7 +41,7 @@ class logToFile {
         }
         if ($option == 's') { // save logfile if exsists
             if (file_exists("$this->logDir/$logFile")) {
-                rename("$this->logDir/$logFile", "$this->logDir/$logFile-" . time());
+                rename("$this->logDir/$logFile", "$this->logDir/$this->logFileOrg-$this->pid");
             }
             $this->fh = fopen("$this->logDir/$logFile", 'w+');
         } else if ($option == 'a') {// append to logfile
@@ -56,7 +59,7 @@ class logToFile {
             $this->numLinesNow++;
             if ($this->numLinesNow > $this->maxEntry) {
                 $this->logClose();
-                $this->logOpen($this->logFile);
+                $this->logOpen($this->logFileOrg);
                 $this->numLinesNow = 0;
             }
         }
