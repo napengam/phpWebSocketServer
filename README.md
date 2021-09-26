@@ -76,9 +76,20 @@ Examples of classes to implement resources **/php** and **/web**
 
 Example of client written in PHP to connect and write to the server using resource **/php** 
 
+**php2php**
+
+Example how to make one php script send messages to other php script 
+via websocket
+
 **webClient**
 
 Example of web client to connect and communicate with the server  using resource **/web**
+
+**websocketExtern**
+
+Conneting to external websocket servers to test cleint code
+
+
 
 # Some Numbers
 
