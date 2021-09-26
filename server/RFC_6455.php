@@ -222,8 +222,8 @@ trait RFC_6455 {
         } else {
             $this->Clients[$SocketID]->clientType = 'websocket';
         }
-        if (isset($Headers['Ident'])) {
-            $this->Clients[$SocketID]->ident = $Headers['Ident'];
+        if (isset($Headers['ident'])) {
+            $this->Clients[$SocketID]->ident = $Headers['ident'];
         }
         $this->Log('ClientType:' . $this->Clients[$SocketID]->clientType);
         $this->Clients[$SocketID]->Handshake = true;
