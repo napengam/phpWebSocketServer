@@ -154,6 +154,7 @@ class webSocketServer {
                                 'app' => NULL,
                                 'ip' => $ip->ip,
                                 'fyi' => '',
+                                'ident' => '',// id set from client
                                 'expectPong' => false
                     ];
                     $this->Sockets[$SocketID] = $clientSocket;

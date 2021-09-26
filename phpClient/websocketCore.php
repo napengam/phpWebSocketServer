@@ -6,9 +6,9 @@ class websocketCore {
 
     //private $socketMaster;
 
-    function __construct($Address) {
+    function __construct($Address, $ident = '') {
         $context = stream_context_create();
-
+        $this->ident = $ident;
         /*
          * ***********************************************
          * extract protokol and set default port
@@ -123,10 +123,10 @@ class websocketCore {
 
     final function silent() {
         if ($this->connected) {
-           
+
             $this->writeSocket(''); // close
             fclose($this->socketMaster);
-             $this->connected = false;
+            $this->connected = false;
         }
     }
 
@@ -163,6 +163,7 @@ class websocketCore {
         $req[] = "Origin: $prot$server ";
         $req[] = "Sec-WebSocket-Version: 13";
         $req[] = "Client-Type: php";  // hgs private , not part of RCF7455
+        $req[] = "Ident: $this->ident";  // hgs private , not part of RCF7455
 
         return implode("\r\n", $req) . "\r\n\r\n";
     }

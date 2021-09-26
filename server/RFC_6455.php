@@ -100,7 +100,7 @@ trait RFC_6455 {
         $this->fin = ord($frame[0]) & 128;
         $this->opcode = ord($frame[0]) & 15;
         $length = ord($frame[1]) & 127;
-        
+
         if ($length == 0) {
             $this->opcode = 8;
             return;
@@ -221,6 +221,9 @@ trait RFC_6455 {
             }
         } else {
             $this->Clients[$SocketID]->clientType = 'websocket';
+        }
+        if (isset($Headers['Ident'])) {
+            $this->Clients[$SocketID]->ident = $Headers['Ident'];
         }
         $this->Log('ClientType:' . $this->Clients[$SocketID]->clientType);
         $this->Clients[$SocketID]->Handshake = true;
