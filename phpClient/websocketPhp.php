@@ -20,7 +20,7 @@ class websocketPhp extends websocketCore {
                 return;
             }
             $this->fromUUID = $json->uuid; // assigned by server to this script
-            $this->ident = $ident;
+            $this->ident = $ident;// ident of other client
         }
     }
 
@@ -29,7 +29,7 @@ class websocketPhp extends websocketCore {
     }
 
     final function feedback($message, $ident = '') {
-        if ($this->uuid || $ident != '') { 
+        if ($this->uuid || $ident != '') { // send to client identfied by UUDI or $ident
             $this->talk([
                 'opcode' => 'feedback',
                 'ident' => $ident,
