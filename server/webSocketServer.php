@@ -154,7 +154,7 @@ class webSocketServer {
                                 'app' => NULL,
                                 'ip' => $ip->ip,
                                 'fyi' => '',
-                                'ident' => '',// id set from client
+                                'ident' => '', // id set from client
                                 'expectPong' => false
                     ];
                     $this->Sockets[$SocketID] = $clientSocket;
@@ -325,7 +325,8 @@ class webSocketServer {
 
     public final function feedback($packet) {
         foreach ($this->Clients as $client) {
-            if ($packet->uuid == $client->uuid && $client->clientType === 'websocket') {
+            if (($packet->uuid == $client->uuid && $client->clientType === 'websocket') ||
+                    ($packet->ident != '' && $packet->ident == $client->ident)) {
                 $this->Write($client->ID, json_encode($packet));
                 return;
             }
