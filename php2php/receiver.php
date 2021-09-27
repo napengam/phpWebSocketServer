@@ -16,7 +16,7 @@ $talk = new websocketPhp($Address . '/php', 'receiver');
 ************************************************
 */
 while (true) {
-    $msg = $talk->readSocket();
+    $msg = $talk->readSocket(); // read will wait for data 
     echo "$msg<br>";
     ob_flush();
     flush();   
