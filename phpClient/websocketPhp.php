@@ -8,9 +8,9 @@ class websocketPhp extends websocketCore {
 
     //private $socketMaster;
 
-    function __construct($Address, $ident = '') {
+    function __construct($Address, $myIdent = '') {
 
-        if (parent::__construct($Address, $ident)) {
+        if (parent::__construct($Address, $myIdent)) {
 
             $buff = fread($this->socketMaster, 1024); // wait for ACK       
             $buff = $this->decodeFromServer($buff);
@@ -20,7 +20,7 @@ class websocketPhp extends websocketCore {
                 return;
             }
             $this->fromUUID = $json->uuid; // assigned by server to this script
-            $this->ident = $ident;// ident of other client
+            $this->ident = $myIdent; // ident of other client
         }
     }
 
@@ -28,12 +28,12 @@ class websocketPhp extends websocketCore {
         $this->talk(['opcode' => 'broadcast', 'message' => $message]);
     }
 
-    final function feedback($message, $ident = '') {
-        if ($this->uuid || $ident != '') { // send to client identfied by UUDI or $ident
+    final function feedback($message, $otherIdent = '') {
+        if ($this->uuid || $otherIdent != '') { // send to client identfied by UUDI or $otherIdent
             $this->talk([
                 'opcode' => 'feedback',
-                'ident' => $ident,
-                'uuid' => $this->uuid,
+                'ident' => $otherIdent, // ident of another client
+                'uuid' => $this->uuid,  // uuid of anotehr client
                 'message' => $message,
                 'fromUUID' => $this->fromUUID]);
         }
