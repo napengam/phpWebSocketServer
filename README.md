@@ -17,7 +17,7 @@ and normal sockets over **ssl://**
 -i &lt;inifile> ; default is websock.ini in server directory
 
 - 2021-08-22 Server and client can now handle very long messages (>8192B)   
-no longer need to use own buffere mechanism.
+no longer need to use own buffer mechanism.
 
 - 2020-12-07 it works also with PHP 8.0 
 
