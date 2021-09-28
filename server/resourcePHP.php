@@ -47,7 +47,15 @@ class resourcePhp extends resource {
             $this->server->feedback($packet);
             return;
         }
-
+        if ($packet->opcode === 'echo') {
+            /*
+             * *****************************************
+             * echo back to client
+             * *****************************************
+             */
+            $this->server->echo($SocketID, $packet);
+            return;
+        }
         if ($packet->opcode === 'broadcast') {
             $this->server->broadCast($SocketID, $M);
             return;
@@ -58,5 +66,5 @@ class resourcePhp extends resource {
          * *****************************************
          */
     }
-}
 
+}

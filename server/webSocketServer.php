@@ -333,6 +333,10 @@ class webSocketServer {
         }
     }
 
+    public final function echo($sockid, $packet) {
+        $this->Write($sockid, json_encode($packet));
+    }
+
     public final function broadCast($SocketID, $M) {
         $ME = $this->Encode($M);
         foreach ($this->Clients as &$client) {

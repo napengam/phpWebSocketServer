@@ -48,6 +48,10 @@ class resourceWeb extends resource {
             $this->server->feedback($packet);
             return;
         }
+        if ($packet->opcode === 'echo') {
+            $this->server->echo($SocketID, $packet);
+            return;
+        }
         if ($packet->opcode === 'broadcast') {
             $this->server->broadCast($SocketID, $M);
             return;

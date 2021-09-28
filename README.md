@@ -5,13 +5,21 @@
 Server written in PHP to handle connections via websocksets **wss:// or ws://**  
 and normal sockets over **ssl://**  
 
-As of 2020-12-07 it works also with PHP 8.0   
 
-2021-??-?? Runtime parametrs are now read from file specified with option   
+
+
+- 2021-09-28 echo back to client implemented
+
+- 2021-09-25 php script nac now talk to other script 
+
+
+- 2021-??-?? Runtime parameters are now read from file specified with option   
 -i &lt;inifile> ; default is websock.ini in server directory
 
-2021-08-22 Server and client can now handle very long messages (>8192B)   
+- 2021-08-22 Server and client can now handle very long messages (>8192B)   
 no longer need to use own buffere mechanism.
+
+- 2020-12-07 it works also with PHP 8.0 
 
 # A detailed documentation is located here: 
 ## https://hgsweb.de/phpwebsocketDoc     <== not up to date !!

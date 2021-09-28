@@ -184,7 +184,12 @@ function socketWebClient(server, app) {
     function feedback(msg, toUUID) {
         sendMsg({'opcode': 'feedback', 'message': msg, 'uuid': toUUID, 'from': uuid});
     }
-
+    //********************************************
+    //   convenient
+    //*******************************************
+    function echo(msg) {
+        sendMsg({'opcode': 'echo', 'message': msg});
+    }
     function quit() {
         //sendMsg({'opcode': 'quit'});
         socket.close();
@@ -210,6 +215,7 @@ function socketWebClient(server, app) {
         'setCallbackClose': setCallbackClose,
         'broadcast': broadcast,
         'feedback': feedback,
+        'echo': echo
 
     };
 }

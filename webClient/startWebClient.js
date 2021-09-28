@@ -8,7 +8,7 @@ function startGUI() {
     //  Prepare the socket ecosystem :-)
     //*******************************************
 
-    sock = socketWebClient(server,  '/web');
+    sock = socketWebClient(server, '/web');
     sock.setCallbackReady(ready);
     sock.setCallbackReadMessage(readMessage);
     sock.setCallbackStatus(sockStatus);
@@ -49,6 +49,9 @@ function startGUI() {
         } else if (packet.opcode === 'feedback') {
             obj = document.getElementById('feedback');
             obj.innerHTML = packet.fromUUID + '---' + packet.message;
+        } else if (packet.opcode === 'echo') {
+            obj = document.getElementById('echomsg');
+            obj.innerHTML = packet.message;
         }
     }
     function ready() {
@@ -83,6 +86,9 @@ function startGUI() {
         req.setRequestHeader("Content-Type", "application/json");
         req.send(JSON.stringify({'uuid': uuid}));
     }
+    function echo() {
+        sock.echo(`ECHO from :${uuid}`);
+    }
     //********************************************
     //  instrument the buttons
     //*******************************************
@@ -91,6 +97,8 @@ function startGUI() {
     document.getElementById('close').onclick = sock.quit;
     document.getElementById('ready').onclick = talkToOthers;
     document.getElementById('ajax').onclick = triggerAJAX;
+    document.getElementById('echo').onclick = echo;
     document.getElementById('uuid').innerHTML = uuid;
+
 
 }
