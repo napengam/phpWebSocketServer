@@ -100,8 +100,9 @@ class websocketCore {
             $buff[$i] = $this->decodeFromServer(fread($this->socketMaster, 8192));
 
             if ($this->opcode == 9) { // ping frame
-                $this->frame[0] = 138; // send back as pong
-                fwrite($this->socketMaster, $this->frame, strlen($this->frame));
+                $this->opcode = 10; // send back as pong
+                $m = implode('', $buff);
+                $this->writeSocket($m, strlen($m));
                 $this->fin = false; // keep in loop
                 continue;
             } else if ($this->opcode == 10) { // pong frame ignore
@@ -210,7 +211,11 @@ class websocketCore {
         } else {
             if ($this->finBit) {
                 if ($this->firstFragment) {
-                    $bHead[0] = 129; // 0x1 text frame (FIN + opcode)#
+                    if ($this->opcode == 10) {
+                        $bHead[0] = 138; // send pong
+                    } else {
+                        $bHead[0] = 129; // 0x1 text frame (FIN + opcode)#
+                    }
                 } else {
                     $bHead[0] = 128; // final fragment
                     $this->firstFragment = true;

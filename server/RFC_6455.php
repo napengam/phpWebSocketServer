@@ -12,6 +12,7 @@ trait RFC_6455 {
         } else {
             $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
         }
+        $this->opcode = 1;
         if ($L <= 125) {
             $bHead[1] = $L;
         } else if ($L >= 126 && $L <= 65535) {

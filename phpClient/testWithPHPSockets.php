@@ -33,11 +33,11 @@ for ($i = 0; $i < 9 * 1024; $i++) {
  * ***********************************************
  */
 
-//$talk->broadcast("$message 1");
-//$talk->broadcast("$message 2");
-//$talk->broadcast("$message 3");
-//$talk->broadcast("$message 4");
-//$talk->broadcast("$message 5");
+$talk->broadcast("$message 1");
+$talk->broadcast("$message 2");
+$talk->broadcast("$message 3");
+$talk->broadcast("$message 4");
+$talk->broadcast("$message 5");
 $talk->broadcast("äüöÄÜÖß$longString 6~6~6~6 ÄÜÖßäüö");
 
 $talk->silent();

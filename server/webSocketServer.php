@@ -18,7 +18,8 @@ class webSocketServer {
             $clientIPs = [],
             $maxPerIP = 0, // maximum number of websocket connections from one IP 0=unlimited
             $allowedIP = [], // ['127.0.0.1','::1'] 
-            $opcode = 1, // text frame  
+            $opcode = 1, // text frame 
+            $pingInterval = 0, // seconds, 0=no pings
             $maxChunks = 100, // avoid flooding during bufferON
             $maxClients = 0;  // 0=no limit
     protected
@@ -105,6 +106,7 @@ class webSocketServer {
         }
         $a = true;
         $socketArrayWrite = $socketArrayExceptions = NULL;
+        $startTime = time();
         while ($a) {
             $socketArrayRead = $this->Sockets;
             $ncon = stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, 1, 000);
@@ -116,9 +118,13 @@ class webSocketServer {
                  * ***********************************************
                  */
 
-//                if ($this->pingClients()) {
-//                    $this->Log("Ping Clients");
-//                }
+                if ($this->pingInterval > 0 && time() - $startTime > $this->pingInterval) {
+                    if ($this->pingClients()) {
+                        $this->Log("Ping Clients");
+                    }
+                    $startTime = time();
+                }
+
                 continue;
             }
             foreach ($socketArrayRead as $Socket) {
@@ -173,7 +179,7 @@ class webSocketServer {
                  * ***********************************************
                  */
 
-                //stream_set_read_buffer($Socket, 0); // no buffering hgs 01.05.2021
+//stream_set_read_buffer($Socket, 0); // no buffering hgs 01.05.2021
 
 
                 $Client = $this->Clients[$SocketID];
@@ -267,29 +273,35 @@ class webSocketServer {
         $client = $this->Clients[$SocketID];
 
         $message = $this->readDecode($SocketID);
-        if ($this->opcode == 10) { //pong
+
+        $opcode = $this->opcode; // opcode within from current frame
+        $this->opcode = 1; // text , back to default;
+
+        if ($opcode == 10) { //pong
             if ($client->expectPong == false) {
-                $this->log("Unsolicited Pong frame received from socket #$SocketID"); // just ignore
+                $this->log("Unsolicited Pong frame received from socket #$SocketID $message"); // just ignore
             } else {
                 $this->log("Expected Pong frame received from socket #$SocketID"); // just ignore
                 $client->expectPong = false;
             }
+
             return '';
         }
-        if ($this->opcode == 9) { //ping received
+        if ($opcode == 9) { //ping received
             $this->log("Ping frame received from socket #$SocketID");
-            $messageFrame[0] = 138; // send back as pong
-            fwrite($this->Sockets[$SocketID], $messageFrame, strlen($messageFrame));
+            $this->opcode = 10; // pong
+            $this->Write($SocketID, $message);
+            $this->opcode = 1;
             return '';
         }
-        if ($this->opcode == 8) { //Connection Close Frame 
+        if ($opcode == 8) { //Connection Close Frame 
             $this->log("Connection Close frame received from socket #$SocketID");
             $this->Close($SocketID);
             return '';
         }
-        if ($this->fin == 0 && $this->opcode == 0) {
+        if ($this->fin == 0 && $opcode == 0) {
             $this->Clients[$SocketID]->fin = false; // fragmented message
-        } else if ($this->fin != 0 && $this->opcode != 0) {
+        } else if ($this->fin != 0 && $opcode != 0) {
             $this->Clients[$SocketID]->fin = true;
         }
 
@@ -355,6 +367,7 @@ class webSocketServer {
 
         $this->opcode = 9; // PING
         $m = $this->Encode(json_encode((object) ['opcode' => 'PING']));
+        $this->opcode = 1;
         $nw = false;
         foreach ($this->Clients as &$client) {
             if ($client->clientType === 'websocket') {
@@ -363,6 +376,7 @@ class webSocketServer {
                 $nw = true;
             }
         }
+
         return $nw;
     }
 
@@ -391,8 +405,8 @@ class webSocketServer {
             $this->Close($SocketID);
             $ok = false;
         }
-        
-        if ($this->maxClients > 0 && count($this->Clients)  > $this->maxClients) {
+
+        if ($this->maxClients > 0 && count($this->Clients) > $this->maxClients) {
             $msg = "To many connections ";
             $this->Log("$SocketID, $msg");
             $this->Write($SocketID, json_encode((object) ['opcode' => 'close', 'error' => $msg]));
@@ -437,7 +451,6 @@ class webSocketServer {
         return $ok;
     }
 
-
     private function serverCommand($client, &$message) {
         if ($client->fin === true) {
             if ($message === 'bufferON') {
@@ -479,15 +492,15 @@ class webSocketServer {
     }
 
     public function guidv4() {
-        // from https://www.uuidgenerator.net/dev-corner/php
-        // Generate 16 bytes (128 bits) of random data or use the data passed into the function.
+// from https://www.uuidgenerator.net/dev-corner/php
+// Generate 16 bytes (128 bits) of random data or use the data passed into the function.
         $data = random_bytes(16);
         assert(strlen($data) == 16);
-        // Set version to 0100
+// Set version to 0100
         $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
-        // Set bits 6-7 to 10
+// Set bits 6-7 to 10
         $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
-        // Output the 36 character UUID.
+// Output the 36 character UUID.
         return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
     }
 
