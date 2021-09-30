@@ -6,7 +6,7 @@ Server written in PHP to handle connections via websocksets **wss:// or ws://**
 and normal sockets over **ssl://**  
 
 
-
+- 2021-09-30 fixed ping/pong cycle to clients. $pingInterval to start pinging clients
 
 - 2021-09-28 echo back to client implemented
 
