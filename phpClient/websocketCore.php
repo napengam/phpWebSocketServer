@@ -102,8 +102,10 @@ class websocketCore {
             if ($this->opcode == 9) { // ping frame
                 $this->frame[0] = 138; // send back as pong
                 fwrite($this->socketMaster, $this->frame, strlen($this->frame));
+                $this->fin = false; // keep in loop
                 continue;
             } else if ($this->opcode == 10) { // pong frame ignore
+                $this->fin = false; // keep in loop
                 continue;
             } else if ($this->opcode == 8) { // close frame
                 $this->silent();
@@ -123,7 +125,6 @@ class websocketCore {
 
     final function silent() {
         if ($this->connected) {
-
             $this->writeSocket(''); // close
             fclose($this->socketMaster);
             $this->connected = false;

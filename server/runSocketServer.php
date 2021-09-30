@@ -67,6 +67,7 @@ class runSocketServer {
          * ***********************************************
          */
         $server->maxPerIP = 0;   // 0=unlimited 
+        $server->maxClients = 0;   // 0=unlimited 
         /*
          * ***********************************************
          * instantiate backend 'applications'

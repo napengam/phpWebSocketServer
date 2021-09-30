@@ -19,7 +19,8 @@ class webSocketServer {
             $maxPerIP = 0, // maximum number of websocket connections from one IP 0=unlimited
             $allowedIP = [], // ['127.0.0.1','::1'] 
             $opcode = 1, // text frame  
-            $maxChunks = 100; // avoid flooding during bufferON
+            $maxChunks = 100, // avoid flooding during bufferON
+            $maxClients = 0;  // 0=no limit
     protected
             $Address,
             $Port,
@@ -145,7 +146,7 @@ class webSocketServer {
                     $this->Clients[$SocketID] = (object) [
                                 'ID' => $SocketID,
                                 'uuid' => '',
-                                'clientType' => null,
+                                'clientType' => null, // not part of RFC6455
                                 'Handshake' => false,
                                 'timeCreated' => time(), // not used yet
                                 'bufferON' => false,
@@ -154,8 +155,8 @@ class webSocketServer {
                                 'app' => NULL,
                                 'ip' => $ip->ip,
                                 'fyi' => '',
-                                'ident' => '', // id set from client
-                                'expectPong' => false
+                                'ident' => '', // id set from client not part of RFC6455
+                                'expectPong' => false // is true if ping has been send
                     ];
                     $this->Sockets[$SocketID] = $clientSocket;
                     $this->Log("New client connecting from $ipport on socket #$SocketID\r\n");
@@ -198,7 +199,7 @@ class webSocketServer {
                 }
                 /*
                  * ***********************************************
-                 * read data fro handshake from socket and check
+                 * read data for handshake from socket and check
                  * ***********************************************
                  */
 
@@ -390,6 +391,14 @@ class webSocketServer {
             $this->Close($SocketID);
             $ok = false;
         }
+        
+        if ($this->maxClients > 0 && count($this->Clients)  > $this->maxClients) {
+            $msg = "To many connections ";
+            $this->Log("$SocketID, $msg");
+            $this->Write($SocketID, json_encode((object) ['opcode' => 'close', 'error' => $msg]));
+            $this->Close($SocketID);
+            return false;
+        }
 
         if ($this->maxPerIP > 0 && $this->Clients[$SocketID]->clientType == 'websocket') {
             /*
@@ -427,6 +436,7 @@ class webSocketServer {
         }
         return $ok;
     }
+
 
     private function serverCommand($client, &$message) {
         if ($client->fin === true) {
