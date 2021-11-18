@@ -115,7 +115,7 @@ class websocketCore {
 
             $this->length -= strlen($buff[$i]);
             $i++;
-            while ($this->length > 0) {
+            while ($this->length > 0) { // data buffered by socket 
                 $buff[$i] = fread($this->socketMaster, 8192);
                 $this->length -= strlen($buff[$i]);
                 $i++;

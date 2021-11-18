@@ -24,7 +24,8 @@ Have the server started and waiting ....
 in the command window  where you startet the server you should see some output
 like this 
 
->php runSocketServer.php co=1  
+>***php runSocketServer.php -console***  
+  
 >Wed, 14 Jul 2021 08:38:41 +0200; Server initialized on WINNT  localhost:8091  
 >Wed, 14 Jul 2021 08:38:41 +0200; Starting server...  
 >Wed, 14 Jul 2021 08:38:41 +0200; Registered resource : /  
@@ -32,7 +33,7 @@ like this
 >Wed, 14 Jul 2021 08:38:41 +0200; Registered resource : /php  
 >
 
-> php testWithPHPSockets.php  
+> ***php testWithPHPSockets.php***  
 
 >Wed, 14 Jul 2021 08:41:12 +0200; Connecting from IP: ::1  
 >Wed, 14 Jul 2021 08:41:12 +0200; New client connecting from [::1]:64265 on socket #20  

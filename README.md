@@ -2,6 +2,7 @@
 
 # phpWebSocketServer
 
+## NO DEPENDENCIES ##  
 Server written in PHP to handle connections via websocksets **wss:// or ws://**  
 and normal sockets over **ssl://**  
 
@@ -95,7 +96,7 @@ Example of web client to connect and communicate with the server  using resource
 
 **websocketExtern**
 
-Conneting to external websocket servers to test cleint code
+Conneting to external websocket servers to test client code
 
 
 
