@@ -8,7 +8,7 @@
 class logToFile {
 
     public $logFile, $error = '', $fh = '', $console;
-    private $logDir, $maxEntry =100000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
+    private $logDir, $maxEntry = 100000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
 
     function __construct($logDir, $console = false) {
         $this->logOnOff = true;
@@ -25,9 +25,18 @@ class logToFile {
             $this->error = "$logDir is not writable";
         }
         $this->pid = getmypid();
+        if ($this->error) {
+            openlog('websock', LOG_PID, LOG_USER);
+            syslog(LOG_ERR, "can not access LOGDIR $logDir; no loging");
+            closelog();
+            $this->logOnOff = false;
+        }
     }
 
     function logOpen($logFile, $option = 'a') {
+        if ($this->logOnOff === false) {
+            return;
+        }
         $this->logFile = $this->pid . "-" . $logFile;
         if ($logFile == '') {
             return;
@@ -51,9 +60,18 @@ class logToFile {
             $this->fh = fopen("$this->logDir/$logFile", 'a+');
             $this->numLinesNow++;
         }
+        if ($this->fh === false) {
+            openlog('websock', LOG_PID, LOG_USER);
+            syslog(LOG_ERR, "can not open $this->logDir/$logFile; no loging");
+            closelog();
+            $this->logOnOff = false;
+        }
     }
 
     function log($m) {
+        if ($this->console) {
+            echo date('r') . "; " . $m . "\r\n";
+        }
         if ($this->logOnOff === false) {
             return;
         }
@@ -66,9 +84,6 @@ class logToFile {
                 $this->numLinesNow = 0;
             }
         }
-        if ($this->console) {
-            echo date('r') . "; " . $m . "\r\n";
-        }
     }
 
     function logClose() {
@@ -78,7 +93,9 @@ class logToFile {
     }
 
     function logMode($onOff) {
-        $this->logOnOff = $onOff;
+        if ($this->error === '') {
+            $this->logOnOff = $onOff;
+        }
     }
 
     private function numLines($file) {
