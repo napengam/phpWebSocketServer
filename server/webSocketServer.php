@@ -324,7 +324,7 @@ class webSocketServer {
                 $client->buffer[] = $message;
             } else {
                 $this->log("Too many chunks from socket #$SocketID");
-                $this->onCLose($SocketID);
+                $this->onClose($SocketID);
             }
             return '';
         }
@@ -332,8 +332,8 @@ class webSocketServer {
     }
 
     public final function Write($SocketID, $message) {
-        $message = $this->Encode($message);
-        return fwrite($this->Sockets[$SocketID], $message, strlen($message));
+        $m = $this->Encode($message);
+        return fwrite($this->Sockets[$SocketID], $m, strlen($m));
     }
 
     public final function feedback($packet) {
@@ -403,7 +403,7 @@ class webSocketServer {
             $msg = (object) ['opcode' => 'close'];
             $this->Write($SocketID, json_encode($msg));
             $this->Close($SocketID);
-            $ok = false;
+           return false;
         }
 
         if ($this->maxClients > 0 && count($this->Clients) > $this->maxClients) {
@@ -433,7 +433,7 @@ class webSocketServer {
                     $this->Log("$SocketID, $msg");
                     $this->Write($SocketID, json_encode((object) ['opcode' => 'close', 'error' => $msg]));
                     $this->Close($SocketID);
-                    $ok = false;
+                    return false;
                 }
             }
         } else if (count($this->allowedIP) > 0 && $this->Clients[$SocketID]->clientType != 'websocket') {
@@ -445,10 +445,10 @@ class webSocketServer {
             if (!in_array($Client->ip, $this->allowedIP)) {
                 $this->Close($SocketID);
                 $this->Log("$SocketID, No connection allowed from: " . $Client->ip);
-                $ok = false;
+               return false;
             }
         }
-        return $ok;
+        return true;
     }
 
     private function serverCommand($client, &$message) {

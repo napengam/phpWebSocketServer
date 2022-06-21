@@ -1,6 +1,6 @@
 <?php
 
-set_error_handler('errorException');
+set_error_handler('errorException'); 
 
 if (function_exists('errorException')) {    
     return true;

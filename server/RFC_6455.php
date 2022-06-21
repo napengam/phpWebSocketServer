@@ -240,38 +240,28 @@ trait RFC_6455 {
         //  2001:db8:85a3:8d3:1319:8a2e:370:7348
         // 127.0.0.1:1234
 
-        $inIP = trim($inIP);
-        $ip = $port = '';
-        $n = mb_strlen($inIP);
-        for ($i = 0; $i < $n; $i++) {
-            $c = mb_substr($inIP, $i, 1);
-            if ($c == '[' && $i == 0) {
-                $p = mb_strpos($inIP, ']');
-                if ($p > 0) {
-                    $ip = mb_substr($inIP, 1, $p - 1);
-                    if ($p + 1 < $n) {
-                        $c = mb_substr($inIP, $p + 1, 1);
-                        if ($c == ':') {
-                            $port = mb_substr($inIP, $p + 2);
-                        }
-                    }
-                    break;
-                }
-            } else if ($c == ':') {
-                $ip = mb_substr($inIP, 0, $n);
-            } else if ($c == '.') {
-                $p = mb_strpos($inIP, ':');
-                if ($p > 0) {
-                    $ip = mb_substr($inIP, 0, $p);
-                    $port = mb_substr($inIP, $p + 1);
-                    break;
-                } else {
-                    $ip = mb_substr($inIP, 0, $n);
-                    break;
-                }
+        $inIP = preg_replace('/ {1,}/', '', $inIP);
+        $c = mb_substr($inIP, 0, 1);
+
+        if ($c == '[') { // ipv6
+            $p = mb_strpos($inIP, ']');
+            if ($p > 0) { //[ipv6]:port
+                $ip = mb_substr($inIP, 1, $p - 1);
+                $port = trim(mb_substr($inIP, $p + 2));
+                return (object) ['ip' => $ip, 'port' => $port];
+            } else {
+                return (object) ['ip' => '', 'port' => ''];
             }
         }
-        return (object) ['ip' => $ip, 'port' => $port];
+        if (mb_strpos($inIP, '.')) { // ipv4
+            $p = mb_strpos($inIP, ':');
+            if ($p > 0) { // ipv4:port
+                $ip = mb_substr($inIP, 0, $p);
+                $port = trim(mb_substr($inIP, $p + 1));
+                return (object) ['ip' => $ip, 'port' => $port];
+            }
+        }
+        return (object) ['ip' => $inIP, 'port' => ''];
     }
 
 }

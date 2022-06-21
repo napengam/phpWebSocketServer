@@ -4,8 +4,7 @@ class websocketCore {
 
     public $prot, $connected = false, $firstFragment = true, $finBit = true;
 
-    //private $socketMaster;
-
+    
     function __construct($Address, $ident = '') {
         $context = stream_context_create();
         $this->ident = $ident;
@@ -92,7 +91,7 @@ class websocketCore {
     final function readSocket() {
 
         if ($this->connected === false) {
-            return;
+            return '';
         }
         $buff = [];
         $i = 0;
@@ -196,7 +195,8 @@ class websocketCore {
         }
         if (strcasecmp($Headers['connection'], 'Upgrade') <> 0) {
             return false;
-        } if ($Headers['sec-websocket-accept'] != $this->expectedToken) {
+        } 
+        if ($Headers['sec-websocket-accept'] != $this->expectedToken) {
             return false;
         }
         $this->errorHandshake = '';

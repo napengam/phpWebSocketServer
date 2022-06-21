@@ -20,6 +20,7 @@ class getOptions {
             exit;
         }
         $this->default = $this->overwriteAdd($ini, $in);
+        return (object) $this->default;
     }
 
     private function overwriteAdd($default, $param) {
