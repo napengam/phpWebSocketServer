@@ -46,15 +46,8 @@ class runSocketServer {
          * ***********************************************
          */
 
-        $logger = new logToFile(dirname($option['logfile']), $option['console']);
-        if ($logger->error === '') {
-            $logger->logOpen(basename($option['logfile']));
-        } else {
-            $logger = '';
-            openlog('websock', LOG_PID, LOG_USER);
-            syslog(LOG_ERR, "can not create loging with " . $option['logfile']);
-            closelog();
-        }
+        $logger = new logToFile($option['logfile'], 'phpwebsocketserver','',$option['console']);
+        
         /*
          * *****************************************
          * create server 

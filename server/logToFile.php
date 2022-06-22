@@ -10,9 +10,14 @@ class logToFile {
     public $logFile, $error = '', $fh = '', $console;
     private $logDir, $maxEntry = 100000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
 
-    function __construct($logDir, $console = false) {
+    function __construct($logDirFile, $ident, $message = '', $console = false) {
+        $logDir = dirname($logDirFile);
+
         $this->logOnOff = true;
         $this->console = $console;
+        $this->ident = $ident;
+        $this->logFileOrg = $logDirFile;
+
         if ($logDir == '') {
             $logDir = getcwd();
         }
@@ -26,43 +31,42 @@ class logToFile {
         }
         $this->pid = getmypid();
         if ($this->error) {
-            openlog('websock', LOG_PID, LOG_USER);
-            syslog(LOG_ERR, "can not access LOGDIR $logDir; no loging");
+            openlog($ident, LOG_PID, LOG_USER);
+            syslog(LOG_ERR, "can not access LOGDIR $logDirFile; no loging");
             closelog();
             $this->logOnOff = false;
         }
+        $this->logOpen($logDirFile);
+        if ($message) {
+            $this->log($message);
+        }
     }
 
-    function logOpen($logFile, $option = 'a') {
-        if ($this->logOnOff === false) {
+    function logOpen($logDirFile) {
+        if ($this->logOnOff === false || $logDirFile == '') {
             return;
         }
-        $this->logFile = $this->pid . "-" . $logFile;
-        if ($logFile == '') {
-            return;
+        $num = 1;
+        $fp = (object) pathinfo($logDirFile);
+
+        if ($fp->extension) {
+            $dot = ".";
+        } else {
+            $dot = '';
+            $fp->extension = '';
         }
-        $this->logFileOrg = $logFile;
-        $logFile = $this->pid . "-" . $logFile;
-        if (file_exists("$this->logDir/$logFile")) {
-            if ($this->numLines("$this->logDir/$logFile") > $this->maxEntry) {
-                $option = 's';
-            }
+        $this->fh = fopen($logDirFile, 'a+');
+
+        if ($this->numLines($logDirFile) > $this->maxEntry) {
+            $num = $this->logNum($fp->dirname . "/" . $fp->filename, $dot, $fp->extension);
+            fclose($this->fh);
+            rename($logDirFile, "$fp->dirname/$fp->filename$num$dot$fp->extension");
         }
-        if ($option == 's') { // save logfile if exsists
-            if (file_exists("$this->logDir/$logFile")) {
-                if (file_exists("$this->logDir/$this->logFileOrg-$this->pid")) {
-                    unlink("$this->logDir/$this->logFileOrg-$this->pid");
-                }
-                rename("$this->logDir/$logFile", "$this->logDir/$this->logFileOrg-$this->pid");
-            }
-            $this->fh = fopen("$this->logDir/$logFile", 'w+');
-        } else if ($option == 'a') {// append to logfile
-            $this->fh = fopen("$this->logDir/$logFile", 'a+');
-            $this->numLinesNow++;
-        }
+        $this->fh = fopen($logDirFile, 'a+');
+        $this->numLinesNow++;
         if ($this->fh === false) {
-            openlog('websock', LOG_PID, LOG_USER);
-            syslog(LOG_ERR, "can not open $this->logDir/$logFile; no loging");
+            openlog($this->ident, LOG_PID, LOG_USER);
+            syslog(LOG_ERR, "can not open $logDirFile; no loging");
             closelog();
             $this->logOnOff = false;
         }
@@ -70,13 +74,13 @@ class logToFile {
 
     function log($m) {
         if ($this->console) {
-            echo date('r') . "; " . $m . "\r\n";
+            echo date('r') . ";" . $m . "\r\n";
         }
         if ($this->logOnOff === false) {
             return;
         }
         if ($this->fh) {
-            fputs($this->fh, date('r') . "; " . $m . "\r\n");
+            fputs($this->fh, date('r') . ";" . $m . "\r\n");
             $this->numLinesNow++;
             if ($this->numLinesNow > $this->maxEntry) {
                 $this->logClose();
@@ -96,6 +100,19 @@ class logToFile {
         if ($this->error === '') {
             $this->logOnOff = $onOff;
         }
+    }
+
+    private function logNum($filename, $dot, $extension) {
+        $max = 0;
+        $out = [];
+        foreach (glob("$filename*$dot$extension") as $fn) {
+            preg_match_all('/[0-9]*/', $fn, $out);
+            $n = trim(implode('', $out[0]));
+            if ($n > $max) {
+                $max = (int) $n;
+            }
+        }
+        return $max + 1;
     }
 
     private function numLines($file) {
