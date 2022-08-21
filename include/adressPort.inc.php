@@ -14,6 +14,6 @@
 //$Address = 'tcp://your.server.net[:port]';
  
 
-$Address = 'ws://localhost:8096';
+$Address = 'ws://localhost:8095';
 
 
