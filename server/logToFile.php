@@ -126,4 +126,11 @@ class logToFile {
         return $lines;
     }
 
+    private function optAssign($defaultOpt, $newOpt) {
+        foreach ($newOpt as $key => $value) {
+            $defaultOpt->{$key} = $value;
+        }
+        return $defaultOpt;
+    }
+
 }
