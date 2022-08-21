@@ -1,9 +1,7 @@
 <?php
 
 class getOptions {
-
     public $default = [];
-
     function __construct() {
         $in = $this->getOptArgv(['-i', '-logfile', '-adress', '-console']);
 
@@ -12,7 +10,6 @@ class getOptions {
         } else {
             $ini = parse_ini_file('websock.ini', false, INI_SCANNER_TYPED);
         }
-
         if ($ini === false) {
             openlog('websock', LOG_PID, LOG_USER);
             syslog(LOG_ERR, "no ini file found or not specified");
@@ -32,22 +29,19 @@ class getOptions {
 
     function getOptArgv($expect) {
         global $argv, $argc;
-
         $out = [];
         for ($i = 1; $i < $argc; $i++) {
-            foreach ($expect as $exp) {
-                if ($exp == $argv[$i]) {
-                    if ($i + 1 < $argc) {
+            if (array_search($argv[$i], $expect)) {
+                $exp = mb_substr($argv[$i], 1);             
+                if ($i + 1 < $argc) {
+                    if (mb_substr($argv[$i + 1], 0, 1) !== '-') {
                         $i++;
-                        if (mb_substr($argv[$i], 0, 1) !== '-') {
-                            $out[mb_substr($exp, 1)] = $argv[$i];
-                        } else {
-                            $out[mb_substr($exp, 1)] = '1';
-                        }
-                        break;
+                        $out[$exp] = $argv[$i]; //parameter is given with value
                     } else {
-                        $out[mb_substr($exp, 1)] = '1';
+                        $out[$exp] = '1';  // parameter is given with no value
                     }
+                } else {
+                    $out[$exp] = '1'; // parameter is given with no value
                 }
             }
         }
