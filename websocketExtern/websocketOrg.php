@@ -40,5 +40,5 @@ class websocketOrg extends websocketCore {
 
 }
 
-$x = new websocketOrg("wss://echo.websocket.org");
+$x = new websocketOrg("wss://echo.websocket.events");
 
