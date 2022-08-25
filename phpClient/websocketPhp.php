@@ -33,7 +33,7 @@ class websocketPhp extends websocketCore {
             $this->talk([
                 'opcode' => 'feedback',
                 'ident' => $otherIdent, // ident of another client
-                'uuid' => $this->uuid,  // uuid of anotehr client
+                'uuid' => $this->uuid, // uuid of anotehr client
                 'message' => $message,
                 'fromUUID' => $this->fromUUID]);
         }

@@ -299,13 +299,7 @@ class webSocketServer {
             $this->Close($SocketID);
             return '';
         }
-        if ($this->fin == 0 && $opcode == 0) {
-            $this->Clients[$SocketID]->fin = false; // fragmented message
-        } else if ($this->fin != 0 && $opcode != 0) {
-            $this->Clients[$SocketID]->fin = true;
-        }
-
-
+   
         $this->Write($SocketID, json_encode((object) [
                             'opcode' => 'next',
                             'fyi' => $this->Clients[$SocketID]->fyi]));

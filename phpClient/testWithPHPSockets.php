@@ -6,7 +6,7 @@ if ($argc > 1) {
 
 require 'websocketPhp.php';
 include '../include/adressPort.inc.php';
-$talk = new websocketPhp($Address.'/php');
+$talk = new websocketPhp($Address . '/php');
 if (!isset($_GET['m'])) {
     $_GET['m'] = '';
 }
@@ -39,6 +39,7 @@ $talk->broadcast("$message 3");
 $talk->broadcast("$message 4");
 $talk->broadcast("$message 5");
 $talk->broadcast("äüöÄÜÖß$longString 6~6~6~6 ÄÜÖßäüö");
+$talk->broadcast("$message 6");
 
 $talk->silent();
 
