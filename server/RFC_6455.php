@@ -98,8 +98,7 @@ trait RFC_6455 {
             return;
         }
 
-        $this->fin = ord($frame[0]) & 128;
-       
+        $this->fin = ord($frame[0]) & 128;      
         $this->opcode = ord($frame[0]) & 15;
         $length = ord($frame[1]) & 127;
 
@@ -136,7 +135,7 @@ trait RFC_6455 {
         $plength = $length;
         $plength -= strlen($data);
         while ($plength > 0) {
-            
+           
             $chunk = fread($socket, 8192);
             $data .= $chunk;
             $plength -= strlen($chunk);

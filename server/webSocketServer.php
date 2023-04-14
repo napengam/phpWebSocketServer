@@ -273,7 +273,6 @@ class webSocketServer {
         $client = $this->Clients[$SocketID];
 
         $message = $this->readDecode($SocketID);
-
         $opcode = $this->opcode; // opcode within from current frame
         $this->opcode = 1; // text , back to default;
 
@@ -446,7 +445,7 @@ class webSocketServer {
     }
 
     private function serverCommand($client, &$message) {
-        if ($client->fin === true) {
+        if ($client->fin === true) { // no fragment
             if ($message === 'bufferON') {
                 $client->bufferON = true;
                 $client->buffer = [];
