@@ -23,7 +23,7 @@ no longer need to use own buffer mechanism.
 - 2020-12-07 it works also with PHP 8.0 
 
 # A detailed documentation is located here: 
-## https://hgsweb.de/phpwebsocketDoc     <== not up to date !!
+## https://hgsweb.de/phpwebsocketDoc     
 
 
 **NO DEPENDENCIES**
