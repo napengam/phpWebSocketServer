@@ -23,6 +23,7 @@ class webSocketServer {
             $maxChunks = 100, // avoid flooding during bufferON
             $maxClients = 0;  // 0=no limit
     protected
+            $token,
             $Address,
             $Port,
             $socketMaster,
@@ -33,6 +34,7 @@ class webSocketServer {
         $errno = 0;
         $errstr = '';
         $this->logging = $logger;
+        $this->token = bin2hex(random_bytes(8));
 
         /*
          * ***********************************************
@@ -298,7 +300,7 @@ class webSocketServer {
             $this->Close($SocketID);
             return '';
         }
-   
+
         $this->Write($SocketID, json_encode((object) [
                             'opcode' => 'next',
                             'fyi' => $this->Clients[$SocketID]->fyi]));
@@ -494,7 +496,18 @@ class webSocketServer {
         // Set bits 6-7 to 10
         $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
         // Output the 36 character UUID.
-        return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+        $uuid = vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+
+        $hash = password_hash($uuid . $this->token, PASSWORD_DEFAULT, ["cost" => 5]);
+
+        return $uuid . $hash;
+    }
+
+    protected function verifyUUID($uuHash) {
+        $uuid = mb_substr($uuHash, 0, 36);
+        $hash = mb_substr($uuHash, 36);
+        $f = password_verify($uuid . $this->token, $hash);
+        return $f;
     }
 
     function onClose($SocketID) { // ...socket has been closed AND deleted
@@ -516,5 +529,4 @@ class webSocketServer {
             $this->Clients[$SocketID]->app->onError($SocketID, $message);
         }
     }
-
 }
