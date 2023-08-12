@@ -8,7 +8,7 @@
 class logToFile {
 
     public $logFile, $error = '', $fh = '', $console;
-    private $logDir, $maxEntry = 100000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
+    private $logDir, $maxEntry = 10000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
 
     function __construct($logDirFile, $ident, $message = '', $console = false) {
         $logDir = dirname($logDirFile);
@@ -125,12 +125,5 @@ class logToFile {
         $this->numLinesNow = $lines;
         return $lines;
     }
-
-    private function optAssign($defaultOpt, $newOpt) {
-        foreach ($newOpt as $key => $value) {
-            $defaultOpt->{$key} = $value;
-        }
-        return $defaultOpt;
-    }
-
+   
 }
