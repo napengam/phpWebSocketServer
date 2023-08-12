@@ -33,61 +33,6 @@ trait RFC_6455 {
         return (implode(array_map("chr", $bHead)) . $M);
     }
 
-    public function Decode($frame) {
-        // detect ping or pong frame, or fragments
-
-        $this->fin = ord($frame[0]) & 128;
-        $this->opcode = ord($frame[0]) & 15;
-        $length = ord($frame[1]) & 127;
-        if ($length == 0) {
-            $this->opcode = 8;
-            return '';
-        }
-        if ($length <= 125) {
-            $moff = 2;
-            $poff = 6;
-        } else if ($length == 126) {
-            $l0 = ord($frame[2]) << 8;
-            $l1 = ord($frame[3]);
-            $length = ($l0 | $l1);
-            $moff = 4;
-            $poff = 8;
-        } else if ($length == 127) {
-            $l0 = ord($frame[2]) << 56;
-            $l1 = ord($frame[3]) << 48;
-            $l2 = ord($frame[4]) << 40;
-            $l3 = ord($frame[5]) << 32;
-            $l4 = ord($frame[6]) << 24;
-            $l5 = ord($frame[7]) << 16;
-            $l6 = ord($frame[8]) << 8;
-            $l7 = ord($frame[9]);
-            $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
-            $moff = 10;
-            $poff = 14;
-        }
-
-        $masks = substr($frame, $moff, 4);
-        $data = substr($frame, $poff, $length); // hgs 30.09.2016
-        $text = '';
-        $m0 = $masks[0];
-        $m1 = $masks[1];
-        $m2 = $masks[2];
-        $m3 = $masks[3];
-        for ($i = 0; $i < $length;) {
-            $text .= $data[$i++] ^ $m0;
-            if ($i < $length) {
-                $text .= $data[$i++] ^ $m1;
-                if ($i < $length) {
-                    $text .= $data[$i++] ^ $m2;
-                    if ($i < $length) {
-                        $text .= $data[$i++] ^ $m3;
-                    }
-                }
-            }
-        }
-        return $text;
-    }
-
     public function readDecode($socketID) {
         // detect ping or pong frame, or fragments
 
