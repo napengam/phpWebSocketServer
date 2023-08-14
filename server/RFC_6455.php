@@ -5,104 +5,87 @@ trait RFC_6455 {
     public function Encode($M) {
         $L = strlen($M);
         $bHead = [];
-        if ($this->opcode == 10) { // POng
-            $bHead[0] = 138; // send pong
-        } else if ($this->opcode == 9) { // PIng
-            $bHead[0] = 137; // send ping
-        } else {
-            $bHead[0] = 129; // 0x1 text frame (FIN + opcode)
-        }
+
+        // Determine the opcode and set the first byte of the header
+        $bHead[0] = $this->opcode === 10 ? 138 : ($this->opcode === 9 ? 137 : 129);
+
+        // Set the opcode to 1 for continuation frames
         $this->opcode = 1;
+
         if ($L <= 125) {
             $bHead[1] = $L;
-        } else if ($L >= 126 && $L <= 65535) {
+        } elseif ($L <= 65535) {
             $bHead[1] = 126;
-            $bHead[2] = ( $L >> 8 ) & 255;
-            $bHead[3] = ( $L ) & 255;
+            $bHead[2] = ($L >> 8) & 255;
+            $bHead[3] = $L & 255;
         } else {
             $bHead[1] = 127;
-            $bHead[2] = ( $L >> 56 ) & 255;
-            $bHead[3] = ( $L >> 48 ) & 255;
-            $bHead[4] = ( $L >> 40 ) & 255;
-            $bHead[5] = ( $L >> 32 ) & 255;
-            $bHead[6] = ( $L >> 24 ) & 255;
-            $bHead[7] = ( $L >> 16 ) & 255;
-            $bHead[8] = ( $L >> 8 ) & 255;
-            $bHead[9] = ( $L ) & 255;
+            for ($i = 0; $i < 8; $i++) {
+                $bHead[$i + 2] = ($L >> (56 - $i * 8)) & 255;
+            }
         }
-        return (implode(array_map("chr", $bHead)) . $M);
+
+        // Convert the header bytes to characters
+        $header = implode(array_map("chr", $bHead));
+
+        // Concatenate the header with the message
+        return $header . $M;
     }
 
     public function readDecode($socketID) {
-        // detect ping or pong frame, or fragments
+        // Detect ping or pong frame, or fragments
 
         $socket = $this->Sockets[$socketID];
         $frame = fread($socket, 8192);
-        if (strlen($frame) == 0) {
+
+        if (empty($frame)) {
             $this->opcode = 8;
             return;
         }
 
-        $this->fin = ord($frame[0]) & 128;      
+        $this->fin = ord($frame[0]) & 128;
         $this->opcode = ord($frame[0]) & 15;
         $length = ord($frame[1]) & 127;
 
-        if ($length == 0) {
+        if ($length === 0) {
             $this->opcode = 8;
             return;
         }
+
+        $moff = $poff = 0;
         if ($length <= 125) {
             $moff = 2;
             $poff = 6;
-        } else if ($length == 126) {
-            $l0 = ord($frame[2]) << 8;
-            $l1 = ord($frame[3]);
-            $length = ($l0 | $l1);
+        } else if ($length === 126) {
+            $length = unpack('n', substr($frame, 2, 2))[1];
             $moff = 4;
             $poff = 8;
-        } else if ($length == 127) {
-            $l0 = ord($frame[2]) << 56;
-            $l1 = ord($frame[3]) << 48;
-            $l2 = ord($frame[4]) << 40;
-            $l3 = ord($frame[5]) << 32;
-            $l4 = ord($frame[6]) << 24;
-            $l5 = ord($frame[7]) << 16;
-            $l6 = ord($frame[8]) << 8;
-            $l7 = ord($frame[9]);
-            $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
+        } else if ($length === 127) {
+            $length = unpack('J', substr($frame, 2, 8))[1];
             $moff = 10;
             $poff = 14;
         }
 
         $masks = substr($frame, $moff, 4);
-        $data = substr($frame, $poff, $length); // hgs 30.09.2016
+        $data = substr($frame, $poff, $length);
 
-        $plength = $length;
-        $plength -= strlen($data);
+        $plength = $length - strlen($data);
         while ($plength > 0) {
-           
-            $chunk = fread($socket, 8192);
+            $chunk = fread($socket, min(8192, $plength));
             $data .= $chunk;
             $plength -= strlen($chunk);
         }
 
         $text = '';
-        $m0 = $masks[0];
-        $m1 = $masks[1];
-        $m2 = $masks[2];
-        $m3 = $masks[3];
-        for ($i = 0; $i < $length;) {
-            $text .= $data[$i++] ^ $m0;
-            if ($i < $length) {
-                $text .= $data[$i++] ^ $m1;
-                if ($i < $length) {
-                    $text .= $data[$i++] ^ $m2;
-                    if ($i < $length) {
-                        $text .= $data[$i++] ^ $m3;
-                    }
-                }
-            }
+        $maskBytes = array_map('ord', str_split($masks));
+        $maskBytesCount = count($maskBytes);
+        $j = 0;
+
+        for ($i = 0; $i < $length; $i++) {
+            $text .= chr(ord($data[$i]) ^ $maskBytes[$j]);
+            $j = ($j + 1) % $maskBytesCount;
         }
+
         return $text;
     }
 
@@ -153,26 +136,22 @@ trait RFC_6455 {
         }
         $Token = "";
         $sah1 = sha1($Headers['sec-websocket-key'] . "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-        for ($i = 0; $i < 20; $i++) {
-            $Token .= chr(hexdec(substr($sah1, $i * 2, 2)));
-        }
-        $Token = base64_encode($Token);
+        $Token = base64_encode(pack('H*', $sah1));
         $statusLine = "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: $Token\r\n\r\n";
         fwrite($Socket, $statusLine, strlen($statusLine));
 
+        $clType = 'websocket';
         if (isset($Headers['client-type'])) {
-            if (strcasecmp($Headers['client-type'], 'php') == 0) {
-                $this->Clients[$SocketID]->clientType = 'tcp';
-            } else {
-                $this->Clients[$SocketID]->clientType = 'websocket';
-            }
-        } else {
-            $this->Clients[$SocketID]->clientType = 'websocket';
+            strcasecmp($Headers['client-type'], 'php') == 0 ? $clType = 'php' : '';
         }
+        $this->Clients[$SocketID]->clientType = $clType;
+
         if (isset($Headers['ident'])) {
             $this->Clients[$SocketID]->ident = $Headers['ident'];
         }
+
         $this->Log('ClientType:' . $this->Clients[$SocketID]->clientType);
+
         $this->Clients[$SocketID]->Handshake = true;
         if (isset($this->allApps[$Headers['get']])) {
             $this->Clients[$SocketID]->app = $this->allApps[$Headers['get']];
@@ -209,5 +188,4 @@ trait RFC_6455 {
         }
         return (object) ['ip' => $inIP, 'port' => ''];
     }
-
 }
