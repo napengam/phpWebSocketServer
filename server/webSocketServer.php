@@ -377,7 +377,7 @@ class webSocketServer {
 
     public final function registerResource($name, $app) {
         $this->allApps[$name] = $app;
-        foreach (['registerServer', 'onOpen', 'onData', 'onClose', 'onError'] as $method) {
+        foreach (['registerServerMethods', 'onOpen', 'onData', 'onClose', 'onError'] as $method) {
             if (!method_exists($app, $method)) {
                 $this->allApps[$name] = NULL;
                 return false;
