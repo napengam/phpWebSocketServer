@@ -24,8 +24,8 @@ class resourceWeb extends resource {
         $this->packet = $packet;
 
         if ($packet->opcode === 'jsonerror') {
-            $this->server->Log("jsonerror closing #$SocketID");
-            $this->server->Close($SocketID);
+            $this->Log("jsonerror closing #$SocketID");
+            $this->Close($SocketID);
             return;
         }
         if ($packet->opcode === 'quit') {
@@ -34,8 +34,8 @@ class resourceWeb extends resource {
              * client quits
              * *****************************************
              */
-            $this->server->Log("QUIT; Connection closed to socket #$SocketID");
-            $this->server->Close($SocketID);
+            $this->Log("QUIT; Connection closed to socket #$SocketID");
+            $this->Close($SocketID);
             return;
         }
         if ($packet->opcode === 'feedback') {
@@ -45,15 +45,15 @@ class resourceWeb extends resource {
              * in $packet
              * *****************************************
              */
-            $this->server->feedback($packet);
+            $this->feedback($packet);
             return;
         }
         if ($packet->opcode === 'echo') {
-            $this->server->echo($SocketID, $packet);
+            $this->echo($SocketID, $packet);
             return;
         }
         if ($packet->opcode === 'broadcast') {
-            $this->server->broadCast($SocketID, $M);
+            $this->broadCast($SocketID, $M);
             return;
         }
         /*
@@ -68,5 +68,4 @@ class resourceWeb extends resource {
     function onError($SocketID, $M) {
         
     }
-
 }

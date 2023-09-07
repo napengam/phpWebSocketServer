@@ -21,8 +21,8 @@ class resourcePhp extends resource {
         $packet = $this->getPacket($M);
 
         if ($packet->opcode === 'jsonerror') {
-            $this->server->Log("jsonerror closing #$SocketID");
-            $this->server->Close($SocketID);
+            $this->Log("jsonerror closing #$SocketID");
+            $this->Close($SocketID);
             return;
         }
 
@@ -32,8 +32,8 @@ class resourcePhp extends resource {
              * client quits
              * *****************************************
              */
-            $this->server->Log("QUIT; Connection closed to socket #$SocketID");
-            $this->server->Close($SocketID);
+            $this->Log("QUIT; Connection closed to socket #$SocketID");
+            $this->Close($SocketID);
             return;
         }
 
@@ -44,7 +44,7 @@ class resourcePhp extends resource {
              * $packet
              * *****************************************
              */
-            $this->server->feedback($packet);
+            $this->feedback($packet);
             return;
         }
         if ($packet->opcode === 'echo') {
@@ -53,11 +53,11 @@ class resourcePhp extends resource {
              * echo back to client
              * *****************************************
              */
-            $this->server->echo($SocketID, $packet);
+            $this->echo($SocketID, $packet);
             return;
         }
         if ($packet->opcode === 'broadcast') {
-            $this->server->broadCast($SocketID, $M);
+            $this->broadCast($SocketID, $M);
             return;
         }
         /*
