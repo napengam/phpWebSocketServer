@@ -2,7 +2,7 @@
 
 class resource {
 
-    public $server;
+   
     private $methods = ['broadCast', 'feedback', 'echo', 'Log', 'Close'];
 
     /*
@@ -45,7 +45,7 @@ class resource {
     function onError($SocketID, $M) { // ...any connection-releated error   
     }
 
-    final public function registerServer($server) {
+    final public function registerServerMethods($server) {
         /*
          * ***********************************************
          * extract methods from server neede in clients

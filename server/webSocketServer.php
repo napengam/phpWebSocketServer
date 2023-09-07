@@ -383,7 +383,7 @@ class webSocketServer {
                 return false;
             }
         }
-        $app->registerServer($this);
+        $app->registerServerMethods($this);
         return true;
     }
 
