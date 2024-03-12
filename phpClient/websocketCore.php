@@ -1,10 +1,12 @@
 <?php
 
+
 class websocketCore {
 
-    public $prot, $connected = false, $firstFragment = true, $finBit = true;
+    public $prot, $connected = false, $firstFragment = true, $finBit = true,
+            $ident,$socketMaster,$key,$expectedToken,$errorHandshake,$fin,$opcode,
+            $frame,$length,$fromUUID;
 
-    
     function __construct($Address, $ident = '') {
         $context = stream_context_create();
         $this->ident = $ident;
@@ -195,7 +197,7 @@ class websocketCore {
         }
         if (strcasecmp($Headers['connection'], 'Upgrade') <> 0) {
             return false;
-        } 
+        }
         if ($Headers['sec-websocket-accept'] != $this->expectedToken) {
             return false;
         }
@@ -301,5 +303,4 @@ class websocketCore {
 
         return $data;
     }
-
 }

@@ -7,7 +7,7 @@
  */
 class logToFile {
 
-    public $logFile, $error = '', $fh = '', $console;
+    public $logFile, $error = '', $fh = '', $console,$ident;
     private $logDir, $maxEntry = 10000, $numLinesNow, $logOnOff, $pid, $logFileOrg;
 
     function __construct($logDirFile, $ident, $message = '', $console = false) {

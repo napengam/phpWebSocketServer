@@ -1,6 +1,6 @@
 <?php
 
-if ($argc > 1) {
+if ( isset($argc) &&$argc > 1) {
     parse_str(implode('&', array_slice($argv, 1)), $_GET);
 }
 

@@ -1,8 +1,8 @@
 <?php
 
+#[\AllowDynamicProperties]
 class resource {
 
-   
     private $methods = ['broadCast', 'feedback', 'echo', 'Log', 'Close'];
 
     /*
