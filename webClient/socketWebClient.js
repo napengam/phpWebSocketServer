@@ -14,12 +14,17 @@ function socketWebClient(server, app) {
             socket.close();
         }
 
-        callbackStatus('Try to connect ...');
+
         //********************************************
         //  connect to server at port
         //*******************************************
-        socket = new WebSocket(server + app);
-
+        try {
+            socket = new WebSocket(server + app);
+            callbackStatus('Try to connect ...');
+        } catch (e) {
+            socket = null;
+            return;
+        }
         socket.onopen = function () {
             queue = [];
             callbackStatus('Connected');
@@ -104,7 +109,7 @@ function socketWebClient(server, app) {
         }
         msg = JSON.stringify(msgObj);
 
-        if (msg.length < chunkSize || chunkSize === 0 ) {
+        if (msg.length < chunkSize || chunkSize === 0) {
             //********************************************
             //  normal short message
             //*******************************************
