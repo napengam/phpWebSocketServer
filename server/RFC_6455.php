@@ -1,5 +1,5 @@
 <?php
- #[\AllowDynamicProperties]
+
 trait RFC_6455 {
 
     public function Encode($M) {
