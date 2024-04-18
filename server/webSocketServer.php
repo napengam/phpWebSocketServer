@@ -21,7 +21,8 @@ class webSocketServer {
             $opcode = 1, // text frame 
             $pingInterval = 0, // seconds, 0=no pings
             $maxChunks = 100, // avoid flooding during bufferON
-            $maxClients = 0;  // 0=no limit
+            $maxClients = 0, // 0=no limit
+            $fin;
     protected
             $token,
             $Address,
