@@ -1,11 +1,10 @@
 <?php
 
-
 class websocketCore {
 
     public $prot, $connected = false, $firstFragment = true, $finBit = true,
-            $ident,$socketMaster,$key,$expectedToken,$errorHandshake,$fin,$opcode,
-            $frame,$length,$fromUUID;
+            $ident, $socketMaster, $key, $expectedToken, $errorHandshake, $fin, $opcode,
+            $frame, $length, $fromUUID;
 
     function __construct($Address, $ident = '') {
         $context = stream_context_create();
@@ -167,6 +166,7 @@ class websocketCore {
         $req[] = "Sec-WebSocket-Version: 13";
         $req[] = "Client-Type: php";  // hgs private , not part of RCF7455
         $req[] = "Ident: $this->ident";  // hgs private , not part of RCF7455
+        $req[] = "allowRemote: ''";  // hgs private , not part of RCF7455
 
         return implode("\r\n", $req) . "\r\n\r\n";
     }

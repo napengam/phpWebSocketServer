@@ -149,6 +149,9 @@ trait RFC_6455 {
         if (isset($Headers['ident'])) {
             $this->Clients[$SocketID]->ident = $Headers['ident'];
         }
+        if (isset($Headers['allowRemote'])) {
+            $this->Clients[$SocketID]->allowRemote = $Headers['allowRemote'];
+        }
 
         $this->Log('ClientType:' . $this->Clients[$SocketID]->clientType);
 
