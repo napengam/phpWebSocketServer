@@ -4,7 +4,7 @@ class websocketCore {
 
     public $prot, $connected = false, $firstFragment = true, $finBit = true,
             $ident, $socketMaster, $key, $expectedToken, $errorHandshake, $fin, $opcode,
-            $frame, $length, $fromUUID;
+            $frame, $length, $fromUUID, $timeout = 2;
 
     function __construct($Address, $ident = '') {
         $context = stream_context_create();
@@ -81,11 +81,11 @@ class websocketCore {
         }
         /*
          * ***********************************************
-         * Set a 2-second timeout so this class does
+         * Set a  timeout so this class does
          * not block any other client actions.
          * **********************************************
          */
-        stream_set_timeout($this->socketMaster, 2);
+        stream_set_timeout($this->socketMaster, $this->timeout);
         return true;
     }
 
