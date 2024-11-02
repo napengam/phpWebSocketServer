@@ -104,7 +104,10 @@ class websocketCore {
         $i = 0;
         do { // probaly reading fragements
             $buff[$i] = $this->decodeFromServer(fread($this->socketMaster, 8192));
-
+            if (stream_get_meta_data($this->socketMaster)['timed_out']) {
+                $this->connected = false;
+                return '';
+            }
             switch ($this->opcode) {
                 case 9: // Ping frame
                     $this->opcode = 10; // Respond with pong
@@ -129,6 +132,10 @@ class websocketCore {
             $i++;
             while ($this->length > 0) { // data buffered by socket 
                 $buff[$i] = fread($this->socketMaster, 8192);
+                if (stream_get_meta_data($this->socketMaster)['timed_out']) {
+                    $this->connected = false;
+                    return '';
+                }
                 $this->length -= strlen($buff[$i]);
                 $i++;
             }
