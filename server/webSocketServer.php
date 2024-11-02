@@ -165,6 +165,7 @@ class webSocketServer {
                                 'ip' => $ip->ip,
                                 'fyi' => '',
                                 'ident' => '', // id set from client not part of RFC6455
+                                'allowremote' => 'no', // id set from client not part of RFC6455
                                 'expectPong' => false // is true if ping has been send
                     ];
                     $this->Sockets[$SocketID] = $clientSocket;
