@@ -79,7 +79,13 @@ class websocketCore {
             echo $this->errorHandshake;
             return false;
         }
-
+        /*
+         * ***********************************************
+         * Set a 2-second timeout so this class does
+         * not block any other client actions.
+         * **********************************************
+         */
+        stream_set_timeout($this->socketMaster, 2);
         return true;
     }
 
