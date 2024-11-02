@@ -99,21 +99,27 @@ class websocketCore {
         do { // probaly reading fragements
             $buff[$i] = $this->decodeFromServer(fread($this->socketMaster, 8192));
 
-            if ($this->opcode == 9) { // ping frame
-                $this->opcode = 10; // send back as pong
-                $m = implode('', $buff);
-                $this->writeSocket($m, strlen($m));
-                $this->fin = false; // keep in loop
-                continue;
-            } else if ($this->opcode == 10) { // pong frame ignore
-                $this->fin = false; // keep in loop
-                continue;
-            } else if ($this->opcode == 8) { // close frame
-                $this->silent();
-                return '';
-            }
+            switch ($this->opcode) {
+                case 9: // Ping frame
+                    $this->opcode = 10; // Respond with pong
+                    $m = implode('', $buff);
+                    $this->writeSocket($m, strlen($m));
+                    $this->fin = false; // Continue reading
+                    continue;
 
-            $this->length -= strlen($buff[$i]);
+                case 10: // Pong frame
+                    $this->fin = false; // Ignore, continue reading
+                    continue;
+
+                case 8: // Close frame
+                    $this->silent(); // Close connection
+                    return '';
+
+                default:
+                    // Adjust length remaining to read
+                    $this->length -= strlen($buff[$i]);
+                    break;
+            }
             $i++;
             while ($this->length > 0) { // data buffered by socket 
                 $buff[$i] = fread($this->socketMaster, 8192);
@@ -252,6 +258,4 @@ class websocketCore {
         $this->length = $length;
         return substr($frame, $poff, $length); // Extract payload data starting at offset
     }
-
-    
 }
