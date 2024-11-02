@@ -133,40 +133,29 @@ class websocketCore {
     }
 
     private function setHandshake($server, $app = '/') {
-
         $this->key = random_bytes(16);
         $key = base64_encode($this->key);
 
-        /*
-         * ***********************************************
-         * we expect $this->expectedToken  from the 
-         * server in its responds
-         * ***********************************************
-         */
-
+        // Expected token calculated from key and the WebSocket GUID
         $sah1 = sha1($key . "258EAFA5-E914-47DA-95CA-C5AB0DC85B11");
-        for ($i = 0, $Token = ""; $i < 20; $i++) {
-            $Token .= chr(hexdec(substr($sah1, $i * 2, 2)));
-        }
-        $this->expectedToken = base64_encode($Token);
+        $this->expectedToken = base64_encode(hex2bin($sah1));
 
-        if ($this->prot == 'ssl://') {
-            $prot = "https://";
-        } else {
-            $prot = "http://";
-        }
+        // Determine protocol based on $this->prot
+        $prot = ($this->prot === 'ssl://') ? "https://" : "http://";
 
-        $req = [];
-        $req[] = "GET $app HTTP/1.1";
-        $req[] = "Host: $server";
-        $req[] = "Upgrade: websocket";
-        $req[] = "Connection: Upgrade";
-        $req[] = "Sec-WebSocket-Key: $key";
-        $req[] = "Origin: $prot$server ";
-        $req[] = "Sec-WebSocket-Version: 13";
-        $req[] = "Client-Type: php";  // hgs private , not part of RCF7455
-        $req[] = "Ident: $this->ident";  // hgs private , not part of RCF7455
-        $req[] = "allowRemote: ''";  // hgs private , not part of RCF7455
+        // Assemble handshake request headers
+        $req = [
+            "GET $app HTTP/1.1",
+            "Host: $server",
+            "Upgrade: websocket",
+            "Connection: Upgrade",
+            "Sec-WebSocket-Key: $key",
+            "Origin: {$prot}{$server}",
+            "Sec-WebSocket-Version: 13",
+            "Client-Type: php", // Private, not part of RFC6455
+            "Ident: $this->ident", // Private, not part of RFC6455
+            "allowRemote: ''"               // Private, not part of RFC6455
+        ];
 
         return implode("\r\n", $req) . "\r\n\r\n";
     }
@@ -208,99 +197,61 @@ class websocketCore {
     final function encodeForServer($M) {
         $L = strlen($M);
         $bHead = [];
-        if ($L == 0) {
-            $bHead[0] = 136; // close frame if message length = 0
+
+        // Set the first byte based on the opcode and fragment
+        if ($L === 0) {
+            $bHead[] = 136; // Close frame if message length = 0
         } else {
-            if ($this->finBit) {
-                if ($this->firstFragment) {
-                    if ($this->opcode == 10) {
-                        $bHead[0] = 138; // send pong
-                    } else {
-                        $bHead[0] = 129; // 0x1 text frame (FIN + opcode)#
-                    }
-                } else {
-                    $bHead[0] = 128; // final fragment
-                    $this->firstFragment = true;
-                }
-            } else {
-                if ($this->firstFragment) {
-                    $bHead[0] = 1;  // first text fragment
-                    $this->firstFragment = false;
-                } else {
-                    $bHead[0] = 0; // nextfragemnt
-                }
-            }
+            $bHead[] = $this->finBit ? ($this->firstFragment ? ($this->opcode === 10 ? 138 : 129) : 128) : ($this->firstFragment ? 1 : 0);
+
+            $this->firstFragment = !$this->finBit;
         }
-        $masks = random_bytes(4);
+
+        // Prepare the payload length and mask bit
         if ($L <= 125) {
-            $bHead[1] = $L | 128;
-        } else if ($L >= 126 && $L <= 65535) {
-            $bHead[1] = 126 | 128;
-            $bHead[2] = ( $L >> 8 ) & 255;
-            $bHead[3] = ( $L ) & 255;
+            $bHead[] = $L | 128;
+        } elseif ($L <= 65535) {
+            $bHead = array_merge($bHead, [126 | 128, ($L >> 8) & 255, $L & 255]);
         } else {
-            $bHead[1] = 127 | 128;
-            $bHead[2] = ( $L >> 56 ) & 255;
-            $bHead[3] = ( $L >> 48 ) & 255;
-            $bHead[4] = ( $L >> 40 ) & 255;
-            $bHead[5] = ( $L >> 32 ) & 255;
-            $bHead[6] = ( $L >> 24 ) & 255;
-            $bHead[7] = ( $L >> 16 ) & 255;
-            $bHead[8] = ( $L >> 8 ) & 255;
-            $bHead[9] = ( $L ) & 255;
+            $bHead = array_merge($bHead, [127 | 128, ($L >> 56) & 255, ($L >> 48) & 255, ($L >> 40) & 255, ($L >> 32) & 255, ($L >> 24) & 255, ($L >> 16) & 255, ($L >> 8) & 255, $L & 255]);
         }
-        $m0 = $masks[0];
-        $m1 = $masks[1];
-        $m2 = $masks[2];
-        $m3 = $masks[3];
-        $text = '';
-        for ($i = 0, $text = ''; $i < $L;
-        ) {
-            $text .= $M[$i++] ^ $m0;
-            if ($i < $L) {
-                $text .= $M[$i++] ^ $m1;
-                if ($i < $L) {
-                    $text .= $M[$i++] ^ $m2;
-                    if ($i < $L) {
-                        $text .= $M[$i++] ^ $m3;
-                    }
-                }
-            }
+
+        // Generate masking key and apply it to the message payload
+        $masks = random_bytes(4);
+        $maskedPayload = '';
+
+        for ($i = 0; $i < $L; $i++) {
+            $maskedPayload .= $M[$i] ^ $masks[$i % 4];
         }
-        return (implode(array_map("chr", $bHead)) . $masks . $text);
+
+        // Combine header, masking key, and masked payload
+        return implode(array_map("chr", $bHead)) . $masks . $maskedPayload;
     }
 
     final function decodeFromServer($frame) {
-// detect ping or pong frame, or fragments
-
-        $this->fin = ord($frame[0]) & 128;
-        $this->opcode = ord($frame[0]) & 15;
+        // Detects and processes WebSocket frames, including ping, pong, and fragmented frames.
+        $this->fin = (ord($frame[0]) & 0b10000000) !== 0; // FIN bit
+        $this->opcode = ord($frame[0]) & 0b00001111;       // Opcode
         $this->frame = $frame;
-        $length = ord($frame[1]) & 127;
 
-        if ($length <= 125) {
-            $poff = 2;
-        } else if ($length == 126) {
-            $l0 = ord($frame[2]) << 8;
-            $l1 = ord($frame[3]);
-            $length = ($l0 | $l1);
+        $length = ord($frame[1]) & 0b01111111; // Mask length byte to get payload length
+        $poff = 2; // Default payload offset for lengths <= 125
+
+        if ($length === 126) {
+            $length = (ord($frame[2]) << 8) | ord($frame[3]);
             $poff = 4;
-        } else if ($length == 127) {
-            $l0 = ord($frame[2]) << 56;
-            $l1 = ord($frame[3]) << 48;
-            $l2 = ord($frame[4]) << 40;
-            $l3 = ord($frame[5]) << 32;
-            $l4 = ord($frame[6]) << 24;
-            $l5 = ord($frame[7]) << 16;
-            $l6 = ord($frame[8]) << 8;
-            $l7 = ord($frame[9]);
-            $length = ( $l0 | $l1 | $l2 | $l3 | $l4 | $l5 | $l6 | $l7);
-
+        } elseif ($length === 127) {
+            // Assemble 64-bit length for extended payloads
+            $length = 0;
+            for ($i = 2; $i < 10; $i++) {
+                $length = ($length << 8) | ord($frame[$i]);
+            }
             $poff = 10;
         }
-        $this->length = $length;
-        $data = substr($frame, $poff, $length);
 
-        return $data;
+        $this->length = $length;
+        return substr($frame, $poff, $length); // Extract payload data starting at offset
     }
+
+    
 }
