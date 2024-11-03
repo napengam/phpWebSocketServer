@@ -52,33 +52,37 @@ function socketWebClient(server, app) {
 
             const packet = JSON.parse(msg.data);
 
-            if (packet.opcode === 'next') {
-                // Server is ready for the next message
-                queue.shift();
-                if (queue.length > 0) {
-                    const nextMsg = queue[0];
-                    socket.send(nextMsg);
-                } else {
-                    queue = [];
-                }
-                return;
-            }
+            switch (packet.opcode) {
+                case 'next':
+                    // Server is ready for the next message
+                    queue.shift();
+                    if (queue.length > 0) {
+                        const nextMsg = queue[0];
+                        socket.send(nextMsg);
+                    } else {
+                        queue = [];
+                    }
+                    break;
 
-            if (packet.opcode === 'ready') {
-                // Server is ready; receive UUID from server
-                socketOpen = true;
-                socketSend = true;
-                uuidValue = packet.uuid;
-                callbackReady(packet);
-                return;
-            }
+                case 'ready':
+                    // Server is ready; receive UUID from server
+                    socketOpen = true;
+                    socketSend = true;
+                    uuidValue = packet.uuid;
+                    callbackReady(packet);
+                    break;
 
-            if (packet.opcode === 'close') {
-                // Server has closed the connection
-                socketOpen = false;
-                socketSend = false;
-                callbackStatus('Server closed connection');
-                return;
+                case 'close':
+                    // Server has closed the connection
+                    socketOpen = false;
+                    socketSend = false;
+                    callbackStatus('Server closed connection');
+                    break;
+
+                default:
+                    // Unknown opcode; pass message to external function for handling
+                    callbackReadMessage(packet);
+                    break;
             }
 
             // Pass message to external function for handling
@@ -135,32 +139,48 @@ function socketWebClient(server, app) {
     //********************************************
     //  Dummy functions; should be set from outside
     //********************************************
-    let callbackStatus = function (p) { return p; };
-    let callbackReady = function (p) { return p; };
-    let callbackReadMessage = function (p) { return p; };
-    let callbackClose = function () { return ''; };
+    let callbackStatus = function (p) {
+        return p;
+    };
+    let callbackReady = function (p) {
+        return p;
+    };
+    let callbackReadMessage = function (p) {
+        return p;
+    };
+    let callbackClose = function () {
+        return '';
+    };
 
     //**************************************************
     //  Functions to set/overwrite dummy functions above
     //**************************************************
-    function setCallbackStatus(func) { callbackStatus = func; }
-    function setCallbackReady(func) { callbackReady = func; }
-    function setCallbackReadMessage(func) { callbackReadMessage = func; }
-    function setCallbackClose(func) { callbackClose = func; }
+    function setCallbackStatus(func) {
+        callbackStatus = func;
+    }
+    function setCallbackReady(func) {
+        callbackReady = func;
+    }
+    function setCallbackReadMessage(func) {
+        callbackReadMessage = func;
+    }
+    function setCallbackClose(func) {
+        callbackClose = func;
+    }
 
     //********************************************
     //  Convenience functions for message types
     //********************************************
     function broadcast(msg) {
-        sendMsg({ 'opcode': 'broadcast', 'message': msg });
+        sendMsg({'opcode': 'broadcast', 'message': msg});
     }
 
     function feedback(msg, toUUID) {
-        sendMsg({ 'opcode': 'feedback', 'message': msg, 'uuid': toUUID, 'from': uuid });
+        sendMsg({'opcode': 'feedback', 'message': msg, 'uuid': toUUID, 'from': uuid});
     }
 
     function echo(msg) {
-        sendMsg({ 'opcode': 'echo', 'message': msg });
+        sendMsg({'opcode': 'echo', 'message': msg});
     }
 
     function quit() {
