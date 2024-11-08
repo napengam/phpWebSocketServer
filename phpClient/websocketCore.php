@@ -6,60 +6,57 @@ class websocketCore {
             $ident, $socketMaster, $key, $expectedToken, $errorHandshake, $fin, $opcode,
             $frame, $length, $fromUUID, $timeout = 2;
 
-   
-
     function __construct($Address, $ident = '') {
-    $this->ident = $ident;
-    $context = stream_context_create();
-    
-    // Extract protocol and set default port
-    $parts = explode('://', $Address, 2);
-    $protocol = (count($parts) > 1) ? strtolower($parts[0]) : 'tcp';
-    $Address = (count($parts) > 1) ? $parts[1] : $Address;
+        $this->ident = $ident;
+        $context = stream_context_create();
 
-    $isSecure = ($protocol === 'ssl' || $protocol === 'wss');
-    $defaultPort = $isSecure ? '443' : '80';
-    $prot = $isSecure ? 'ssl://' : 'tcp://';
-    
-    if ($isSecure) {
-        stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
-        stream_context_set_option($context, 'ssl', 'verify_peer', false);
-        stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
+        // Extract protocol and set default port
+        $parts = explode('://', $Address, 2);
+        $protocol = (count($parts) > 1) ? strtolower($parts[0]) : 'tcp';
+        $Address = (count($parts) > 1) ? $parts[1] : $Address;
+
+        $isSecure = ($protocol === 'ssl' || $protocol === 'wss');
+        $defaultPort = $isSecure ? '443' : '80';
+        $prot = $isSecure ? 'ssl://' : 'tcp://';
+
+        if ($isSecure) {
+            stream_context_set_option($context, 'ssl', 'allow_self_signed', true);
+            stream_context_set_option($context, 'ssl', 'verify_peer', false);
+            stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
+        }
+
+        // Extract endpoint and default to '/'
+        [$host, $app] = explode('/', $Address, 2) + [null, '/'];
+        $app = '/' . $app;
+
+        // Extract port if specified
+        [$host, $port] = explode(':', $host, 2) + [null, $defaultPort];
+        $addressWithPort = "$prot$host:$port";
+
+        $errno = 0;
+        $errstr = '';
+        $this->socketMaster = stream_socket_client($addressWithPort, $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
+
+        if (!$this->socketMaster) {
+            $this->connected = false;
+            return false;
+        }
+
+        $this->connected = true;
+        fwrite($this->socketMaster, $this->setHandshake($host, $app));
+        $buffer = fread($this->socketMaster, 1024);
+
+        if (!$this->getHandshake($buffer)) {
+            $this->silent();
+            echo $this->errorHandshake;
+            return false;
+        }
+
+        // Set a timeout for non-blocking client actions
+        stream_set_timeout($this->socketMaster, $this->timeout);
+        return true;
     }
 
-    // Extract endpoint and default to '/'
-    [$host, $app] = explode('/', $Address, 2) + [null, '/'];
-    $app = '/' . $app;
-
-    // Extract port if specified
-    [$host, $port] = explode(':', $host, 2) + [null, $defaultPort];
-    $addressWithPort = "$prot$host:$port";
-
-    $errno = 0;
-    $errstr = '';
-    $this->socketMaster = stream_socket_client($addressWithPort, $errno, $errstr, 30, STREAM_CLIENT_CONNECT, $context);
-
-    if (!$this->socketMaster) {
-        $this->connected = false;
-        return false;
-    }
-
-    $this->connected = true;
-    fwrite($this->socketMaster, $this->setHandshake($host, $app));
-    $buffer = fread($this->socketMaster, 1024);
-    
-    if (!$this->getHandshake($buffer)) {
-        $this->silent();
-        echo $this->errorHandshake;
-        return false;
-    }
-
-    // Set a timeout for non-blocking client actions
-    stream_set_timeout($this->socketMaster, $this->timeout);
-    return true;
-}
-
-    
     final function writeSocket($message) {
         if ($this->connected) {
             fwrite($this->socketMaster, $this->encodeForServer($message));
@@ -74,6 +71,7 @@ class websocketCore {
         $buff = [];
         $i = 0;
         do { // probaly reading fragements
+            $continue = false;
             $buff[$i] = $this->decodeFromServer(fread($this->socketMaster, 8192));
             if (stream_get_meta_data($this->socketMaster)['timed_out']) {
                 $this->connected = false;
@@ -85,12 +83,13 @@ class websocketCore {
                     $m = implode('', $buff);
                     $this->writeSocket($m, strlen($m));
                     $this->fin = false; // Continue reading
-                    continue;
+                    $continue = true;
+                    break;
 
                 case 10: // Pong frame
                     $this->fin = false; // Ignore, continue reading
-                    continue;
-
+                    $continue = true;
+                    break;
                 case 8: // Close frame
                     $this->silent(); // Close connection
                     return '';
@@ -99,6 +98,10 @@ class websocketCore {
                     // Adjust length remaining to read
                     $this->length -= strlen($buff[$i]);
                     break;
+            }
+            if ($continue) {
+                $continue = false;
+                continue;
             }
             $i++;
             while ($this->length > 0) { // data buffered by socket 
