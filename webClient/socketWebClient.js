@@ -85,8 +85,7 @@ function socketWebClient(server, app) {
                     break;
             }
 
-            // Pass message to external function for handling
-            callbackReadMessage(packet);
+           
         };
 
         //********************************************
