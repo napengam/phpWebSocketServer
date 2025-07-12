@@ -8,7 +8,7 @@ class getOptions {
         if (isset($in['i'])) {
             $ini = parse_ini_file($in['i'], false, INI_SCANNER_TYPED);
         } else {
-            $ini = parse_ini_file('websock.ini', false, INI_SCANNER_TYPED);
+            $ini = parse_ini_file('../config/websock.ini', false, INI_SCANNER_TYPED);
         }
         if ($ini === false) {
             openlog('websock', LOG_PID, LOG_USER);
