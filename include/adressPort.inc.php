@@ -15,5 +15,3 @@
 
 
 $Address = 'ws://localhost:8094';
-//$Address = 'wss://vmd55223.contaboserver.net:8095';
-
