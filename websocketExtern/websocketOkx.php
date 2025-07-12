@@ -2,7 +2,7 @@
 
 include __DIR__ . "/../phpClient/websocketCore.php";
 
-class websocketXrpl extends websocketCore {
+class websocketOkx extends websocketCore {
 
     function __construct($Address) {
 
@@ -36,5 +36,5 @@ class websocketXrpl extends websocketCore {
 
 }
 
-$x = new websocketXrpl("wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999");
+$x = new websocketOkx("wss://wspap.okx.com:8443/ws/v5/public?brokerId=9999");
 
