@@ -5,29 +5,6 @@ require __DIR__ .'/classLoader.php';
 class runSocketServer {
 
     function __construct() {
-//        /*
-//         * ***********************************************
-//         * the runtime
-//         * ***********************************************
-//         */
-//        require __DIR__ . '/errorHandler.php';
-//        require __DIR__ . '/logToFile.php';
-//        /*
-//         * ***********************************************
-//         * inlcude the core server
-//         * ***********************************************
-//         */
-//        require __DIR__ . "/getOptions.php";
-//        require __DIR__ . "/webSocketServer.php";
-//        /*
-//         * **********************************************
-//         *  your backend applications
-//         * **********************************************
-//         */
-//        require __DIR__ . '/resource.php';
-//        require __DIR__ . '/resourceDefault.php';
-//        require __DIR__ . '/resourceWeb.php';
-//        require __DIR__ . '/resourcePHP.php';
     }
 
     function run() {
