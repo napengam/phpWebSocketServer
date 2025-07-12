@@ -1,10 +1,9 @@
 <?php
 
 // Auto-generated class map. Do not edit manually.
-// Generated on: 2025-07-12 08:04:29
+// Generated on: 2025-07-12 08:42:02
 
 return array (
-  'classLoader' => 'F:/xampp-htdocs/phpWebSocketServer/server/classLoader.php',
   'errorHandler' => 'F:/xampp-htdocs/phpWebSocketServer/server/errorHandler.php',
   'getOptions' => 'F:/xampp-htdocs/phpWebSocketServer/server/getOptions.php',
   'logToFile' => 'F:/xampp-htdocs/phpWebSocketServer/server/logToFile.php',
@@ -15,4 +14,8 @@ return array (
   'RFC_6455' => 'F:/xampp-htdocs/phpWebSocketServer/server/RFC_6455.php',
   'runSocketServer' => 'F:/xampp-htdocs/phpWebSocketServer/server/runSocketServer.php',
   'webSocketServer' => 'F:/xampp-htdocs/phpWebSocketServer/server/webSocketServer.php',
+  'simulateBackend' => 'F:/xampp-htdocs/phpWebSocketServer/phpClient/simulateBackend.php',
+  'testWithPHPSockets' => 'F:/xampp-htdocs/phpWebSocketServer/phpClient/testWithPHPSockets.php',
+  'websocketCore' => 'F:/xampp-htdocs/phpWebSocketServer/phpClient/websocketCore.php',
+  'websocketPhp' => 'F:/xampp-htdocs/phpWebSocketServer/phpClient/websocketPhp.php',
 );

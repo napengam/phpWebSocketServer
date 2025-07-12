@@ -86,7 +86,8 @@ class ClassLoader {
  * **********************************************
  */
 $paths = [
-    'server'
+    'server',
+    'phpClient'
 ];
 
 ClassLoader::load('phpWebSocketServer', $paths);

@@ -4,7 +4,8 @@ if ( isset($argc) &&$argc > 1) {
     parse_str(implode('&', array_slice($argv, 1)), $_GET);
 }
 
-require 'websocketPhp.php';
+require __DIR__ . '/../autoload/classLoader.php';
+
 include '../include/adressPort.inc.php';
 $talk = new websocketPhp($Address . '/php');
 if (!isset($_GET['m'])) {

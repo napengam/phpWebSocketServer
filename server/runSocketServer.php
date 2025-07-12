@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ .'/classLoader.php';
+require __DIR__ . '/../autoload/classLoader.php';
 
 class runSocketServer {
 
