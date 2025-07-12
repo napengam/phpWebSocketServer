@@ -62,7 +62,7 @@ See example in directory webClient
 # Configuration
 ## Part 1
 
-- Step into the `server` directory and adapt the 
+- Step into the `config` directory and adapt the 
 - `websock.ini` to your needs.  
 You will find some documentation in this file.
 
