@@ -6,6 +6,7 @@
 Server written in PHP to handle connections via websocksets **wss:// or ws://**  
 and normal sockets over **ssl://**  
 
+- 2025-13-07 refactored
 
 - 2021-09-30 fixed ping/pong cycle to clients. $pingInterval to start pinging clients
 
@@ -63,7 +64,7 @@ See example in directory webClient
 ## Part 1
 
 - Step into the `config` directory and adapt the 
-- `websock.ini` to your needs.  
+- `websock_exmaple.ini` to your needs, rename or copy to websock.ini  
 You will find some documentation in this file.
 
 ## Part 2
