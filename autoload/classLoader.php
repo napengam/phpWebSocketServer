@@ -82,7 +82,7 @@ class ClassLoader {
 
 /*
  * ***********************************************
- * where to look below spvgg for class files
+ * where to look below given dir for class files
  * **********************************************
  */
 $paths = [
