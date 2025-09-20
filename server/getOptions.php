@@ -1,48 +1,49 @@
 <?php
 
-class getOptions {
-    public $default = [];
-    function __construct() {
-        $in = $this->getOptArgv(['-i', '-logfile', '-adress', '-console']);
+class GetOptions {
 
-        if (isset($in['i'])) {
-            $ini = parse_ini_file($in['i'], false, INI_SCANNER_TYPED);
-        } else {
-            $ini = parse_ini_file('../config/websock.ini', false, INI_SCANNER_TYPED);
+    private array $config = [];
+
+    public function __construct(array $expected = ['-i', '-logfile', '-address', '-console'], string $defaultIni = 'ini.ini') {
+        $cliOptions = $this->getOptArgv($expected);
+
+        $iniFile = $cliOptions['i'] ?? $defaultIni;
+        if (!file_exists($iniFile)) {
+            throw new RuntimeException("Config file not found: $iniFile");
         }
+        $ini = parse_ini_file($iniFile, false, INI_SCANNER_TYPED);
+
         if ($ini === false) {
-            openlog('websock', LOG_PID, LOG_USER);
-            syslog(LOG_ERR, "no ini file found or not specified");
-            closelog();
-            exit;
+            throw new RuntimeException("Failed to parse ini file: $iniFile");
         }
-        $this->default = $this->overwriteAdd($ini, $in);
-        return (object) $this->default;
+
+        // Merge CLI overrides on top of ini config
+        $this->config = array_replace($ini, $cliOptions);
     }
 
-    private function overwriteAdd($default, $param) {
-        foreach ($param as $key => $value) {
-            $default[$key] = $value;
-        }
-        return $default;
+    public function getConfig(): array {
+        return $this->config;
     }
 
-    function getOptArgv($expect) {
+    private function getOptArgv(array $expect): array {
         global $argv, $argc;
         $out = [];
+
         for ($i = 1; $i < $argc; $i++) {
-            if (array_search($argv[$i], $expect) === false) {
+            if (!in_array($argv[$i], $expect, true)) {
                 continue;
             }
-            $exp = mb_substr($argv[$i], 1);
-            if ($i + 1 < $argc && mb_substr($argv[$i + 1], 0, 1) !== '-') {
+
+            $exp = ltrim($argv[$i], '-');
+
+            if ($i + 1 < $argc && $argv[$i + 1][0] !== '-') {
                 $i++;
-                $out[$exp] = $argv[$i]; //parameter is given with value
+                $out[$exp] = $argv[$i];
             } else {
-                $out[$exp] = '1'; // parameter is given with no value
+                $out[$exp] = true; // boolean flag
             }
         }
+
         return $out;
     }
-
 }
