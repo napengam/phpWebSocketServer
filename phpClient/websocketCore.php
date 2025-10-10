@@ -222,6 +222,11 @@ class websocketCore {
     }
 
     final function decodeFromServer($frame) {
+        if ($frame === false || $frame == '' || $frame == null || !is_string($frame)) {
+            $this->opcode = 8; // force close connetioon
+            return '';
+        }
+
         // Detects and processes WebSocket frames, including ping, pong, and fragmented frames.
         $this->fin = (ord($frame[0]) & 0b10000000) !== 0; // FIN bit
         $this->opcode = ord($frame[0]) & 0b00001111;       // Opcode
