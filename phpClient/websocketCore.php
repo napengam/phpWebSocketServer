@@ -223,7 +223,10 @@ class websocketCore {
 
     final function decodeFromServer($frame) {
         if ($frame === false || $frame == '' || $frame == null || !is_string($frame)) {
-            $this->opcode = 8; // force close connetioon
+            $this->opcode = 8; // force close connetion
+            $this->fin = true;
+            $this->length = 0;
+            $this->frame = '';
             return '';
         }
 
