@@ -253,4 +253,185 @@ class websocketCore {
         $this->length = $length;
         return substr($frame, $poff, $length); // Extract payload data starting at offset
     }
+
+    final function decodeFromServerAll($initial = '') {
+        $socket = $this->socketMaster;
+
+        if ($this->connected === false || !$socket) {
+            $this->opcode = 8;
+            return '';
+        }
+
+        // Keep leftover data from previous read (handles multiple frames in one TCP read)
+        static $leftover = '';
+        $chunks = [];
+
+        if ($leftover !== '') {
+            $chunks[] = $leftover;
+            $leftover = '';
+        }
+
+        if ($initial !== '') {
+            $chunks[] = $initial;
+        }
+
+        $frame = implode('', $chunks);
+        $chunks = []; // reset buffer for future appends
+        // --- Step 1: Read at least 2 bytes for base header ---
+        while (strlen($frame) < 2) {
+            $need = 2 - strlen($frame);
+            $chunk = fread($socket, $need);
+
+            if ($chunk === false || $chunk === '') {
+                $this->connected = false;
+                $this->opcode = 8;
+                return '';
+            }
+
+            if (stream_get_meta_data($socket)['timed_out']) {
+                $this->connected = false;
+                return '';
+            }
+
+            $chunks[] = $chunk;
+        }
+        $frame = $frame . implode('', $chunks);
+
+        $b1 = ord($frame[0]);
+        $b2 = ord($frame[1]);
+
+        $this->fin = ($b1 & 0x80) !== 0;
+        $this->opcode = ($b1 & 0x0F);
+        $masked = ($b2 & 0x80) !== 0;
+        $length = ($b2 & 0x7F);
+        $offset = 2;
+
+        // --- Step 2: Handle extended lengths ---
+        if ($length === 126) {
+            $need = 4;
+            while (strlen($frame) < $need) {
+                $chunk = fread($socket, $need - strlen($frame));
+                if ($chunk === false || $chunk === '') {
+                    return '';
+                }
+                $chunks[] = $chunk;
+                $frame = $frame . implode('', $chunks);
+                $chunks = [];
+            }
+
+            $length = (ord($frame[2]) << 8) | ord($frame[3]);
+            $offset = 4;
+        } elseif ($length === 127) {
+            $need = 10;
+            while (strlen($frame) < $need) {
+                $chunk = fread($socket, $need - strlen($frame));
+                if ($chunk === false || $chunk === '') {
+                    return '';
+                }
+                $chunks[] = $chunk;
+                $frame = $frame . implode('', $chunks);
+                $chunks = [];
+            }
+
+            $length = 0;
+            for ($i = 2; $i < 10; $i++) {
+                $length = ($length << 8) | ord($frame[$i]);
+            }
+            $offset = 10;
+        }
+
+        // --- Step 3: Read mask key if present ---
+        $maskKey = '';
+        if ($masked) {
+            $need = $offset + 4;
+            while (strlen($frame) < $need) {
+                $chunk = fread($socket, $need - strlen($frame));
+                if ($chunk === false || $chunk === '') {
+                    return '';
+                }
+                $chunks[] = $chunk;
+                $frame = $frame . implode('', $chunks);
+                $chunks = [];
+            }
+            $maskKey = substr($frame, $offset, 4);
+            $offset += 4;
+        }
+
+        // --- Step 4: Read payload ---
+        $need = $offset + $length;
+        while (strlen($frame) < $need) {
+            $chunk = fread($socket, $need - strlen($frame));
+            if ($chunk === false || $chunk === '') {
+                return '';
+            }
+            $chunks[] = $chunk;
+            $frame = $frame . implode('', $chunks);
+            $chunks = [];
+        }
+
+        // --- Step 5: Handle extra (multiple frames in one TCP read) ---
+        if (strlen($frame) > $need) {
+            $leftover = substr($frame, $need);
+        }
+
+        $payloadRaw = substr($frame, $offset, $length);
+        $this->length = $length;
+        $this->frame = $frame;
+
+        // --- Step 6: Unmask (array-safe, no .=) ---
+        if ($masked && $maskKey !== '') {
+            $decodedParts = [];
+            for ($i = 0; $i < $length; $i++) {
+                $decodedParts[] = $payloadRaw[$i] ^ $maskKey[$i % 4];
+            }
+            $payloadDecoded = implode('', $decodedParts);
+        } else {
+            $payloadDecoded = $payloadRaw;
+        }
+
+        return $payloadDecoded;
+    }
+
+    final function readSocketAll() {
+        if ($this->connected === false) {
+            return '';
+        }
+
+        $messageParts = [];
+
+        do {
+            // Read one complete WebSocket frame (decodeFromServer handles partial TCP reads)
+            $payload = $this->decodeFromServer();
+
+            // Handle socket errors or closed connection
+            if ($payload === '' && $this->opcode === 8) {
+                $this->silent(); // gracefully close
+                return '';
+            }
+
+            // Handle special opcodes
+            if ($this->opcode === 9) { // Ping
+                $this->writeSocket($payload, strlen($payload), 0xA); // send Pong
+                continue; // wait for next frame
+            }
+
+            if ($this->opcode === 10) { // Pong
+                // ignore, just continue reading
+                continue;
+            }
+
+            if ($this->opcode === 8) { // Close
+                $this->silent();
+                return '';
+            }
+
+            // Normal data frame: accumulate payload
+            $messageParts[] = $payload;
+
+            // Continue reading if fragmented (FIN == false)
+        } while ($this->fin === false);
+
+        // Join all message fragments into a complete message
+        return implode('', $messageParts);
+    }
 }
