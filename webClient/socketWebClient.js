@@ -1,107 +1,143 @@
+
 function socketWebClient(server, app) {
     'use strict';
 
     let queue = [];
-    let uuidValue;
+    let uuidValue = null;
     let socket = null;
-    const chunkSize = 0 * 1024;  // Define chunk size, currently 0
+    const chunkSize = 0 * 1024; // bytes, 0 disables chunking
     let socketOpen = false;
     let socketSend = false;
+    let reconnectDelay = 1000; // start with 1s backoff
 
+    // ********************************************
+    //  Generate / get UUID assigned by server
+    // ********************************************
     function uuid() {
         return uuidValue;
     }
 
+    // ********************************************
+    //  Initialize socket connection
+    // ********************************************
     function init() {
         if (socket !== null) {
             socket.close();
         }
 
-        //********************************************
-        //  connect to server at port
-        //********************************************
         try {
             socket = new WebSocket(server + app);
-            callbackStatus('Try to connect ...');
+            callbackStatus('Trying to connect ...');
         } catch (e) {
             socket = null;
+            callbackStatus('WebSocket initialization failed: ' + e.message);
             return;
         }
 
+        // -----------------------------------------
+        //  Handle socket open
+        // -----------------------------------------
         socket.onopen = function () {
             queue = [];
+            socketOpen = true;
+            socketSend = true;
+            reconnectDelay = 1000; // reset backoff
             callbackStatus('Connected');
         };
 
-        socket.onerror = function () {
+        // -----------------------------------------
+        //  Handle socket errors
+        // -----------------------------------------
+        socket.onerror = function (err) {
             if (!socketSend) {
                 callbackStatus('Cannot connect to specified server');
             }
             socketSend = false;
             socketOpen = false;
             queue = [];
+            console.error('WebSocket error:', err);
         };
 
-        //********************************************
-        //  handle message from server
-        //********************************************
+        // -----------------------------------------
+        //  Handle messages from server
+        // -----------------------------------------
         socket.onmessage = function (msg) {
             if (msg.data.length === 0 || msg.data.includes('pong')) {
                 return;
             }
 
-            const packet = JSON.parse(msg.data);
+            let packet;
+            try {
+                packet = JSON.parse(msg.data);
+            } catch (e) {
+                console.error('Invalid JSON from server:', msg.data);
+                return;
+            }
 
             switch (packet.opcode) {
-                case 'next':
-                    // Server is ready for the next message
+                case 'next': {
+                    // Server is ready for next message
                     queue.shift();
                     if (queue.length > 0) {
-                        const nextMsg = queue[0];
-                        socket.send(nextMsg);
+                        try {
+                            socket.send(queue[0]);
+                        } catch (e) {
+                            console.error('Send failed:', e);
+                        }
                     } else {
                         queue = [];
                     }
                     break;
+                }
 
-                case 'ready':
-                    // Server is ready; receive UUID from server
+                case 'ready': {
                     socketOpen = true;
                     socketSend = true;
                     uuidValue = packet.uuid;
                     callbackReady(packet);
                     break;
+                }
 
-                case 'close':
-                    // Server has closed the connection
+                case 'close': {
                     socketOpen = false;
                     socketSend = false;
                     callbackStatus('Server closed connection');
                     break;
+                }
 
-                default:
-                    // Unknown opcode; pass message to external function for handling
+                default: {
                     callbackReadMessage(packet);
                     break;
+                }
             }
-
-           
         };
 
-        //********************************************
-        //  handle socket close
-        //********************************************
+        // -----------------------------------------
+        //  Handle socket close + reconnect
+        // -----------------------------------------
         socket.onclose = function () {
             queue = [];
             socketOpen = false;
             socketSend = false;
             callbackClose();
+            attemptReconnect();
         };
     }
 
-    //********************************************
-    //  queue messages to be sent
-    //********************************************
+    // ********************************************
+    //  Reconnection logic with exponential backoff
+    // ********************************************
+    function attemptReconnect() {
+        callbackStatus(`Reconnecting in ${reconnectDelay / 1000}s...`);
+        setTimeout(() => {
+            reconnectDelay = Math.min(reconnectDelay * 2, 30000); // cap at 30s
+            init();
+        }, reconnectDelay);
+    }
+
+    // ********************************************
+    //  Queue messages to be sent
+    // ********************************************
     function sendMsg(msgObj) {
         if (!socketSend || !socketOpen) {
             return;
@@ -116,9 +152,10 @@ function socketWebClient(server, app) {
             if (queue.length === 0) {
                 sendNow = true;
             }
-            queue.push('bufferON');  // Start of large message chunks
 
+            queue.push('bufferON');
             const nChunks = Math.floor(msg.length / chunkSize);
+
             for (let i = 0, j = 0; i < nChunks; i++, j += chunkSize) {
                 queue.push(msg.slice(j, j + chunkSize));
             }
@@ -126,34 +163,49 @@ function socketWebClient(server, app) {
             if (msg.length % chunkSize > 0) {
                 queue.push(msg.slice(nChunks * chunkSize));
             }
-            queue.push('bufferOFF');  // End of large message chunks
+
+            queue.push('bufferOFF');
         }
 
         if ((queue.length === 1 || sendNow) && socketOpen) {
-            socket.send(queue[0]);
-            sendNow = false;
+            try {
+                socket.send(queue[0]);
+            } catch (e) {
+                console.error('Failed to send message:', e);
+                socketSend = false;
+            }
         }
     }
 
-    //********************************************
-    //  Dummy functions; should be set from outside
-    //********************************************
-    let callbackStatus = function (p) {
-        return p;
-    };
-    let callbackReady = function (p) {
-        return p;
-    };
-    let callbackReadMessage = function (p) {
-        return p;
-    };
-    let callbackClose = function () {
-        return '';
-    };
+    // ********************************************
+    //  Promise-based async send
+    // ********************************************
+    async function sendAsync(msgObj) {
+        return new Promise((resolve, reject) => {
+            if (!socketOpen) {
+                reject('Socket not open');
+                return;
+            }
+            try {
+                sendMsg(msgObj);
+                resolve();
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
 
-    //**************************************************
-    //  Functions to set/overwrite dummy functions above
-    //**************************************************
+    // ********************************************
+    //  Default callbacks (can be replaced externally)
+    // ********************************************
+    let callbackStatus = function (p) { return p; };
+    let callbackReady = function (p) { return p; };
+    let callbackReadMessage = function (p) { return p; };
+    let callbackClose = function () { return ''; };
+
+    // ********************************************
+    //  Callback setters
+    // ********************************************
     function setCallbackStatus(func) {
         callbackStatus = func;
     }
@@ -167,23 +219,25 @@ function socketWebClient(server, app) {
         callbackClose = func;
     }
 
-    //********************************************
-    //  Convenience functions for message types
-    //********************************************
+    // ********************************************
+    //  Convenience message types
+    // ********************************************
     function broadcast(msg) {
-        sendMsg({'opcode': 'broadcast', 'message': msg});
+        sendMsg({ opcode: 'broadcast', message: msg });
     }
 
     function feedback(msg, toUUID) {
-        sendMsg({'opcode': 'feedback', 'message': msg, 'uuid': toUUID, 'from': uuid});
+        sendMsg({ opcode: 'feedback', message: msg, uuid: toUUID, from: uuidValue });
     }
 
     function echo(msg) {
-        sendMsg({'opcode': 'echo', 'message': msg});
+        sendMsg({ opcode: 'echo', message: msg });
     }
 
     function quit() {
-        socket.close();
+        if (socket) {
+            socket.close();
+        }
         socketOpen = false;
         socketSend = false;
     }
@@ -192,12 +246,13 @@ function socketWebClient(server, app) {
         return socketOpen;
     }
 
-    //********************************************
-    //  Expose functions to the caller
-    //********************************************
+    // ********************************************
+    //  Public API
+    // ********************************************
     return {
         init,
         sendMsg,
+        sendAsync,
         uuid,
         quit,
         isOpen,
