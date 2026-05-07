@@ -16,9 +16,9 @@
         <div style="border:1px solid black;display:inline-block">
             <button id="echo" >Echo message</button>  Here you will see echo : <b><span id='echomsg'></span> </b>
         </div><p>
-<!--        <div style="border:1px solid black;display:inline-block">
-            <button id="ping" >Ping me</button> <b><span id='pingmsg'></span> </b>
-        </div>-->
+            <!--        <div style="border:1px solid black;display:inline-block">
+                        <button id="ping" >Ping me</button> <b><span id='pingmsg'></span> </b>
+                    </div>-->
         <hr>
         <button id="ready" >Talk to others; my UUID=<b><span id='uuid'></span></b> </button>
         <div id="broadcast">
@@ -33,7 +33,6 @@
          */
         echo "<script>"
         . "server='$Address';"
-        . "port='$Port';"
         . "</script>";
         ?>
         <script src="socketWebClient.js"></script>

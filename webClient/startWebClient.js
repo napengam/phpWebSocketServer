@@ -9,10 +9,10 @@ function startGUI() {
     //*******************************************
 
     sock = socketWebClient(server, '/web');
-    sock.setCallbackReady(ready);
-    sock.setCallbackReadMessage(readMessage);
-    sock.setCallbackStatus(sockStatus);
-    sock.setCallbackClose(closeSocket);
+    sock.setCallback('ready',ready );
+    sock.setCallback('ReadMessage', readMessage);
+    sock.setCallback('Status', sockStatus);
+    sock.setCallback('Close', closeSocket);
 
     sock.init();
 

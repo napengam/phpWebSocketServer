@@ -8,7 +8,7 @@ function socketWebClient(server, app) {
     const chunkSize = 0 * 1024; // bytes, 0 disables chunking
     let socketOpen = false;
     let socketSend = false;
-    let reconnectDelay = 1000; // start with 1s backoff
+  
 
     // ********************************************
     //  Generate / get UUID assigned by server
@@ -27,10 +27,10 @@ function socketWebClient(server, app) {
 
         try {
             socket = new WebSocket(server + app);
-            callbackStatus('Trying to connect ...');
+            callbacks.status('Trying to connect ...');
         } catch (e) {
             socket = null;
-            callbackStatus('WebSocket initialization failed: ' + e.message);
+            callbacks.status('WebSocket initialization failed: ' + e.message);
             return;
         }
 
@@ -40,9 +40,8 @@ function socketWebClient(server, app) {
         socket.onopen = function () {
             queue = [];
             socketOpen = true;
-            socketSend = true;
-            reconnectDelay = 1000; // reset backoff
-            callbackStatus('Connected');
+            socketSend = true;    
+            callbacks.status('Connected');
         };
 
         // -----------------------------------------
@@ -50,7 +49,7 @@ function socketWebClient(server, app) {
         // -----------------------------------------
         socket.onerror = function (err) {
             if (!socketSend) {
-                callbackStatus('Cannot connect to specified server');
+                callbacks.status('Cannot connect to specified server');
             }
             socketSend = false;
             socketOpen = false;
@@ -75,7 +74,8 @@ function socketWebClient(server, app) {
             }
 
             switch (packet.opcode) {
-                case 'next': {
+                case 'next':
+                {
                     // Server is ready for next message
                     queue.shift();
                     if (queue.length > 0) {
@@ -90,23 +90,26 @@ function socketWebClient(server, app) {
                     break;
                 }
 
-                case 'ready': {
+                case 'ready':
+                {
                     socketOpen = true;
                     socketSend = true;
                     uuidValue = packet.uuid;
-                    callbackReady(packet);
+                    callbacks.ready(packet);
                     break;
                 }
 
-                case 'close': {
+                case 'close':
+                {
                     socketOpen = false;
                     socketSend = false;
-                    callbackStatus('Server closed connection');
+                    callbacks.status('Server closed connection');
                     break;
                 }
 
-                default: {
-                    callbackReadMessage(packet);
+                default:
+                {
+                    callbacks.readmessage(packet);
                     break;
                 }
             }
@@ -119,20 +122,10 @@ function socketWebClient(server, app) {
             queue = [];
             socketOpen = false;
             socketSend = false;
-            callbackClose();
-            attemptReconnect();
-        };
-    }
+            callbacks.close();
+            uuidValue = null;
 
-    // ********************************************
-    //  Reconnection logic with exponential backoff
-    // ********************************************
-    function attemptReconnect() {
-        callbackStatus(`Reconnecting in ${reconnectDelay / 1000}s...`);
-        setTimeout(() => {
-            reconnectDelay = Math.min(reconnectDelay * 2, 30000); // cap at 30s
-            init();
-        }, reconnectDelay);
+        };
     }
 
     // ********************************************
@@ -196,42 +189,39 @@ function socketWebClient(server, app) {
     }
 
     // ********************************************
-    //  Default callbacks (can be replaced externally)
-    // ********************************************
-    let callbackStatus = function (p) { return p; };
-    let callbackReady = function (p) { return p; };
-    let callbackReadMessage = function (p) { return p; };
-    let callbackClose = function () { return ''; };
+// Callbacks (Default) all lower case
+// ********************************************
+    let callbacks = {
+        status: p => p,
+        ready: p => p,
+        readmessage: p => p,
+        close: () => ''
+    };
 
-    // ********************************************
-    //  Callback setters
-    // ********************************************
-    function setCallbackStatus(func) {
-        callbackStatus = func;
+// ********************************************
+// Setter
+// ********************************************
+    function setCallback(type, func) {
+        type = type.toLowerCase();
+        if (callbacks[type]) {
+            callbacks[type] = func;
+        }
     }
-    function setCallbackReady(func) {
-        callbackReady = func;
-    }
-    function setCallbackReadMessage(func) {
-        callbackReadMessage = func;
-    }
-    function setCallbackClose(func) {
-        callbackClose = func;
-    }
+
 
     // ********************************************
     //  Convenience message types
     // ********************************************
     function broadcast(msg) {
-        sendMsg({ opcode: 'broadcast', message: msg });
+        sendMsg({opcode: 'broadcast', message: msg});
     }
 
     function feedback(msg, toUUID) {
-        sendMsg({ opcode: 'feedback', message: msg, uuid: toUUID, from: uuidValue });
+        sendMsg({opcode: 'feedback', message: msg, uuid: toUUID, from: uuidValue});
     }
 
     function echo(msg) {
-        sendMsg({ opcode: 'echo', message: msg });
+        sendMsg({opcode: 'echo', message: msg});
     }
 
     function quit() {
@@ -256,10 +246,8 @@ function socketWebClient(server, app) {
         uuid,
         quit,
         isOpen,
-        setCallbackStatus,
-        setCallbackReady,
-        setCallbackReadMessage,
-        setCallbackClose,
+        setCallback,
+        callbacks,
         broadcast,
         feedback,
         echo
