@@ -195,16 +195,22 @@ class webSocketServer {
                      * get message from client
                      * ***********************************************
                      */
+                    $frames = $this->readDecode($SocketID);
 
-                    $message = $this->extractMessage($SocketID);
-                    if ($message != '') {
-                        /*
-                         * ***********************************************
-                         * route message to application class 
-                         * ***********************************************
-                         */
-                        $Client->app->onData($SocketID, $message);
+                    foreach ($frames as $frame) {
+
+                        $opcode = $frame['opcode'];
+                        $message = $frame['data'];
+
+                        // interne Verarbeitung (ping/pong/close/buffer/etc)
+                        $this->extractMessage($SocketID, $opcode, $message);
+
+                        // NUR echte Daten weitergeben
+                        if ($opcode === 1 && $message !== '') {
+                            $Client->app->onData($SocketID, $message);
+                        }
                     }
+
                     continue;
                 }
                 /*
@@ -273,11 +279,10 @@ class webSocketServer {
         return $SocketID;
     }
 
-    private function extractMessage($SocketID) {
+    private function extractMessage($SocketID,$opcode,$message) {
         $client = $this->Clients[$SocketID];
 
-        $message = $this->readDecode($SocketID);
-        $opcode = $this->opcode; // opcode within from current frame
+             
         $this->opcode = 1; // text , back to default;
 
         if ($opcode == 10) { //pong

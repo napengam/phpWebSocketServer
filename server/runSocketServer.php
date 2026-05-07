@@ -16,7 +16,7 @@ class runSocketServer {
          */
 
         $o = new getOptions();
-        $option = $o->default;
+        $option = $o->getConfig();
         /*
          * ***********************************************
          * create a logger

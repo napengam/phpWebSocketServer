@@ -2,6 +2,9 @@
 
 trait RFC_6455 {
 
+    private $buffers = [];
+    private $fragmentBuffer = [];
+
     public function encode($message) {
         $length = strlen($message);
         $header = [];
@@ -30,7 +33,119 @@ trait RFC_6455 {
         return implode(array_map("chr", $header)) . $message;
     }
 
-    public function readDecode($socketID) {
+  public function readDecode($socketID) {
+    $socket = $this->Sockets[$socketID];
+
+    if (!isset($this->buffers[$socketID])) {
+        $this->buffers[$socketID] = '';
+    }
+
+    if (!isset($this->fragmentBuffer[$socketID])) {
+        $this->fragmentBuffer[$socketID] = '';
+    }
+
+    $messages = [];
+
+    $chunk = fread($socket, 8192);
+
+    if ($chunk === false || $chunk === '') {
+        return [['opcode' => 8, 'data' => '']];
+    }
+
+    $this->buffers[$socketID] .= $chunk;
+    $buffer = &$this->buffers[$socketID];
+
+    while (true) {
+
+        if (strlen($buffer) < 2) {
+            break;
+        }
+
+        $b1 = ord($buffer[0]);
+        $b2 = ord($buffer[1]);
+
+        $fin    = ($b1 & 128) !== 0;
+        $opcode = $b1 & 15;
+
+        $masked = ($b2 & 128) !== 0;
+        $length = $b2 & 127;
+
+        $offset = 2;
+
+        // extended length
+        if ($length === 126) {
+            if (strlen($buffer) < 4) break;
+            $length = unpack('n', substr($buffer, 2, 2))[1];
+            $offset = 4;
+        } elseif ($length === 127) {
+            if (strlen($buffer) < 10) break;
+            $length = unpack('J', substr($buffer, 2, 8))[1];
+            $offset = 10;
+        }
+
+        // mask
+        if ($masked) {
+            if (strlen($buffer) < $offset + 4) break;
+            $mask = substr($buffer, $offset, 4);
+            $offset += 4;
+        } else {
+            $mask = '';
+        }
+
+        // payload
+        if (strlen($buffer) < $offset + $length) {
+            break;
+        }
+
+        $payload = substr($buffer, $offset, $length);
+
+        // unmask
+        if ($masked) {
+            $data = '';
+            for ($i = 0; $i < $length; $i++) {
+                $data .= $payload[$i] ^ $mask[$i % 4];
+            }
+        } else {
+            $data = $payload;
+        }
+
+        // buffer kürzen
+        $buffer = substr($buffer, $offset + $length);
+
+        // --- Fragment Handling ---
+        if ($opcode === 0) {
+            // continuation
+            $this->fragmentBuffer[$socketID] .= $data;
+
+            if ($fin) {
+                $messages[] = [
+                    'opcode' => 1,
+                    'data' => $this->fragmentBuffer[$socketID]
+                ];
+                $this->fragmentBuffer[$socketID] = '';
+            }
+
+            continue;
+        }
+
+        if (!$fin) {
+            // start fragment
+            $this->fragmentBuffer[$socketID] = $data;
+            continue;
+        }
+
+        // --- normale Message ---
+        $messages[] = [
+            'opcode' => $opcode,
+            'data' => $data
+        ];
+    }
+
+    return $messages;
+}
+
+
+    public function xreadDecode($socketID) {
         $socket = $this->Sockets[$socketID];
         $frame = fread($socket, 8192);
 
@@ -176,5 +291,42 @@ trait RFC_6455 {
 
         // Return as-is if no pattern matches (fallback for invalid input)
         return (object) ['ip' => $inIP, 'port' => ''];
+    }
+
+    public function sendPong($socketID, $payload = '') {
+        $socket = $this->Sockets[$socketID];
+
+        if (!$socket) {
+            return;
+        }
+
+        $frame = '';
+        $length = strlen($payload);
+
+        // FIN + Pong (0xA)
+        $frame .= chr(0x80 | 0x0A);
+
+        // Length
+        if ($length <= 125) {
+            $frame .= chr($length);
+        } else {
+            if ($length <= 65535) {
+                $frame .= chr(126);
+                $frame .= pack('n', $length);
+            } else {
+                $frame .= chr(127);
+
+                for ($i = 7; $i >= 0; $i--) {
+                    $frame .= chr(($length >> ($i * 8)) & 0xFF);
+                }
+            }
+        }
+
+        // Payload
+        if ($length > 0) {
+            $frame .= $payload;
+        }
+
+        fwrite($socket, $frame);
     }
 }

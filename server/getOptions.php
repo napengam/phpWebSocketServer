@@ -4,7 +4,7 @@ class GetOptions {
 
     private array $config = [];
 
-    public function __construct(array $expected = ['-i', '-logfile', '-address', '-console'], string $defaultIni = '../config/websocket.ini') {
+    public function __construct(array $expected = ['-i', '-logfile', '-address', '-console'], string $defaultIni = '../config/websock.ini') {
         $cliOptions = $this->getOptArgv($expected);
 
         $iniFile = $cliOptions['i'] ?? $defaultIni;
