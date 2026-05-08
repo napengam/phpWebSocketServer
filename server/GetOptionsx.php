@@ -1,6 +1,6 @@
 <?php
 
-class GetOptions {
+class GetOptionsx {
 
     private array $config = [];
 
