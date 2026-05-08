@@ -5,6 +5,7 @@ require __DIR__ . '/../autoload/classLoader.php';
 class runSocketServer {
 
     function __construct() {
+        
     }
 
     function run() {
@@ -15,7 +16,7 @@ class runSocketServer {
          * ***********************************************
          */
 
-        $o = new getOptions();
+        $o = new getOptions('phpWebSocketServer', 'websock.ini');
         $option = $o->getConfig();
         /*
          * ***********************************************
@@ -24,9 +25,7 @@ class runSocketServer {
          * log to console
          * ***********************************************
          */
-
-        $logger = new logToFile($option['logfile'], 'phpwebsocketserver','',$option['console']);
-        
+        $logger = new logToFile($option['logfile'], 'phpwebsocketserver', '', $option['console']);
         /*
          * *****************************************
          * create server 
@@ -40,7 +39,7 @@ class runSocketServer {
          */
         $server->maxPerIP = 0;   // 0=unlimited 
         $server->maxClients = 0; // 0=unlimited 
-        $server->pingInterval=0; // unit is seconds; 0=no pings to clients
+        $server->pingInterval = 0; // unit is seconds; 0=no pings to clients
         /*
          * ***********************************************
          * instantiate backend 'applications'
@@ -66,7 +65,6 @@ class runSocketServer {
 
         $server->Start();
     }
-
 }
 
 /*
