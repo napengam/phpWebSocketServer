@@ -1,10 +1,9 @@
 <?php
 // Auto-generated autoload map. Do not edit.
-// Generated: 2026-05-08 13:36:16
+// Generated: 2026-05-08 13:46:03
 return array (
   'classes' => 
   array (
-    'GetOptions' => 'F:\\laragon\\www\\phpWebSocketServer/server\\GetOptions.php',
     'logToFile' => 'F:\\laragon\\www\\phpWebSocketServer/server\\logToFile.php',
     'resource' => 'F:\\laragon\\www\\phpWebSocketServer/server\\resource.php',
     'resourceDefault' => 'F:\\laragon\\www\\phpWebSocketServer/server\\resourceDefault.php',
