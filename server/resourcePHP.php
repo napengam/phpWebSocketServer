@@ -6,7 +6,7 @@
  * **********************************************
  */
 
-class resourcePhp extends resource {
+class resourcePHP extends resource {
 
     private $packet; //, $server;
 
