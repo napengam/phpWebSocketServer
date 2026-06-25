@@ -65,7 +65,6 @@ class websocketCore {
     }
 
     final function readSocket() {
-
         if ($this->connected === false) {
             return '';
         }
@@ -262,55 +261,41 @@ class websocketCore {
             $this->opcode = 8;
             return [];
         }
-
         if (!isset($this->buffer)) {
             $this->buffer = '';
         }
-
         if (!isset($this->fragmentBuffer)) {
             $this->fragmentBuffer = '';
         }
-
         if (!isset($this->fragmentOpcode)) {
             $this->fragmentOpcode = null;
         }
-
         if ($initial !== '') {
             $this->buffer .= $initial;
         }
-
         // --- Daten nachladen (non-blocking freundlich) ---
         $chunk = fread($socket, 8192);
-
         if ($chunk !== false && $chunk !== '') {
             $this->buffer .= $chunk;
         }
-
         $messages = [];
-
         // --- Loop: mehrere Frames verarbeiten ---
         while (true) {
-
             if (strlen($this->buffer) < 2) {
                 break;
             }
-
             $b1 = ord($this->buffer[0]);
             $b2 = ord($this->buffer[1]);
-
             $fin = (($b1 & 0x80) !== 0);
             $opcode = ($b1 & 0x0F);
             $masked = (($b2 & 0x80) !== 0);
             $length = ($b2 & 0x7F);
-
             $offset = 2;
-
             // --- Extended Length ---
             if ($length === 126) {
                 if (strlen($this->buffer) < 4) {
                     break;
                 }
-
                 $length = ((ord($this->buffer[2]) << 8) | ord($this->buffer[3]));
                 $offset = 4;
             } else {
@@ -318,50 +303,37 @@ class websocketCore {
                     if (strlen($this->buffer) < 10) {
                         break;
                     }
-
                     $length = 0;
-
                     for ($i = 2; $i < 10; $i++) {
                         $length = (($length << 8) | ord($this->buffer[$i]));
                     }
-
                     $offset = 10;
                 }
             }
-
             // --- Mask ---
             $maskKey = '';
-
             if ($masked) {
                 if (strlen($this->buffer) < ($offset + 4)) {
                     break;
                 }
-
                 $maskKey = substr($this->buffer, $offset, 4);
                 $offset += 4;
             }
-
             // --- Payload komplett? ---
             if (strlen($this->buffer) < ($offset + $length)) {
                 break;
             }
-
             $payload = substr($this->buffer, $offset, $length);
-
             // --- Buffer kürzen ---
             $this->buffer = substr($this->buffer, $offset + $length);
-
             // --- Unmask ---
             if ($masked) {
                 $decoded = '';
-
                 for ($i = 0; $i < $length; $i++) {
                     $decoded .= ($payload[$i] ^ $maskKey[$i % 4]);
                 }
-
                 $payload = $decoded;
             }
-
             // --- Control Frames ---
             if ($opcode === 0x8) {
                 $this->connected = false;
@@ -376,12 +348,10 @@ class websocketCore {
                     }
                 }
             }
-
             // --- Fragmentierung ---
             if ($opcode === 0x0) {
                 // continuation
                 $this->fragmentBuffer .= $payload;
-
                 if ($fin) {
                     $messages[] = $this->fragmentBuffer;
                     $this->fragmentBuffer = '';
@@ -399,7 +369,6 @@ class websocketCore {
                 }
             }
         }
-
         return $messages;
     }
 
@@ -407,41 +376,32 @@ class websocketCore {
         if ($this->connected === false) {
             return '';
         }
-
         $messageParts = [];
-
         do {
             // Read one complete WebSocket frame (decodeFromServer handles partial TCP reads)
             $payload = $this->decodeFromServer();
-
             // Handle socket errors or closed connection
             if ($payload === '' && $this->opcode === 8) {
                 $this->silent(); // gracefully close
                 return '';
             }
-
             // Handle special opcodes
             if ($this->opcode === 9) { // Ping
                 $this->writeSocket($payload, strlen($payload), 0xA); // send Pong
                 continue; // wait for next frame
             }
-
             if ($this->opcode === 10) { // Pong
                 // ignore, just continue reading
                 continue;
             }
-
             if ($this->opcode === 8) { // Close
                 $this->silent();
                 return '';
             }
-
             // Normal data frame: accumulate payload
             $messageParts[] = $payload;
-
             // Continue reading if fragmented (FIN == false)
         } while ($this->fin === false);
-
         // Join all message fragments into a complete message
         return implode('', $messageParts);
     }
