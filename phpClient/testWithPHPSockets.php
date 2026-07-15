@@ -4,7 +4,14 @@ if ( isset($argc) &&$argc > 1) {
     parse_str(implode('&', array_slice($argv, 1)), $_GET);
 }
 
-require __DIR__ . '/../autoload/classLoader.php';
+require __DIR__ . '/../server/ClassLoader.php';
+
+$paths = [
+    'server',
+    'phpClient'
+];
+
+ClassLoader::load($paths);
 
 include '../include/adressPort.inc.php';
 $talk = new websocketPhp($Address . '/php');

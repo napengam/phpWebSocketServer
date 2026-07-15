@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/../autoload/classLoader.php';
+require __DIR__ . '/classLoader.php';
 
 class runSocketServer {
 
@@ -16,8 +16,9 @@ class runSocketServer {
          * ***********************************************
          */
 
-        $o = new GetOptionsx('phpWebSocketServer', 'websock.ini');
-        $option = $o->getConfig();
+        // $o = new GetOptionsx('phpWebSocketServer', 'websock.ini');
+        $option = GetAllConfig::load();
+        //$option = $o->getConfig();
         /*
          * ***********************************************
          * create a logger
@@ -72,5 +73,13 @@ class runSocketServer {
  * start 
  * ***********************************************
  */
+
+$paths = [
+    'server',
+    'phpClient'
+];
+
+ClassLoader::load($paths);
+
 (new runSocketServer())->run();
 
