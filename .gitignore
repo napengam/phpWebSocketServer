@@ -3,3 +3,6 @@
 /monitor/
 /ignore/
 /test/
+/autoload/autoload_map.php
+/server/server.crt
+/server/server.key

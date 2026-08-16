@@ -13,8 +13,8 @@ class websocketPhp extends websocketCore {
         if (parent::__construct($Address, $myIdent)) {
 
             $buff = fread($this->socketMaster, 1024); // wait for ACK       
-            $buff = $this->decodeFromServerAll($buff);
-            $json = json_decode($buff[0]);
+            $buff = $this->decodeFromServer($buff);
+            $json = json_decode($buff);
             if ($json->opcode != 'ready') {
                 $this->connected = false;
                 return;

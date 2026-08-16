@@ -17,7 +17,7 @@ class runSocketServer {
          */
 
         // $o = new GetOptionsx('phpWebSocketServer', 'websock.ini');
-        $option = GetAllConfig::load();
+        $option = GetAllConfig::load()['websocketserver'];
         //$option = $o->getConfig();
         /*
          * ***********************************************

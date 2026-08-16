@@ -1,4 +1,3 @@
-
 function socketWebClient(server, app) {
     'use strict';
 
@@ -8,7 +7,6 @@ function socketWebClient(server, app) {
     const chunkSize = 0 * 1024; // bytes, 0 disables chunking
     let socketOpen = false;
     let socketSend = false;
-  
 
     // ********************************************
     //  Generate / get UUID assigned by server
@@ -124,7 +122,6 @@ function socketWebClient(server, app) {
             socketSend = false;
             callbacks.close();
             uuidValue = null;
-
         };
     }
 
@@ -137,30 +134,9 @@ function socketWebClient(server, app) {
         }
 
         const msg = JSON.stringify(msgObj);
-        let sendNow = false;
+        queue.push(msg);
 
-        if (msg.length < chunkSize || chunkSize === 0) {
-            queue.push(msg);
-        } else {
-            if (queue.length === 0) {
-                sendNow = true;
-            }
-
-            queue.push('bufferON');
-            const nChunks = Math.floor(msg.length / chunkSize);
-
-            for (let i = 0, j = 0; i < nChunks; i++, j += chunkSize) {
-                queue.push(msg.slice(j, j + chunkSize));
-            }
-
-            if (msg.length % chunkSize > 0) {
-                queue.push(msg.slice(nChunks * chunkSize));
-            }
-
-            queue.push('bufferOFF');
-        }
-
-        if ((queue.length === 1 || sendNow) && socketOpen) {
+        if (queue.length === 1 && socketOpen) {
             try {
                 socket.send(queue[0]);
             } catch (e) {
@@ -189,8 +165,8 @@ function socketWebClient(server, app) {
     }
 
     // ********************************************
-// Callbacks (Default) all lower case
-// ********************************************
+    // Callbacks (Default) all lower case
+    // ********************************************
     let callbacks = {
         status: p => p,
         ready: p => p,
@@ -198,16 +174,15 @@ function socketWebClient(server, app) {
         close: () => ''
     };
 
-// ********************************************
-// Setter
-// ********************************************
+    // ********************************************
+    // Setter
+    // ********************************************
     function setCallback(type, func) {
         type = type.toLowerCase();
         if (callbacks[type]) {
             callbacks[type] = func;
         }
     }
-
 
     // ********************************************
     //  Convenience message types
