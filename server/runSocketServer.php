@@ -32,7 +32,8 @@ class runSocketServer {
          * create server 
          * *****************************************
          */
-        $server = new webSocketServer($option['adress'], $logger, $option['certFile'], $option['pkFile']);
+        //$server = new webSocketServer($option['adress'], $logger, $option['certFile'], $option['pkFile']);
+        $server = new webSocketServer($option['adress'], $logger);
         /*
          * ***********************************************
          * set some server variables

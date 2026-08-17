@@ -72,7 +72,7 @@ trait RFC_6455 {
             $b1 = ord($buffer[0]);
             $b2 = ord($buffer[1]);
 
-            $fin    = ($b1 & 128) !== 0;
+            $fin = ($b1 & 128) !== 0;
             $opcode = $b1 & 15;
 
             $masked = ($b2 & 128) !== 0;
@@ -164,7 +164,8 @@ trait RFC_6455 {
     }
 
     protected function Handshake($Socket, $Buffer) {
-        $SocketID = (int) $Socket;
+        $SocketID = intval($Socket);
+        $Client = $this->Clients[$SocketID];
         $Headers = [];
         $errorResponses = [];
         $lines = explode("\n", $Buffer);
@@ -180,7 +181,8 @@ trait RFC_6455 {
                 }
             }
         }
-
+        // Save parsed headers onto the Client object
+        $Client->headers = $Headers;
         $this->Log("Handshake: " . ($Headers['get'] ?? 'Unknown') . " Client");
 
         // Check required headers

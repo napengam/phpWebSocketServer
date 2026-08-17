@@ -32,7 +32,8 @@ class webSocketServer {
             $Port,
             $socketMaster,
             $allApps = [],
-            $serverSecret;
+            $serverSecret,
+            $running = true;
 
     function __construct($Address, $logger, $certFile = '', $pkFile = '') {
 
@@ -42,25 +43,34 @@ class webSocketServer {
         $this->token = bin2hex(random_bytes(8));
         $this->serverSecret = random_bytes(32); // Cryptographic secret for HMAC checks
 
-        $usingSSL = 'tcp://';
         $context = stream_context_create();
         $Port = '';
 
-        if ($this->isSecure($Address, $Port)) {
-            $develop = GetAllConfig::load()['develop']['developsystem'];
-            // Security Fix: Enable verification and strict TLS options
+        // Determine if direct SSL termination by PHP is enabled and valid cert files exist
+        if ($this->isSecure($Address, $Port) && !empty($certFile) && !empty($pkFile) && file_exists($certFile) && file_exists($pkFile)) {
+            $develop = GetAllConfig::load()['develop']['developsystem'] ?? false;
+
+            // Configure TLS context options for direct PHP SSL handling
             stream_context_set_option($context, 'ssl', 'local_cert', $certFile);
             stream_context_set_option($context, 'ssl', 'local_pk', $pkFile);
             stream_context_set_option($context, 'ssl', 'verify_peer', !$develop);
             stream_context_set_option($context, 'ssl', 'verify_peer_name', !$develop);
             stream_context_set_option($context, 'ssl', 'allow_self_signed', $develop);
-            $usingSSL = "tcp://";
+            stream_context_set_option($context, 'ssl', 'crypto_method', STREAM_CRYPTO_METHOD_TLSv1_2_SERVER | STREAM_CRYPTO_METHOD_TLSv1_3_SERVER);
+
             $this->isSSL = true;
+        } else {
+            // Pass-Through Mode: PHP operates over plain TCP (Reverse Proxy like Nginx handles SSL)
+            $this->isSSL = false;
         }
 
+        // Always bind stream_socket_server over tcp:// stream transport regardless of TLS mode
+        $usingSSL = 'tcp://';
         $socket = stream_socket_server("$usingSSL$Address:$Port", $errno, $errstr, STREAM_SERVER_BIND | STREAM_SERVER_LISTEN, $context);
 
-        $this->Log("Server initialized on " . PHP_OS . "  $Address:$Port $usingSSL");
+        $modeNotice = $this->isSSL ? "Direct PHP TLS Enabled" : "Pass-Through / Plain TCP Mode";
+        $this->Log("Server initialized on " . PHP_OS . " ($modeNotice) at $Address:$Port");
+
         if (!$socket) {
             $this->Log("Error $errno creating stream: $errstr", true);
             openlog('websock', LOG_PID, LOG_USER);
@@ -82,6 +92,21 @@ class webSocketServer {
         set_time_limit($this->timeLimit);
         if ($this->implicitFlush) {
             ob_implicit_flush();
+        }
+
+        // Enable graceful shutdown OS signals (Linux/Unix CLI)
+        if (function_exists('pcntl_signal')) {
+            pcntl_async_signals(true);
+            pcntl_signal(SIGINT, [$this, 'stop']);
+            pcntl_signal(SIGTERM, [$this, 'stop']);
+        }
+    }
+
+    public function stop() {
+        $this->Log("Shutting down server gracefully...");
+        $this->running = false;
+        foreach ($this->Sockets as $socket) {
+            $this->Close($socket);
         }
     }
 
@@ -109,6 +134,16 @@ class webSocketServer {
         return $secure;
     }
 
+    private function extractIPort($ipport) {
+        if (empty($ipport)) {
+            return (object)['ip' => '0.0.0.0', 'port' => 0];
+        }
+        $parts = explode(':', $ipport);
+        $port = array_pop($parts);
+        $ip = trim(implode(':', $parts), '[]');
+        return (object)['ip' => $ip, 'port' => $port];
+    }
+
     public function Start() {
 
         $this->Log("Starting server...");
@@ -116,14 +151,34 @@ class webSocketServer {
             $this->Log("Registered resource : $appName");
         }
 
-        $a = true;
-        $socketArrayWrite = $socketArrayExceptions = NULL;
+        $pendingSSL = []; // Tracks pending TLS negotiations: [SocketID => startTime]
         $startTime = time();
 
-        while ($a) {
+        while ($this->running) {
             $socketArrayRead = $this->Sockets;
-            $ncon = stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, 1, 0);
+            $socketArrayWrite = NULL;
+            $socketArrayExceptions = NULL;
 
+            $ncon = @stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, 1, 0);
+
+            if ($ncon === false) {
+                // Interrupted by signal or system event
+                continue;
+            }
+
+            // 1. TIMEOUT CHECK FOR STALLED / SLOW-CLIENT TLS HANDSHAKES
+            $currentTime = time();
+            foreach ($pendingSSL as $pSocketID => $pStartTime) {
+                if ($currentTime - $pStartTime > 3) { // 3-second grace period
+                    $this->Log("Dropping socket #$pSocketID: TLS handshake timeout.");
+                    if (isset($this->Sockets[$pSocketID])) {
+                        @fclose($this->Sockets[$pSocketID]);
+                    }
+                    unset($this->Sockets[$pSocketID], $this->Clients[$pSocketID], $pendingSSL[$pSocketID]);
+                }
+            }
+
+            // Handle idle ping interval
             if ($ncon === 0) {
                 if ($this->pingInterval > 0 && (time() - $startTime) > $this->pingInterval) {
                     if ($this->pingClients()) {
@@ -137,53 +192,69 @@ class webSocketServer {
             foreach ($socketArrayRead as $Socket) {
                 $SocketID = intval($Socket);
 
+                // 2. ACCEPT NEW INCOMING TCP CONNECTIONS
                 if ($Socket === $this->socketMaster) {
-                    $clientSocket = stream_socket_accept($Socket);
+                    $clientSocket = @stream_socket_accept($Socket);
                     if (!is_resource($clientSocket)) {
-                        $this->Log("$SocketID, Connection could not be established");
+                        $this->Log("Connection could not be established");
                         continue;
                     }
-                    // =========================================================
-                    // OPTIONAL SSL ENCRYPTION HANDSHAKE
-                    // =========================================================
-                    if ($this->isSSL) {
-                        stream_set_blocking($clientSocket, true); // Must be blocking for handshake
 
-                        $cryptoResult = @stream_socket_enable_crypto(
-                                        $clientSocket,
-                                        true,
-                                        STREAM_CRYPTO_METHOD_TLSv1_2_SERVER | STREAM_CRYPTO_METHOD_TLSv1_3_SERVER
-                                );
-
-                        if ($cryptoResult !== true) {
-                            $this->Log("SSL/TLS Handshake failed on client socket.");
-                            @fclose($clientSocket);
-                            continue;
-                        }
-
-                        stream_set_blocking($clientSocket, false); // Return to non-blocking for event loop
-                    }
+                    stream_set_blocking($clientSocket, false);
+                    $SocketID = intval($clientSocket);
                     $ipport = stream_socket_get_name($clientSocket, true);
                     $ip = $this->extractIPort($ipport);
-                    $this->Log("Connecting from IP: $ip->ip");
-                    $SocketID = intval($clientSocket);
 
+                    // Initialize client metadata container right away
                     $this->Clients[$SocketID] = (object) [
                                 'ID' => $SocketID,
                                 'uuid' => '',
                                 'clientType' => null,
                                 'Handshake' => false,
+                                'handshakeBuffer' => '',
                                 'timeCreated' => time(),
                                 'app' => NULL,
-                                'ip' => $ip->ip,
+                                'ip' => $ip->ip ?? '0.0.0.0',
                                 'fyi' => '',
                                 'ident' => '',
                                 'allowremote' => 'no',
-                                'expectPong' => false
+                                'expectPong' => false,
+                                'headers' => []
                     ];
-
                     $this->Sockets[$SocketID] = $clientSocket;
-                    $this->Log("New client connecting from $ipport on socket #$SocketID\r\n");
+
+                    if ($this->isSSL) {
+                        $pendingSSL[$SocketID] = time(); // Register for non-blocking TLS negotiation
+                    }
+
+                    $this->Log("New client connecting from $ipport on socket #$SocketID");
+                    continue;
+                }
+
+                // 3. NEGOTIATE NON-BLOCKING TLS HANDSHAKE
+                if (isset($pendingSSL[$SocketID])) {
+                    $cryptoResult = @stream_socket_enable_crypto(
+                                    $this->Sockets[$SocketID],
+                                    true,
+                                    STREAM_CRYPTO_METHOD_TLSv1_2_SERVER | STREAM_CRYPTO_METHOD_TLSv1_3_SERVER
+                            );
+
+                    if ($cryptoResult === true) {
+                        $this->Log("SSL/TLS Handshake successful on socket #$SocketID");
+                        unset($pendingSSL[$SocketID]);
+                        continue;
+                    } elseif ($cryptoResult === false) {
+                        $this->Log("SSL/TLS Handshake failed on socket #$SocketID");
+                        @fclose($this->Sockets[$SocketID]);
+                        unset($this->Sockets[$SocketID], $this->Clients[$SocketID], $pendingSSL[$SocketID]);
+                        continue;
+                    } else {
+                        continue;
+                    }
+                }
+
+                // 4. READ & PROCESS WEBSOCKET / HTTP HANDSHAKE DATA
+                if (!isset($this->Clients[$SocketID])) {
                     continue;
                 }
 
@@ -196,36 +267,50 @@ class webSocketServer {
                         $opcode = $frame['opcode'];
                         $message = $frame['data'];
 
-                        // Extract internal commands (Ping, Pong, Close)
                         if ($this->extractMessage($SocketID, $opcode, $message) === false) {
                             continue;
                         }
 
-                        // Fully reassembled data frame dispatch
                         if (($opcode === 1 || $opcode === 2) && $Client->app !== NULL) {
                             $Client->app->onData($SocketID, $message);
-                            // Send 'next' acknowledgment frame back to the client
                             $this->Write($SocketID, json_encode((object) [
                                                 'opcode' => 'next',
                                                 'fyi' => $Client->fyi
                             ]));
                         }
                     }
-
                     continue;
                 }
 
+                // HTTP WebSocket Handshake reading
                 $dataBuffer = fread($Socket, $this->bufferLength);
 
-                if ($dataBuffer === false || strlen($dataBuffer) === 0 || strlen($dataBuffer) >= $this->bufferChunk) {
-                    $this->onError($SocketID, "Client disconnected by Server - TCP connection lost or chunk limit exceeded");
+                if ($dataBuffer === false || strlen($dataBuffer) === 0) {
+                    $this->onError($SocketID, "Client disconnected by Server - TCP connection lost");
                     $this->Close($Socket);
                     continue;
                 }
 
-                if ($this->Handshake($Socket, $dataBuffer) === false) {
+                // Accumulate buffer to support non-blocking fragmented HTTP requests
+                $Client->handshakeBuffer .= $dataBuffer;
+
+                if (strlen($Client->handshakeBuffer) >= $this->bufferChunk) {
+                    $this->onError($SocketID, "Client payload chunk limit exceeded");
+                    $this->Close($Socket);
                     continue;
                 }
+
+                // Wait until full HTTP headers (\r\n\r\n) are available before executing Handshake
+                if (strpos($Client->handshakeBuffer, "\r\n\r\n") === false) {
+                    continue;
+                }
+
+                if ($this->Handshake($Socket, $Client->handshakeBuffer) === false) {
+                    continue;
+                }
+
+                // Resolve real IP now that headers are fully parsed
+                $Client->ip = $this->getRealClientIP($SocketID);
 
                 if ($this->specificChecks($SocketID) === false) {
                     continue;
@@ -246,11 +331,16 @@ class webSocketServer {
 
     public function Close($Socket) {
         if (is_int($Socket)) {
-            $Socket = $this->Sockets[$Socket];
+            $Socket = $this->Sockets[$Socket] ?? null;
+        }
+
+        if (!$Socket) {
+            return false;
         }
 
         if (is_resource($Socket)) {
-            stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
+            @stream_socket_shutdown($Socket, STREAM_SHUT_RDWR);
+            @fclose($Socket);
         }
 
         $SocketID = intval($Socket);
@@ -307,7 +397,22 @@ class webSocketServer {
             return false;
         }
         $m = $this->Encode($message);
-        return fwrite($this->Sockets[$SocketID], $m, strlen($m));
+        
+        $totalBytes = strlen($m);
+        $writtenBytes = 0;
+
+        while ($writtenBytes < $totalBytes) {
+            $result = @fwrite($this->Sockets[$SocketID], substr($m, $writtenBytes));
+            if ($result === false || $result === 0) {
+                // Fixed: Disconnect clients on mid-write failure to prevent stream corruption
+                $this->Log("Write error on socket #$SocketID - Closing broken socket");
+                $this->Close($SocketID);
+                return false;
+            }
+            $writtenBytes += $result;
+        }
+
+        return $writtenBytes;
     }
 
     public final function feedback($packet) {
@@ -325,14 +430,13 @@ class webSocketServer {
     }
 
     public final function broadCast($SocketID, $M) {
-        $ME = $this->Encode($M);
         foreach ($this->Clients as &$client) {
             if ($client->clientType === 'websocket') {
                 if ($SocketID == $client->ID) {
                     continue;
                 }
                 if (isset($this->Sockets[$client->ID])) {
-                    fwrite($this->Sockets[$client->ID], $ME, strlen($ME));
+                    $this->Write($client->ID, $M);
                 }
             }
         }
@@ -341,19 +445,26 @@ class webSocketServer {
 
     public final function pingClients() {
         $this->opcode = 9;
-        $m = $this->Encode(json_encode((object) ['opcode' => 'PING']));
-        $this->opcode = 1;
+        $m = json_encode((object) ['opcode' => 'PING']);
         $nw = false;
 
-        foreach ($this->Clients as &$client) {
+        foreach ($this->Clients as $SocketID => &$client) {
             if ($client->clientType === 'websocket') {
+                // Fixed: Evict dead connections that failed to answer the previous PING
+                if ($client->expectPong === true) {
+                    $this->Log("Socket #$SocketID timed out (No PONG received). Closing.");
+                    $this->Close($SocketID);
+                    continue;
+                }
+
                 if (isset($this->Sockets[$client->ID])) {
-                    fwrite($this->Sockets[$client->ID], $m, strlen($m));
+                    $this->Write($client->ID, $m);
                     $client->expectPong = true;
                     $nw = true;
                 }
             }
         }
+        $this->opcode = 1;
 
         return $nw;
     }
@@ -370,18 +481,32 @@ class webSocketServer {
         return true;
     }
 
+    public function getRealClientIP($SocketID) {
+        if (!isset($this->Clients[$SocketID])) {
+            return '0.0.0.0';
+        }
+
+        $Client = $this->Clients[$SocketID];
+
+        if (!empty($Client->headers['x-forwarded-for'])) {
+            $forwardedIps = explode(',', $Client->headers['x-forwarded-for']);
+            return trim($forwardedIps[0]);
+        }
+
+        return $Client->ip;
+    }
+
     private function specificChecks($SocketID) {
         $Client = $this->Clients[$SocketID];
 
-        // CSWSH Protection Check
-        if (!empty($this->allowedOrigins) && isset($_SERVER['HTTP_ORIGIN'])) {
-            if (!in_array($_SERVER['HTTP_ORIGIN'], $this->allowedOrigins, true)) {
-                $this->Log("$SocketID, Rejected origin: " . $_SERVER['HTTP_ORIGIN']);
+        if (!empty($this->allowedOrigins)) {
+            $origin = $Client->headers['origin'] ?? null;
+            if ($origin === null || !in_array($origin, $this->allowedOrigins, true)) {
+                $this->Log("$SocketID, Rejected missing or invalid origin: " . ($origin ?? 'NONE'));
                 $this->Close($SocketID);
                 return false;
             }
         }
-
         if ($Client->app === NULL) {
             $this->Log("Application incomplete or does not exist; Telling Client to disconnect on #$SocketID");
             $msg = (object) ['opcode' => 'close'];
