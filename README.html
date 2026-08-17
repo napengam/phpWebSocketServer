@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>webSocketServer Documentation</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace; line-height: 1.5; color: #333; max-width: 900px; margin: 0 auto; padding: 20px; background: #f9f9f9; }
+h1, h2, h3 { color: #111; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+code, pre { font-family: Consolas, Monaco, "Andale Mono", monospace; background: #eceff1; border-radius: 4px; }
+code { padding: 2px 5px; color: #d63384; }
+pre { padding: 12px; overflow-x: auto; background: #272822; color: #f8f8f2; }
+pre code { color: inherit; background: none; padding: 0; }
+.property-table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+.property-table th, .property-table td { border: 1px solid #ccc; padding: 8px 12px; text-align: left; }
+.property-table th { background: #eee; }
+.badge { display: inline-block; padding: 2px 8px; font-size: 12px; font-weight: bold; color: #fff; background: #007bff; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<h1>webSocketServer Documentation</h1>
+<p><span class="badge">PHP 8+</span> <span class="badge">RFC 6455</span></p>
+
+<p>High-performance, non-blocking WebSocket server implemented in native PHP stream sockets using the <code>RFC_6455</code> trait. Supports direct TLS termination, reverse-proxy pass-through, ping/pong keepalives, and multi-resource routing.</p>
+
+<h2>Features</h2>
+<ul>
+<li>Full RFC 6455 compliant handshake & framing via trait.</li>
+<li>Dual SSL/TLS modes: Direct PHP crypto termination or TCP pass-through (Nginx/HAProxy).</li>
+<li>Resource handler architecture for endpoint routing.</li>
+<li>Built-in IP rate limiting, origin checks, and auto ping/pong eviction.</li>
+</ul>
+
+<h2>Resource Handler Interface</h2>
+<p>Any application registered with <code>registerResource()</code> must implement these 5 methods:</p>
+
+<table>
+<thead>
+<tr><th>Method</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td><code>registerServerMethods($server)</code></td><td>Stores the server instance reference.</td></tr>
+<tr><td><code>onOpen($socketId)</code></td><td>Triggered when a new WebSocket handshake completes.</td></tr>
+<tr><td><code>onData($socketId, $message)</code></td><td>Triggered when a decoded frame payload is received.</td></tr>
+<tr><td><code>onClose($socketId)</code></td><td>Triggered when a connection terminates.</td></tr>
+<tr><td><code>onError($socketId, $message)</code></td><td>Triggered on stream or protocol errors.</td></tr>
+</tbody>
+</table>
+
+<h2>PHP Usage Example</h2>
+<pre><code><?php
+
+require_once __DIR__ . '/ClassLoader.php';
+ClassLoader::load(['src']);
+
+class ChatResource {
+    private webSocketServer $server;
+
+    public function registerServerMethods($server): void {
+        $this->server = $server;
+    }
+
+    public function onOpen($socketId): void {
+        $this->server->echo($socketId, ['status' => 'ready']);
+    }
+
+    public function onData($socketId, $message): void {
+        if (empty($message)) {
+            return;
+        }
+        $this->server->broadCast($socketId, $message);
+    }
+
+    public function onClose($socketId): void {
+        $this->server->Log("Client #{$socketId} disconnected.");
+    }
+
+    public function onError($socketId, $message): void {
+        $this->server->Log("Error on #{$socketId}: {$message}");
+    }
+}
+
+class SystemLogger {
+    public function log(string $msg): void {
+        echo '[' . date('Y-m-d H:i:s') . '] ' . $msg . PHP_EOL;
+    }
+}
+
+$logger = new SystemLogger();
+$server = new webSocketServer('0.0.0.0:8080', $logger);
+
+$server->pingInterval = 30;
+$server->maxClients = 1000;
+$server->allowedOrigins = ['http://localhost'];
+
+$server->registerResource('/chat', new ChatResource());
+$server->Start();
+</code></pre>
+
+<h2>JavaScript Client</h2>
+<pre><code>const ws = new WebSocket("ws://localhost:8080/chat");
+
+ws.onopen = () => {
+    ws.send(JSON.stringify({ type: "greeting", payload: "Hello" }));
+};
+
+ws.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.opcode === 'ready' || data.opcode === 'next') {
+        return;
+    }
+    console.log("Received:", data);
+};
+
+ws.onclose = () => {
+    console.log("Disconnected");
+};
+</code></pre>
+
+<h2>Configurable Properties</h2>
+<table class="property-table">
+<tr><th>Property</th><th>Type</th><th>Default</th><th>Description</th></tr>
+<tr><td><code>$pingInterval</code></td><td>int</td><td>0</td><td>Interval in seconds to send PING frames to active clients. 0 disables.</td></tr>
+<tr><td><code>$maxClients</code></td><td>int</td><td>0</td><td>Maximum concurrent connection limit across all resources. 0 = unlimited.</td></tr>
+<tr><td><code>$maxPerIP</code></td><td>int</td><td>0</td><td>Maximum connection limit per client IP address. 0 = unlimited.</td></tr>
+<tr><td><code>$allowedOrigins</code></td><td>array</td><td>[]</td><td>Whitelist array of accepted origin domains. Empty allows all.</td></tr>
+<tr><td><code>$bufferLength</code></td><td>int</td><td>40960</td><td>Chunk size (bytes) for reading stream buffers.</td></tr>
+</table>
+
+</body>
+</html>
