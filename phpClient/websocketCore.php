@@ -5,7 +5,6 @@ class websocketCore {
     public $prot, $connected = false, $firstFragment = true, $finBit = true,
             $ident, $socketMaster, $key, $expectedToken, $errorHandshake, $fin, $opcode,
             $frame, $length, $fromUUID, $timeout = 2;
-    private $buffer, $fragmentBuffer, $fragmentOpcode;
     // Security limit: Max 10MB payload size
     private int $maxPayloadSize = 10485760;
 
@@ -240,13 +239,15 @@ class websocketCore {
 
         // Security Fix #3: Check buffer length before reading extended payload offsets
         if ($length === 126) {
-            if (strlen($frame) < 4)
+            if (strlen($frame) < 4) {
                 return '';
+            }
             $length = unpack('n', substr($frame, 2, 2))[1];
             $poff = 4;
         } elseif ($length === 127) {
-            if (strlen($frame) < 10)
+            if (strlen($frame) < 10) {
                 return '';
+            }
             $length = unpack('J', substr($frame, 2, 8))[1];
             $poff = 10;
         }

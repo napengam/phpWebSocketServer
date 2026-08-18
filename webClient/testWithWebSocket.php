@@ -25,6 +25,24 @@
             <b>Messages from other web clients:</b><br>
         </div>
         <?php
+
+        function secureSessionInit(): void {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_set_cookie_params([
+                    'secure' => true,
+                    'httponly' => true,
+                    'samesite' => 'Strict',
+                ]);
+                session_start();
+            }
+        }
+
+        if (session_status() !== PHP_SESSION_NONE) {
+            session_destroy();  // test for unauthorised
+        }
+        secureSessionInit();
+        $_SESSION['allowconnect'] = true;
+
         include '../include/adressPort.inc.php';
         /*
          * ***********************************************

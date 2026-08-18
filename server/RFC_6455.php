@@ -164,6 +164,7 @@ trait RFC_6455 {
     }
 
     protected function Handshake($Socket, $Buffer) {
+
         $SocketID = intval($Socket);
         $Client = $this->Clients[$SocketID];
         $Headers = [];
@@ -233,7 +234,11 @@ trait RFC_6455 {
         if (isset($this->allApps[$Headers['get']])) {
             $client->app = $this->allApps[$Headers['get']];
         }
-
+        if ($clientType === 'websocket') {
+            if (!SessionAuthHandler::authenticateClient($Buffer)) {
+                return false;
+            }
+        }
         return true;
     }
 
