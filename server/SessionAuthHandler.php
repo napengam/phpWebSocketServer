@@ -2,33 +2,34 @@
 
 class SessionAuthHandler {
 
-    public static function authenticateClient(string $buffer): ?bool {
+    public static function authenticateClient(string $buffer): bool {
 
-       
+
         $req = GetAllConfig::get('jsauth.require', false);
         if (!$req) {
             return true; // WARNING ALL WEBSOCKET CLIENTS CAN CONNECT !!!
         }
         $cookieName = GetAllConfig::get('jsauth.cookie_name', 'PHPSESSID');
+        $ssp = GetAllConfig::get('jsauth.ssp', '');
         $userKey = GetAllConfig::get('jsauth.key', '');
-
-        if (!preg_match('/Cookie:.*?' . preg_quote($cookieName, '/') . '=([a-zA-Z0-9,-]+)/i', $buffer, $m)) {
-            return null;
+        $pattern = '/(?:Cookie:)?.*?(?:\b|;\s*)' . preg_quote($cookieName, '/') . '=([^;\r\n\s]+)/i';
+        if (!preg_match($pattern, $buffer, $m)) {
+            return false;
         }
 
-        $file = rtrim(session_save_path() ?: sys_get_temp_dir(), '/\\') . '/sess_' . $m[1];
+        $file = rtrim($ssp, '/\\') . '/sess_' . $m[1];
         if (!is_file($file)) {
-            return null;
+            return false;
         }
 
         $raw = file_get_contents($file);
         if (!$raw) {
-            return null;
+            return false;
         }
 
         $data = self::parseSession($raw);
         if (!isset($data[$userKey])) {
-            return null;
+            return false;
         }
 
         return $data[$userKey];

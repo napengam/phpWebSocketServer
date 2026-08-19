@@ -235,7 +235,8 @@ trait RFC_6455 {
             $client->app = $this->allApps[$Headers['get']];
         }
         if ($clientType === 'websocket') {
-            if (!SessionAuthHandler::authenticateClient($Buffer)) {
+            if (SessionAuthHandler::authenticateClient($Buffer) === false) {
+                $this->onError($SocketID, "Client handshake status: false");
                 return false;
             }
         }

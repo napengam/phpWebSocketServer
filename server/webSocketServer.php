@@ -306,7 +306,9 @@ class webSocketServer {
                 }
 
                 if ($this->Handshake($Socket, $Client->handshakeBuffer) === false) {
-                    $this->onError($SocketID, "Client handshake flase");
+                    $this->onError($SocketID, "Client handshake false\r $Client->handshakeBuffer");
+                        //  $this->onError($SocketID, "Client handshake false");
+              
                     $this->Close($Socket);
                     continue;
                 }

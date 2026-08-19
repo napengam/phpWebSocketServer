@@ -38,8 +38,9 @@ final class GetAllConfig {
     }
 
     private static function loadEnv(string $file): void {
-        if (self::$envLoaded)
+        if (self::$envLoaded) {
             return;
+        }
 
         if (!is_file($file)) {
             self::$envLoaded = true;
@@ -55,10 +56,12 @@ final class GetAllConfig {
         foreach ($lines as $line) {
             $line = trim($line);
 
-            if ($line === '' || str_starts_with($line, '#'))
+            if ($line === '' || str_starts_with($line, '#')){
                 continue;
-            if (!str_contains($line, '='))
+            }
+            if (!str_contains($line, '=')){
                 continue;
+            }
 
             [$key, $value] = explode('=', $line, 2);
 
@@ -120,10 +123,11 @@ final class GetAllConfig {
     private static function applyPlaceholders(string $raw, string $projectRoot): string {
         $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? $projectRoot;
         $url = self::detectUrl($projectRoot);
+        $ssp = session_save_path();
 
         return str_replace(
-                ['__DOCUMENT_ROOT__', '__PROJECT_ROOT__', '__URL__'],
-                [$documentRoot, $projectRoot, $url],
+                ['__DOCUMENT_ROOT__', '__PROJECT_ROOT__', '__URL__', '__SESSIONSAVEPATH__'],
+                [$documentRoot, $projectRoot, $url, $ssp],
                 $raw
         );
     }
