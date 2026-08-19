@@ -6,4 +6,4 @@
 /autoload/autoload_map.php
 /server/server.crt
 /server/server.key
-/server/SessionAuthHandler.zip
+*.zip
