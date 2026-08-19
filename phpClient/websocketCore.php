@@ -55,12 +55,15 @@ class websocketCore {
         $this->connected = true;
         $this->prot = $prot;
         fwrite($this->socketMaster, $this->setHandshake($host, $app));
-
-        if (!$this->getHandshake(fread($this->socketMaster, 1024))) {
+         
+        $response = $this->readHandshakeResponse();
+        if (!$this->getHandshake($response)) {
             $this->silent();
             echo $this->errorHandshake;
-            return false;
+            return;
         }
+
+        
 
         stream_set_timeout($this->socketMaster, $this->timeout);
         return true;
@@ -189,6 +192,32 @@ class websocketCore {
 
         $this->errorHandshake = '';
         return true;
+    }
+
+    private function readHandshakeResponse(): string {
+        $buffer = '';
+        $startTime = time();
+
+        while (!str_contains($buffer, "\r\n\r\n")) {
+            if (feof($this->socketMaster)) {
+                break;
+            }
+
+            $info = stream_get_meta_data($this->socketMaster);
+            if ($info['timed_out'] || (time() - $startTime) >= $this->timeout) {
+                break;
+            }
+
+            $chunk = fread($this->socketMaster, 1024);
+            if ($chunk === false || $chunk === '') {
+                usleep(5000);
+                continue;
+            }
+
+            $buffer .= $chunk;
+        }
+
+        return $buffer;
     }
 
     final function encodeForServer($M) {
