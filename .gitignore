@@ -7,3 +7,4 @@
 /server/server.crt
 /server/server.key
 *.zip
+/.env
