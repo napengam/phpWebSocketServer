@@ -8,7 +8,8 @@ require __DIR__ . '/../share/ClassLoader.php';
 
 $paths = [
     'server',
-    'phpClient'
+    'phpClient',
+    'share'
 ];
 
 ClassLoader::load($paths);
