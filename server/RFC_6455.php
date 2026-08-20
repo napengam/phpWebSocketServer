@@ -249,15 +249,7 @@ trait RFC_6455 {
         $this->Close($Socket);
     }
 
-    function extractIPort($inIP) {
-        $inIP = preg_replace('/\s+/', '', $inIP);
-
-        if (preg_match('/^\[([^\]]+)\](?::(\d+))?$/', $inIP, $matches) || preg_match('/^([0-9.]+)(?::(\d+))?$/', $inIP, $matches)) {
-            return (object) ['ip' => $matches[1], 'port' => $matches[2] ?? ''];
-        }
-
-        return (object) ['ip' => $inIP, 'port' => ''];
-    }
+   
 
     public function sendPong($socketID, $payload = '') {
         if (!isset($this->Sockets[$socketID])) {
