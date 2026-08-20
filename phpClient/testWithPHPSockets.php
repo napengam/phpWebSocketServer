@@ -4,7 +4,7 @@ if ( isset($argc) &&$argc > 1) {
     parse_str(implode('&', array_slice($argv, 1)), $_GET);
 }
 
-require __DIR__ . '/../server/ClassLoader.php';
+require __DIR__ . '/../share/ClassLoader.php';
 
 $paths = [
     'server',
