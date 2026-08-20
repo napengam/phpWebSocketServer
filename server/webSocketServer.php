@@ -48,7 +48,7 @@ class webSocketServer {
 
         // Determine if direct SSL termination by PHP is enabled and valid cert files exist
         if ($this->isSecure($Address, $Port) && !empty($certFile) && !empty($pkFile) && file_exists($certFile) && file_exists($pkFile)) {
-                        
+
             $develop = GetAllConfig::load()['develop']['developsystem'] ?? false;
             // Configure TLS context options for direct PHP SSL handling
             stream_context_set_option($context, 'ssl', 'local_cert', $certFile);
@@ -306,9 +306,8 @@ class webSocketServer {
                 }
 
                 if ($this->Handshake($Socket, $Client->handshakeBuffer) === false) {
-                    $this->onError($SocketID, "Client handshake false\r $Client->handshakeBuffer");
-                        //  $this->onError($SocketID, "Client handshake false");
-              
+                    $this->onError($SocketID, "Client handshake false");
+
                     $this->Close($Socket);
                     continue;
                 }
