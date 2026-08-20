@@ -138,10 +138,30 @@ class webSocketServer {
         if (empty($ipport)) {
             return (object) ['ip' => '0.0.0.0', 'port' => 0];
         }
-        $parts = explode(':', $ipport);
-        $port = array_pop($parts);
-        $ip = trim(implode(':', $parts), '[]');
-        return (object) ['ip' => $ip, 'port' => $port];
+
+        $ipport = trim($ipport);
+
+        // IPv6 mit Port: [2001:db8::1]:8080
+        if (preg_match('/^\[([a-fA-F0-9:]+)\]:(\d+)$/', $ipport, $matches)) {
+            return (object) ['ip' => $matches[1], 'port' => (int) $matches[2]];
+        }
+
+        // Reine IPv6-Adresse (in Klammern oder ohne): [::1] oder ::1
+        $cleanIp = trim($ipport, '[]');
+        if (filter_var($cleanIp, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            return (object) ['ip' => $cleanIp, 'port' => 0];
+        }
+
+        // IPv4 mit Port oder Host:Port (127.0.0.1:8080)
+        $lastColon = strrpos($ipport, ':');
+        if ($lastColon !== false) {
+            $ip = substr($ipport, 0, $lastColon);
+            $port = (int) substr($ipport, $lastColon + 1);
+            return (object) ['ip' => $ip, 'port' => $port];
+        }
+
+        // Reine IPv4 oder Hostname ohne Port
+        return (object) ['ip' => $ipport, 'port' => 0];
     }
 
     public function Start() {
