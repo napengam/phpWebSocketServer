@@ -1,6 +1,6 @@
 <?php
 
-require __DIR__ . '/ClassLoader.php';
+require __DIR__ . '/../share/ClassLoader.php';
 
 class runSocketServer {
 
@@ -76,7 +76,8 @@ class runSocketServer {
 
 $paths = [
     'server',
-    'phpClient'
+    'phpClient',
+    'share'
 ];
 
 ClassLoader::load($paths);
