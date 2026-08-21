@@ -9,12 +9,16 @@ class websocketPhp extends websocketCore {
     //private $socketMaster;
 
     function __construct($Address, $myIdent = '') {
-
+        return;
         if (parent::__construct($Address, $myIdent)) {
 
             $buff = fread($this->socketMaster, 1024); // wait for ACK       
             $buff = $this->decodeFromServer($buff);
             $json = json_decode($buff);
+             if (!isset($json->opcode)) {
+                $this->connected = false;
+                return;
+            }
             if ($json->opcode != 'ready') {
                 $this->connected = false;
                 return;
@@ -78,5 +82,4 @@ class websocketPhp extends websocketCore {
         }
         return true;
     }
-
 }
