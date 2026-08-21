@@ -9,7 +9,7 @@ class websocketPhp extends websocketCore {
     //private $socketMaster;
 
     function __construct($Address, $myIdent = '') {
-        return;
+       
         if (parent::__construct($Address, $myIdent)) {
 
             $buff = fread($this->socketMaster, 1024); // wait for ACK       
