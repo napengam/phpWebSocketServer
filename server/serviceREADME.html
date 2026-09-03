@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>WebSocket Service Setup</title>
+    </head>
+    <body>
+        <h1>WebSocket Service</h1>
+
+        <p>Create the systemd service file:</p>
+        use<p>
+        <pre>
+[Unit]
+Description=WebSocket Service
+After=network.target
+
+[Service]
+Type=exec
+User=www-data
+WorkingDirectory=/var/www/html/phpWebSocketServer
+ExecStart=/usr/bin/php /var/www/html/phpWebSocketServer/server/runSocketServer.php
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+        </pre>
+        <pre><code>sudo nano /etc/systemd/system/phpWebSocketServer.service</code></pre>
+
+        <p>Then reload, enable, and start the service:</p>
+
+        <pre><code>sudo systemctl daemon-reload
+sudo systemctl enable --now phpWebSocketServer.service</code></pre>
+
+        <p>Check its status and logs:</p>
+
+        <pre><code>sudo systemctl status phpWebSocketServer.service
+sudo journalctl -u phpWebSocketServer.service -f</code></pre>
+    </body>
+</html>
