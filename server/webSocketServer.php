@@ -180,12 +180,12 @@ class webSocketServer {
             $socketArrayExceptions = NULL;
 
             $ncon = @stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, 1, 0);
-
+$this->Log("1");
             if ($ncon === false) {
                 // Interrupted by signal or system event
                 continue;
             }
-
+$this->Log("2");
             // 1. TIMEOUT CHECK FOR STALLED / SLOW-CLIENT TLS HANDSHAKES
             $currentTime = time();
             foreach ($pendingSSL as $pSocketID => $pStartTime) {
@@ -197,7 +197,7 @@ class webSocketServer {
                     unset($this->Sockets[$pSocketID], $this->Clients[$pSocketID], $pendingSSL[$pSocketID]);
                 }
             }
-
+$this->Log("3");
             // Handle idle ping interval
             if ($ncon === 0) {
                 if ($this->pingInterval > 0 && (time() - $startTime) > $this->pingInterval) {
@@ -208,7 +208,7 @@ class webSocketServer {
                 }
                 continue;
             }
-
+$this->Log("4");
             foreach ($socketArrayRead as $Socket) {
                 $SocketID = intval($Socket);
 
