@@ -53,8 +53,8 @@ class webSocketServer {
             // Configure TLS context options for direct PHP SSL handling
             stream_context_set_option($context, 'ssl', 'local_cert', $certFile);
             stream_context_set_option($context, 'ssl', 'local_pk', $pkFile);
-            stream_context_set_option($context, 'ssl', 'verify_peer', !$develop);
-            stream_context_set_option($context, 'ssl', 'verify_peer_name', !$develop);
+            stream_context_set_option($context, 'ssl', 'verify_peer', false);
+            stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
             stream_context_set_option($context, 'ssl', 'allow_self_signed', $develop);
             stream_context_set_option($context, 'ssl', 'crypto_method', STREAM_CRYPTO_METHOD_TLSv1_2_SERVER | STREAM_CRYPTO_METHOD_TLSv1_3_SERVER);
 
