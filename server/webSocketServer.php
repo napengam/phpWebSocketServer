@@ -180,12 +180,12 @@ class webSocketServer {
             $socketArrayExceptions = NULL;
 
             $ncon = @stream_select($socketArrayRead, $socketArrayWrite, $socketArrayExceptions, 1, 0);
-$this->Log("1");
+            $this->Log("1");
             if ($ncon === false) {
                 // Interrupted by signal or system event
                 continue;
             }
-$this->Log("2");
+            $this->Log("2");
             // 1. TIMEOUT CHECK FOR STALLED / SLOW-CLIENT TLS HANDSHAKES
             $currentTime = time();
             foreach ($pendingSSL as $pSocketID => $pStartTime) {
@@ -197,7 +197,7 @@ $this->Log("2");
                     unset($this->Sockets[$pSocketID], $this->Clients[$pSocketID], $pendingSSL[$pSocketID]);
                 }
             }
-$this->Log("3");
+            $this->Log("3");
             // Handle idle ping interval
             if ($ncon === 0) {
                 if ($this->pingInterval > 0 && (time() - $startTime) > $this->pingInterval) {
@@ -208,7 +208,7 @@ $this->Log("3");
                 }
                 continue;
             }
-$this->Log("4");
+            $this->Log("4");
             foreach ($socketArrayRead as $Socket) {
                 $SocketID = intval($Socket);
 
@@ -253,24 +253,45 @@ $this->Log("4");
 
                 // 3. NEGOTIATE NON-BLOCKING TLS HANDSHAKE
                 if (isset($pendingSSL[$SocketID])) {
+                    $socket = $this->Sockets[$SocketID] ?? null;
+                    if (!is_resource($socket)) {
+                        unset($this->Sockets[$SocketID], $this->Clients[$SocketID], $pendingSSL[$SocketID]);
+                        continue;
+                    }
+
+                    // Leert vorherige OpenSSL-Fehler
+                    while (openssl_error_string() !== false) {
+                        
+                    }
+
                     $cryptoResult = @stream_socket_enable_crypto(
-                                    $this->Sockets[$SocketID],
+                                    $socket,
                                     true,
-                                    STREAM_CRYPTO_METHOD_TLSv1_2_SERVER | STREAM_CRYPTO_METHOD_TLSv1_3_SERVER
+                                    STREAM_CRYPTO_METHOD_TLS_SERVER | STREAM_CRYPTO_METHOD_TLSv1_2_SERVER | STREAM_CRYPTO_METHOD_TLSv1_3_SERVER
                             );
 
                     if ($cryptoResult === true) {
                         $this->Log("SSL/TLS Handshake successful on socket #$SocketID");
                         unset($pendingSSL[$SocketID]);
                         continue;
-                    } elseif ($cryptoResult === false) {
-                        $this->Log("SSL/TLS Handshake failed on socket #$SocketID");
-                        @fclose($this->Sockets[$SocketID]);
+                    }
+
+                    if ($cryptoResult === false) {
+                        $sslErrors = [];
+                        while ($msg = openssl_error_string()) {
+                            $sslErrors[] = $msg;
+                        }
+                        $errLast = error_get_last();
+                        $errDetail = !empty($sslErrors) ? implode(', ', $sslErrors) : ($errLast['message'] ?? 'Unknown OpenSSL error / Client sent non-SSL data');
+
+                        $this->Log("SSL/TLS Handshake failed on socket #$SocketID: $errDetail");
+                        @fclose($socket);
                         unset($this->Sockets[$SocketID], $this->Clients[$SocketID], $pendingSSL[$SocketID]);
                         continue;
-                    } else {
-                        continue;
                     }
+
+                    // $cryptoResult === 0: Handshake noch nicht abgeschlossen (Non-Blocking)
+                    continue;
                 }
 
                 // 4. READ & PROCESS WEBSOCKET / HTTP HANDSHAKE DATA
