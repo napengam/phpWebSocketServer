@@ -1,8 +1,12 @@
-[unit]
+[Unit]
 Description=websocketservice
 After=network.target
+
 [Service]
 Type=simple
 ExecStart=/usr/bin/php /var/www/html/phpWebSocketServer/server/runSocketServer.php
+Restart=on-failure
+User=www-data
+
 [Install]
 WantedBy=multi-user.target
