@@ -11,16 +11,14 @@
         use<p>
         <pre>
 [Unit]
-Description=WebSocket Service
+Description=websocketservice
 After=network.target
 
 [Service]
-Type=exec
-User=www-data
-WorkingDirectory=/var/www/html/phpWebSocketServer
+Type=simple
 ExecStart=/usr/bin/php /var/www/html/phpWebSocketServer/server/runSocketServer.php
-Restart=always
-RestartSec=5
+Restart=on-failure
+User=www-data
 
 [Install]
 WantedBy=multi-user.target
