@@ -27,31 +27,26 @@ class SessionAuthHandler {
             return false;
         }
 
-        $data = self::parseSession($raw);
-        if (!isset($data[$userKey])) {
-            return false;
-        }
-
-        return $data[$userKey];
+        return self::lookForKey($raw, $userKey);
     }
 
-    private static function parseSession(string $raw): array {
-        $data = [];
+    private static function lookForKey(string $raw, ?string $userKey = null): bool {
+        if ($userKey === null) {
+            return false;
+        }
         $offset = 0;
-
         while (($pipe = strpos($raw, '|', $offset)) !== false) {
             $key = substr($raw, $offset, $pipe - $offset);
             $offset = $pipe + 1;
             $val = @unserialize(substr($raw, $offset));
-
             if ($val === false && substr($raw, $offset, 4) !== 'b:0;') {
                 break;
             }
-
-            $data[$key] = $val;
+            if ($key === $userKey) {
+                return true;
+            }
             $offset += strlen(serialize($val));
         }
-
-        return $data;
+        return false;
     }
 }
