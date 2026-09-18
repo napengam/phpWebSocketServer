@@ -41,7 +41,7 @@
             session_destroy();  // test for unauthorised
         }
         secureSessionInit();
-        $_SESSION['allowconnect'] = true;
+        $_SESSION['allowconnect'] = '';
 
         include '../include/adressPort.inc.php';
         /*
