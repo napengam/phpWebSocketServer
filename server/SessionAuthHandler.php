@@ -6,13 +6,16 @@ class SessionAuthHandler {
     private static array $sessionCache = [];
     private static int $sessionCacheLimit = 1000;
 
-    public static function authenticateClient(string $buffer): bool {
+    public static function authenticateClient(string $cookie): bool {
+
         $config = self::getConfig();
 
         if (!$config['required']) {
             return true; // WARNING ALL WEBSOCKET CLIENTS CAN CONNECT !!!
         }
-
+        if ($cookie === '') {
+            return false;  // can not continue
+        }
         if ($config['ssp'] === '' || $config['key'] === '') {
             return false;
         }
@@ -20,8 +23,8 @@ class SessionAuthHandler {
         $pattern = '/(?:^|;\s*|Cookie:\s*)' .
                 preg_quote($config['cookie_name'], '/') .
                 '=([^;\r\n\s]+)/i';
-
-        if (!preg_match($pattern, $buffer, $matches)) {
+        $matches = [];
+        if (!preg_match($pattern, $cookie, $matches)) {
             return false;
         }
 

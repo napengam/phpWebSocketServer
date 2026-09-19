@@ -235,7 +235,7 @@ trait RFC_6455 {
             $client->app = $this->allApps[$Headers['get']];
         }
         if ($clientType === 'websocket') {
-            if (SessionAuthHandler::authenticateClient($Buffer) === false) {
+            if (SessionAuthHandler::authenticateClient($Headers['cookie'] ?? '') === false) {
                 $this->onError($SocketID, "Client handshake status: unauthorized");
                 return false;
             }
@@ -248,8 +248,6 @@ trait RFC_6455 {
         $this->onError($SocketID, "Handshake aborted - $logMessage");
         $this->Close($Socket);
     }
-
-   
 
     public function sendPong($socketID, $payload = '') {
         if (!isset($this->Sockets[$socketID])) {
