@@ -1,5 +1,19 @@
 <?php
 
+/*
+    the SessionAuthHandler class checks whether a client—such as a WebSocket client—has a valid PHP session.
+    authenticateClient($cookie) extracts the configured session cookie from the supplied
+     cookie header, validates the session ID, and looks for the corresponding session 
+     file in the configured session directory. It then checks whether the session data 
+     contains the configured authentication key.
+     To reduce repeated file reads, validation results are cached based on the session
+     file’s path, modification time, and size. The class also provides methods to clear 
+     the session cache and configuration cache.
+ * 
+    Important: If jsauth.require is disabled in the configuration, authenticateClient() returns
+     true for every client, even without a cookie. In that case, authentication is effectively disabled.
+ */
+
 class SessionAuthHandler {
 
     private static ?array $config = null;
